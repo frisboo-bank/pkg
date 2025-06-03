@@ -21,6 +21,11 @@ type dependencyInfo struct {
 	scope   di.Scope
 }
 
+type valueInfo struct {
+	value any
+	once  sync.Once
+}
+
 var _ di.Container = (*container)(nil)
 
 type container struct {
@@ -30,17 +35,16 @@ type container struct {
 	root         *container
 	parent       *container
 	tracked      tracked
-	values       map[string]any
+	values       map[string]*valueInfo
 }
-
-type buildingDependencyChan = chan struct{}
 
 func NewSimpleDi(cfg *config.DiOptions) di.Container {
 	c := &container{
 		dependencies: map[string]dependencyInfo{},
 		logger:       cfg.Logger,
-		values:       map[string]any{},
 		mu:           &sync.RWMutex{},
+		tracked:      make(tracked),
+		values:       map[string]*valueInfo{},
 	}
 
 	c.root = c
@@ -49,7 +53,7 @@ func NewSimpleDi(cfg *config.DiOptions) di.Container {
 }
 
 func (c *container) Add(scope di.Scope, key string, factory di.DependencyFactoryFunc) {
-	utils.Assert(factory == nil, fmt.Errorf("di: the dependency with key %s can't be registered without a factory function", key))
+	utils.Assert(factory != nil, fmt.Errorf("di: the dependency with key `%s` can't be registered without a factory function", key))
 
 	c.mu.Lock()
 	defer c.mu.Unlock()
@@ -58,6 +62,9 @@ func (c *container) Add(scope di.Scope, key string, factory di.DependencyFactory
 		key:     key,
 		scope:   scope,
 		factory: factory,
+	}
+	c.values[key] = &valueInfo{
+		once: sync.Once{},
 	}
 }
 
@@ -74,16 +81,16 @@ func (c *container) WithScope(ctx context.Context) context.Context {
 }
 
 func (c *container) Get(key string) any {
-	c.logger.Debugf("di: trying to get the dependency with key: %s", key)
+	c.logger.Debugf("di: trying to get the dependency with key: `%s`", key)
 
 	info, exists := c.dependencies[key]
 	if !exists {
-		panic(fmt.Errorf("di: there is no dependency registered with the key: %s", key))
+		panic(fmt.Errorf("di: there is no dependency registered with the key: `%s`", key))
 	}
 
 	if _, exists := c.tracked[info.key]; exists {
 		cycleChain := strings.Join(c.tracked.ordered(), " -> ")
-		panic(fmt.Errorf("di: cycle dependencies building %s, chain: %s", info.key, cycleChain))
+		panic(fmt.Errorf("di: cycle dependencies building `%s`, chain: %s", info.key, cycleChain))
 	}
 
 	switch info.scope {
@@ -95,70 +102,25 @@ func (c *container) Get(key string) any {
 }
 
 func (c *container) get(info dependencyInfo) any {
-	for {
-		c.mu.RLock()
-		value, exists := c.values[info.key]
-		c.mu.RUnlock()
+	c.mu.RLock()
+	valueInfo, exists := c.values[info.key]
+	c.mu.RUnlock()
 
-		if exists {
-			if tempValue, isTemp := value.(buildingDependencyChan); isTemp {
-				c.logger.Debugf("di: the dependency %s is pending for creation and will be returned when done", info.key)
+	utils.Assert(exists, fmt.Errorf("di: something went very wrong as the valueInfo for key `%s` is missing", info.key))
 
-				<-tempValue
-				continue
-			}
+	var err error
+	valueInfo.once.Do(func() {
+		valueInfo.value, err = info.factory(c.builder(info))
+	})
 
-			c.logger.Debugf("di: the dependency %s is already created and will be returned", info.key)
-			return value
-		}
-
-		c.logger.Debugf("di: the dependency %s is not yet created and will be now created", info.key)
-
-		c.mu.Lock()
-		if _, exists := c.values[info.key]; exists {
-			c.mu.Unlock()
-			continue
-		}
-
-		tempValue := make(buildingDependencyChan)
-		c.values[info.key] = tempValue
-		c.mu.Unlock()
-
-		defer func() {
-			r := recover()
-			if r == nil {
-				return
-			}
-
-			c.mu.Lock()
-			delete(c.values, info.key)
-			c.mu.Unlock()
-			close(tempValue)
-			panic(r)
-		}()
-
-		return c.build(info, tempValue)
-	}
-}
-
-func (c *container) build(info dependencyInfo, tempValue buildingDependencyChan) any {
-	builder := c.builder(info)
-
-	value, err := info.factory(builder)
 	if err != nil {
 		c.mu.Lock()
 		delete(c.values, info.key)
 		c.mu.Unlock()
-		close(tempValue)
-		panic(fmt.Errorf("di: failed to buid the dependency %s with error: %w", info.key, err))
+		panic(fmt.Errorf("di: failed to build the dependency `%s` with error: %w", info.key, err))
 	}
 
-	c.mu.Lock()
-	c.values[info.key] = value
-	c.mu.Unlock()
-	close(tempValue)
-
-	return value
+	return valueInfo.value
 }
 
 func (c *container) scoped() *container {
@@ -169,7 +131,7 @@ func (c *container) scoped() *container {
 		parent:       c,
 		root:         c.root,
 		tracked:      make(tracked),
-		values:       make(map[string]any),
+		values:       map[string]*valueInfo{},
 	}
 }
 

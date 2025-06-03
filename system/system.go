@@ -1,6 +1,7 @@
 package system
 
 import (
+	"context"
 	"fmt"
 	"frisboo-bank/pkg/di"
 	diConfig "frisboo-bank/pkg/di/config"
@@ -10,14 +11,14 @@ import (
 	loggerConfig "frisboo-bank/pkg/logger/config"
 	loggerFactory "frisboo-bank/pkg/logger/factory"
 	"frisboo-bank/pkg/system/contracts"
-	"frisboo-bank/pkg/waiter"
+
+	"github.com/jackc/pgx/v5"
 )
 
 type system struct {
 	di          di.Container
 	environment environment.Environment
 	logger      logger.Logger
-	waiter      waiter.Waiter
 }
 
 func NewSystem(env environment.Environment) contracts.System {
@@ -35,6 +36,10 @@ func NewSystem(env environment.Environment) contracts.System {
 	system.di = diFactory.NewInstance(&diConfig.DiOptions{
 		Type:   di.DiTypeSimpleDi,
 		Logger: system.logger,
+	})
+
+	system.di.AddSingleton("database", func(r di.Resolver) (any, error) {
+		return pgx.Connect(context.Background(), "user=pqgotest dbname=pqgotest sslmode=verify-full")
 	})
 
 	return system
