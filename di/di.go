@@ -1,18 +1,33 @@
 package di
 
-type Scope string
+import (
+	"context"
+)
+
+type (
+	DiType string
+	Scope  string
+)
+
+const (
+	DiTypeSimpleDi = DiType("simpledi")
+)
 
 const (
 	Singleton = Scope("singleton")
 	Scoped    = Scope("scoped")
 )
 
-type DependencyFactoryFunc func(c Container) (any, error)
+type DependencyFactoryFunc func(r Resolver) (any, error)
+
+type Resolver interface {
+	Get(key string) any
+}
 
 type Container interface {
-	AddSingleton(key string, fn DependencyFactoryFunc)
-	AddScoped(key string, fn DependencyFactoryFunc)
-	Add(scope Scope, key string, fn DependencyFactoryFunc)
-	// WithScope(ctx context.Context) context.Context
-	Get(key string) (any, error)
+	Resolver
+	AddSingleton(key string, factory DependencyFactoryFunc)
+	AddScoped(key string, factory DependencyFactoryFunc)
+	Add(scope Scope, key string, factory DependencyFactoryFunc)
+	WithScope(ctx context.Context) context.Context
 }
