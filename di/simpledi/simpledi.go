@@ -26,7 +26,7 @@ var _ di.Container = (*container)(nil)
 type container struct {
 	dependencies map[string]dependencyInfo
 	logger       logger.Logger
-	mu           *sync.Mutex
+	mu           *sync.RWMutex
 	root         *container
 	parent       *container
 	tracked      tracked
@@ -40,6 +40,7 @@ func NewSimpleDi(cfg *config.DiOptions) di.Container {
 		dependencies: map[string]dependencyInfo{},
 		logger:       cfg.Logger,
 		values:       map[string]any{},
+		mu:           &sync.RWMutex{},
 	}
 
 	c.root = c
@@ -49,6 +50,7 @@ func NewSimpleDi(cfg *config.DiOptions) di.Container {
 
 func (c *container) Add(scope di.Scope, key string, factory di.DependencyFactoryFunc) {
 	utils.Assert(factory == nil, fmt.Errorf("di: the dependency with key %s can't be registered without a factory function", key))
+
 	c.mu.Lock()
 	defer c.mu.Unlock()
 
@@ -93,30 +95,50 @@ func (c *container) Get(key string) any {
 }
 
 func (c *container) get(info dependencyInfo) any {
-	c.mu.Lock()
+	for {
+		c.mu.RLock()
+		value, exists := c.values[info.key]
+		c.mu.RUnlock()
 
-	value, exists := c.values[info.key]
-	if !exists {
+		if exists {
+			if tempValue, isTemp := value.(buildingDependencyChan); isTemp {
+				c.logger.Debugf("di: the dependency %s is pending for creation and will be returned when done", info.key)
+
+				<-tempValue
+				continue
+			}
+
+			c.logger.Debugf("di: the dependency %s is already created and will be returned", info.key)
+			return value
+		}
+
 		c.logger.Debugf("di: the dependency %s is not yet created and will be now created", info.key)
+
+		c.mu.Lock()
+		if _, exists := c.values[info.key]; exists {
+			c.mu.Unlock()
+			continue
+		}
 
 		tempValue := make(buildingDependencyChan)
 		c.values[info.key] = tempValue
 		c.mu.Unlock()
+
+		defer func() {
+			r := recover()
+			if r == nil {
+				return
+			}
+
+			c.mu.Lock()
+			delete(c.values, info.key)
+			c.mu.Unlock()
+			close(tempValue)
+			panic(r)
+		}()
+
 		return c.build(info, tempValue)
 	}
-
-	c.mu.Unlock()
-
-	if tempValue, isTemp := value.(buildingDependencyChan); isTemp {
-		c.logger.Debugf("di: the dependency %s is pending for creation and will be returned when done", info.key)
-
-		<-tempValue
-
-		return c.get(info)
-	}
-
-	c.logger.Debugf("di: the dependency %s is already created and will be returned", info.key)
-	return value
 }
 
 func (c *container) build(info dependencyInfo, tempValue buildingDependencyChan) any {
@@ -143,10 +165,11 @@ func (c *container) scoped() *container {
 	return &container{
 		dependencies: c.dependencies,
 		logger:       c.logger,
+		mu:           &sync.RWMutex{},
 		parent:       c,
 		root:         c.root,
-		values:       make(map[string]any),
 		tracked:      make(tracked),
+		values:       make(map[string]any),
 	}
 }
 
