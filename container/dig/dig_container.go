@@ -136,20 +136,32 @@ func (d *digContainer) stop(ctx context.Context) error {
 	return nil
 }
 
+// collectAllModules traverses all modules using BFS, detects cycles, and avoids duplicate registrations.
+// It uses pointer identity to ensure each module is only processed once.
 func (d *digContainer) collectAllModules() []container.Module {
 	modules := make([]container.Module, 0)
 	queue := slices.Clone(d.modules)
+	visited := make(map[container.Module]int)
 
 	for len(queue) > 0 {
 		module := queue[0]
 		queue = queue[1:]
 
+		// Check for cycles/duplicates
+		if _, seen := visited[module]; seen {
+			continue
+		}
+		visited[module]++
+
 		modules = append(modules, module)
 
-		if len(module.GetModules()) > 0 {
-			d.metrics.IncrementModules(module.GetName(), len(module.GetModules()))
-
-			queue = append(queue, module.GetModules()...)
+		for _, child := range module.GetModules() {
+			// Defensive: avoid self-cycle
+			if child == module {
+				d.Logger().Warnf("Module %q references itself, skipping to avoid cycle.", module.GetName())
+				continue
+			}
+			queue = append(queue, child)
 		}
 	}
 

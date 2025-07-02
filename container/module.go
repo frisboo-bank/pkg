@@ -35,26 +35,26 @@ func (m *module) apply(mp *module) {
 	mp.modules = append(mp.modules, m)
 }
 
-func (m module) GetDecorators() []Decorator {
+func (m *module) GetDecorators() []Decorator {
 	return m.decorators
 }
 
-func (m module) GetHooks() []HookStarter {
+func (m *module) GetHooks() []HookStarter {
 	return m.hooks
 }
 
-func (m module) GetInvokes() []Invoker {
+func (m *module) GetInvokes() []Invoker {
 	return m.invokers
 }
 
-func (m module) GetModules() []Module {
+func (m *module) GetModules() []Module {
 	return m.modules
 }
 
-func (m module) GetName() string {
+func (m *module) GetName() string {
 	return m.name
 }
 
-func (m module) GetProviders() []Provider {
+func (m *module) GetProviders() []Provider {
 	return m.providers
 }
