@@ -7,6 +7,9 @@ import (
 	"go.uber.org/dig"
 )
 
+// resolveDynamicGroup dynamically resolves a dig group into a value of type T.
+// It constructs a struct input with a group tag and invokes the container.
+// It returns the resolved group or an error if resolution fails.
 func resolveDynamicGroup[T any](
 	container *dig.Container,
 	groupName string,
@@ -37,31 +40,32 @@ func resolveDynamicGroup[T any](
 	)
 
 	if err := container.Invoke(fn.Interface()); err != nil {
-		return *new(T), err
+		return *new(T), fmt.Errorf("dig invoke failed for group %q: %w", groupName, err)
 	}
 
 	field := input.FieldByName("Funcs")
 	if !field.IsValid() {
-		return *new(T), fmt.Errorf("field 'Funcs' not found in input struct")
+		return *new(T), fmt.Errorf("field 'Funcs' not found in input struct for group %q", groupName)
 	}
 
 	result, ok := field.Interface().(T)
 	if !ok {
-		return *new(T), fmt.Errorf("type conversion failed for group %s: got %T, want %T", groupName, field, *new(T))
+		return *new(T), fmt.Errorf("type conversion failed for group %q: got %T, want %T", groupName, field.Interface(), *new(T))
 	}
 
 	return result, nil
 }
 
+// filterOptions filters a slice of options of type O to a slice of type T.
+// Returns an error if any option cannot be converted to T.
 func filterOptions[T any, O any](options []O) ([]T, error) {
 	var filteredOptions []T
 
-	for _, option := range options {
+	for idx, option := range options {
 		opt, ok := any(option).(T)
 		if !ok {
-			return nil, fmt.Errorf("option must be of type %T but is currently of type %T", *new(T), option)
+			return nil, fmt.Errorf("option at index %d must be of type %T but is currently of type %T", idx, *new(T), option)
 		}
-
 		filteredOptions = append(filteredOptions, opt)
 	}
 
