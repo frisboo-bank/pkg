@@ -2,114 +2,133 @@ package waiter
 
 import (
 	"context"
+	"fmt"
+	loggerContracts "frisboo-bank/pkg/logger/contracts"
+	"frisboo-bank/pkg/waiter/contracts"
+	waiterOptions "frisboo-bank/pkg/waiter/options"
 	"os"
 	"os/signal"
+	"slices"
+	"sync"
 	"syscall"
+	"time"
 
 	"golang.org/x/sync/errgroup"
 )
 
-type (
-	WaitFunc     func(ctx context.Context) error
-	CleanupFunc  func()
-	WaiterOption func(config *waiterConfig)
-)
-
-type Waiter interface {
-	Add(fns ...WaitFunc)
-	Cleanup(fns ...CleanupFunc)
-	Wait() error
-	Context() context.Context
-	CancelFunc() context.CancelFunc
-}
-
 type waiter struct {
-	ctx          context.Context
-	waitFuncs    []WaitFunc
-	cleanupFuncs []CleanupFunc
-	cancel       context.CancelFunc
+	ctx        context.Context
+	hooks      []contracts.WaiterHook
+	cancel     context.CancelFunc
+	isWaiting  bool
+	mu         sync.Mutex
+	waitOnce   sync.Once
+	cancelOnce sync.Once
+	logger     loggerContracts.Logger
 }
 
-type waiterConfig struct {
-	parentContext context.Context
-	catchSignals  bool
-}
+func NewWaiter(options ...waiterOptions.WaiterOption) contracts.Waiter {
+	cfg := waiterOptions.GetOptionsWithDefault(options...)
 
-func ParentContext(ctx context.Context) WaiterOption {
-	return func(config *waiterConfig) {
-		config.parentContext = ctx
-	}
-}
+	w := &waiter{}
 
-func CatchSignals() WaiterOption {
-	return func(config *waiterConfig) {
-		config.catchSignals = true
-	}
-}
-
-func NewWaiter(options ...WaiterOption) Waiter {
-	cfg := &waiterConfig{
-		parentContext: context.Background(),
-		catchSignals:  false,
+	parentContext := cfg.ParentContext
+	if parentContext == nil {
+		parentContext = context.Background()
 	}
 
-	for _, option := range options {
-		option(cfg)
-	}
+	w.ctx, w.cancel = context.WithCancel(parentContext)
 
-	w := &waiter{
-		waitFuncs:    []WaitFunc{},
-		cleanupFuncs: []CleanupFunc{},
-	}
+	if cfg.CancelOnShutdownSignal {
+		var signalCancel context.CancelFunc
 
-	w.ctx, w.cancel = context.WithCancel(cfg.parentContext)
+		signalCtx, signalCancel := signal.NotifyContext(w.ctx, os.Interrupt, syscall.SIGINT, syscall.SIGTERM, syscall.SIGQUIT)
 
-	if cfg.catchSignals {
-		w.ctx, w.cancel = signal.NotifyContext(w.ctx, os.Interrupt, syscall.SIGINT, syscall.SIGTERM, syscall.SIGQUIT)
+		w.ctx = signalCtx
+		parentCancel := w.cancel
+
+		w.cancel = func() {
+			signalCancel()
+			parentCancel()
+		}
 	}
 
 	return w
 }
 
-// Add implements Waiter.
-func (w *waiter) Add(fns ...WaitFunc) {
-	w.waitFuncs = append(w.waitFuncs, fns...)
-}
-
-// Cleanup implements Waiter.
-func (w *waiter) Cleanup(fns ...CleanupFunc) {
-	w.cleanupFuncs = append(w.cleanupFuncs, fns...)
-}
-
-// Wait implements Waiter.
 func (w *waiter) Wait() error {
-	group, ctx := errgroup.WithContext(w.ctx)
+	var err error
 
-	group.Go(func() error {
-		<-ctx.Done()
-		w.cancel()
-		return nil
+	w.waitOnce.Do(func() {
+		w.mu.Lock()
+		w.isWaiting = true
+		hooks := slices.Clone(w.hooks)
+		w.mu.Unlock()
+
+		defer w.cancel()
+
+		group, gctx := errgroup.WithContext(w.ctx)
+
+		for _, hook := range hooks {
+			waitFn := hook.Wait
+			cleanupFn := hook.Cleanup
+
+			if waitFn != nil {
+				group.Go(func() error {
+					waitCtx, waitCancel := context.WithTimeout(gctx, 200*time.Millisecond)
+					defer waitCancel()
+
+					return waitFn(waitCtx)
+				})
+			}
+
+			if cleanupFn != nil {
+				group.Go(func() error {
+					<-gctx.Done()
+
+					cleanupCtx, cleanupCancel := context.WithTimeout(context.Background(), 200*time.Millisecond)
+					defer cleanupCancel()
+
+					if err := cleanupFn(cleanupCtx); err != nil {
+						fmt.Printf("waiter: failed to cleanup with error: %v", err)
+					}
+
+					return nil
+				})
+			}
+		}
+
+		err = group.Wait()
 	})
 
-	for _, fn := range w.waitFuncs {
-		group.Go(func() error {
-			return fn(ctx)
-		})
-	}
-
-	for _, fn := range w.cleanupFuncs {
-		defer fn()
-	}
-
-	return group.Wait()
+	return err
 }
 
-// Context implements Waiter.
+func (w *waiter) Add(hooks ...contracts.WaiterHook) {
+	w.mu.Lock()
+	defer w.mu.Unlock()
+
+	if w.isWaiting {
+		panic(fmt.Errorf("waiter: can't call Add() after Wait() was called"))
+	}
+
+	w.hooks = append(w.hooks, hooks...)
+}
+
+func (w *waiter) Cancel() {
+	w.cancelOnce.Do(func() {
+		if w.cancel == nil {
+			return
+		}
+
+		w.cancel()
+	})
+}
+
 func (w *waiter) Context() context.Context {
 	return w.ctx
 }
 
-// CancelFunc implements Waiter.
-func (w *waiter) CancelFunc() context.CancelFunc {
-	return w.cancel
+func (w *waiter) Logger() loggerContracts.Logger {
+	return w.logger
 }

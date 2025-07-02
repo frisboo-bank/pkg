@@ -1,7 +1,12 @@
 package environment
 
 import (
+	"fmt"
 	"frisboo-bank/pkg/constants"
+	"strings"
+
+	"github.com/joho/godotenv"
+	"github.com/spf13/viper"
 )
 
 type Environment string
@@ -12,6 +17,21 @@ var (
 	PreProd     = Environment(constants.PREPROD)
 	Production  = Environment(constants.PRODUCTION)
 )
+
+func NewEnvironment(env string) Environment {
+	switch env {
+	case constants.DEVELOPMENT:
+		return Development
+	case constants.TESTING:
+		return Testing
+	case constants.PREPROD:
+		return PreProd
+	case constants.PRODUCTION:
+		return Production
+	default:
+		panic(fmt.Errorf("environment: env `%s` is not a valid", env))
+	}
+}
 
 func (e Environment) IsEnvironment(env Environment) bool {
 	return e == env
@@ -33,6 +53,20 @@ func (e Environment) IsProduction() bool {
 	return e.IsEnvironment(Production)
 }
 
-func (e Environment) ToString() string {
-	return string(e)
+func GetEnvFromConfig(fallback ...Environment) Environment {
+	environment := Development
+	if len(fallback) > 0 {
+		environment = fallback[0]
+	}
+
+	viper.AutomaticEnv()
+
+	_ = godotenv.Load()
+
+	manualEnv := viper.GetString(constants.APP_ENV)
+	if trimmed := strings.TrimSpace(manualEnv); trimmed != "" {
+		environment = NewEnvironment(trimmed)
+	}
+
+	return environment
 }

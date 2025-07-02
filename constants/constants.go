@@ -1,5 +1,7 @@
 package constants
 
+import "time"
+
 const (
 	DEVELOPMENT = "development"
 	PREPROD     = "preprod"
@@ -21,4 +23,23 @@ const (
 	DB_MAX_IDLE_CONNS_ENV    = "DB_MAX_IDLE_CONNS_ENV"
 	DB_MAX_OPEN_CONNS_ENV    = "DB_MAX_OPEN_CONNS_ENV"
 	LOG_CONFIG_LOG_TYPE_ENV  = "LOG_CONFIG_LOG_TYPE_ENV"
+)
+
+const (
+	APP_START_TIMEOUT = 20 * time.Second
+	APP_STOP_TIMEOUT  = 20 * time.Second
+)
+
+const (
+	HEADER_REQUEST_ID = "X-Request-ID"
+)
+
+const (
+	SERVER_BODY_LIMIT          = "2M"
+	SERVER_SHUTDOWN_TIMEOUT    = 30 * time.Second
+	SERVER_READ_TIMEOUT        = 30 * time.Second
+	SERVER_READ_HEADER_TIMEOUT = 5 * time.Second
+	SERVER_WRITE_TIMEOUT       = 30 * time.Second
+	SERVER_IDLE_TIMEOUT        = 120 * time.Second
+	SERVER_MAX_HEADER_BYTES    = 8 * 1024 // 8 KB
 )

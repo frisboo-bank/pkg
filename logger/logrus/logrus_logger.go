@@ -1,36 +1,41 @@
 package logrus
 
 import (
-	"os"
-
 	"frisboo-bank/pkg/constants"
-	"frisboo-bank/pkg/logger"
-	"frisboo-bank/pkg/logger/config"
+	"frisboo-bank/pkg/logger/contracts"
+	"frisboo-bank/pkg/logger/options"
+	"os"
 
 	"github.com/nolleh/caption_json_formatter"
 	"github.com/sirupsen/logrus"
 )
 
+var logrusLevelMapping = map[options.LogLevel]logrus.Level{
+	options.LogLevelDebug: logrus.DebugLevel,
+	options.LogLevelInfo:  logrus.InfoLevel,
+	options.LogLevelWarn:  logrus.WarnLevel,
+	options.LogLevelError: logrus.ErrorLevel,
+	options.LogLevelPanic: logrus.PanicLevel,
+	options.LogLevelFatal: logrus.FatalLevel,
+}
+
 type logrusLogger struct {
-	level    logger.LogLevel
+	level    options.LogLevel
 	encoding string
 	logger   *logrus.Logger
-	config   *config.LogOptions
+	config   *options.LogOptions
 }
 
-var logrusLevelMapping = map[logger.LogLevel]logrus.Level{
-	logger.LogLevelDebug: logrus.DebugLevel,
-	logger.LogLevelInfo:  logrus.InfoLevel,
-	logger.LogLevelWarn:  logrus.WarnLevel,
-	logger.LogLevelError: logrus.ErrorLevel,
-	logger.LogLevelPanic: logrus.PanicLevel,
-	logger.LogLevelFatal: logrus.FatalLevel,
+var _ contracts.Logger = (*logrusLogger)(nil)
+
+func NewLogrusLogger(config *options.LogOptions) contracts.Logger {
+	return newLogrusLogger(config)
 }
 
-func NewLogrusLogger(cfg *config.LogOptions) logger.Logger {
+func newLogrusLogger(config *options.LogOptions) contracts.Logger {
 	logger := &logrusLogger{
-		level:  cfg.Level,
-		config: cfg,
+		level:  config.Level,
+		config: config,
 	}
 	logger.initLogger()
 
@@ -46,7 +51,7 @@ func (l *logrusLogger) initLogger() {
 
 	switch true {
 	case true:
-		logger.SetReportCaller(true)
+		logger.SetReportCaller(false)
 		logger.SetFormatter(&logrus.TextFormatter{
 			ForceColors:   true,
 			DisableColors: false,
@@ -80,8 +85,9 @@ func (l *logrusLogger) Debugf(format string, v ...any) {
 	l.logger.Debugf(format, v...)
 }
 
-func (l *logrusLogger) Debugw(message string, fields logger.Fields) {
-	panic("unimplemented")
+func (l *logrusLogger) Debugw(message string, fields contracts.Fields) {
+	entry := l.mapToFields(fields)
+	entry.Debug(message)
 }
 
 func (l *logrusLogger) Error(v ...any) {
@@ -92,8 +98,9 @@ func (l *logrusLogger) Errorf(format string, v ...any) {
 	l.logger.Errorf(format, v...)
 }
 
-func (l *logrusLogger) Errorw(message string, fields logger.Fields) {
-	panic("unimplemented")
+func (l *logrusLogger) Errorw(message string, fields contracts.Fields) {
+	entry := l.mapToFields(fields)
+	entry.Error(message)
 }
 
 func (l *logrusLogger) Fatal(v ...any) {
@@ -104,8 +111,9 @@ func (l *logrusLogger) Fatalf(format string, v ...any) {
 	l.logger.Fatalf(format, v...)
 }
 
-func (l *logrusLogger) Fatalw(message string, fields logger.Fields) {
-	panic("unimplemented")
+func (l *logrusLogger) Fatalw(message string, fields contracts.Fields) {
+	entry := l.mapToFields(fields)
+	entry.Fatal(message)
 }
 
 func (l *logrusLogger) Info(v ...any) {
@@ -116,12 +124,13 @@ func (l *logrusLogger) Infof(format string, v ...any) {
 	l.logger.Infof(format, v...)
 }
 
-func (l *logrusLogger) Infow(message string, fields logger.Fields) {
-	panic("unimplemented")
+func (l *logrusLogger) Infow(message string, fields contracts.Fields) {
+	entry := l.mapToFields(fields)
+	entry.Info(message)
 }
 
-func (l *logrusLogger) LogType() logger.LogType {
-	return logger.LogTypeLogrus
+func (l *logrusLogger) LogType() options.LogType {
+	return options.TypeLogrus
 }
 
 func (l *logrusLogger) Panic(v ...any) {
@@ -132,8 +141,9 @@ func (l *logrusLogger) Panicf(format string, v ...any) {
 	l.logger.Panicf(format, v...)
 }
 
-func (l *logrusLogger) Panicw(message string, fields logger.Fields) {
-	panic("unimplemented")
+func (l *logrusLogger) Panicw(message string, fields contracts.Fields) {
+	entry := l.mapToFields(fields)
+	entry.Panic(message)
 }
 
 func (l *logrusLogger) Print(v ...any) {
@@ -144,8 +154,9 @@ func (l *logrusLogger) Printf(format string, v ...any) {
 	l.logger.Printf(format, v...)
 }
 
-func (l *logrusLogger) Printw(message string, fields logger.Fields) {
-	panic("unimplemented")
+func (l *logrusLogger) Printw(message string, fields contracts.Fields) {
+	entry := l.mapToFields(fields)
+	entry.Print(message)
 }
 
 func (l *logrusLogger) Warn(v ...any) {
@@ -156,10 +167,16 @@ func (l *logrusLogger) Warnf(format string, v ...any) {
 	l.logger.Warnf(format, v...)
 }
 
-func (l *logrusLogger) Warnw(message string, fields logger.Fields) {
-	panic("unimplemented")
+func (l *logrusLogger) Warnw(message string, fields contracts.Fields) {
+	entry := l.mapToFields(fields)
+	entry.Warn(message)
 }
 
-func (l *logrusLogger) WithName(name string) {
+func (l *logrusLogger) WithName(name string) contracts.Logger {
 	l.logger.WithField(constants.LOGGER_NAME, name)
+	return l
+}
+
+func (l *logrusLogger) mapToFields(fields map[string]any) *logrus.Entry {
+	return l.logger.WithFields(logrus.Fields{"ss": 1})
 }

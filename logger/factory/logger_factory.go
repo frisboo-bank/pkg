@@ -2,16 +2,27 @@ package factory
 
 import (
 	"fmt"
-	"frisboo-bank/pkg/logger"
-	"frisboo-bank/pkg/logger/config"
+	"frisboo-bank/pkg/logger/contracts"
 	"frisboo-bank/pkg/logger/logrus"
+	"frisboo-bank/pkg/logger/noop"
+	"frisboo-bank/pkg/logger/options"
 )
 
-func NewInstance(cfg *config.LogOptions) logger.Logger {
-	switch cfg.Type {
-	case logger.LogTypeLogrus:
-		return logrus.NewLogrusLogger(cfg)
+func GetInstance(config *options.LogOptions, configs ...options.LogOption) (contracts.Logger, error) {
+	for _, c := range configs {
+		c(config)
 	}
 
-	panic(fmt.Errorf("logger: no logger of type: %s exists", cfg.Type))
+	if config.Type == "" {
+		return nil, fmt.Errorf("logger: no logger type specified")
+	}
+
+	switch config.Type {
+	case options.TypeNoop:
+		return noop.NewNoopLogger(), nil
+	case options.TypeLogrus:
+		return logrus.NewLogrusLogger(config), nil
+	}
+
+	return nil, fmt.Errorf("logger: no logger of type `%s` exists", config.Type)
 }
