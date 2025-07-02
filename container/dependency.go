@@ -136,6 +136,6 @@ func (d hookStarter) apply(module *module) {
 	module.hooks = append(module.hooks, d)
 }
 
-func Hook(startFn HookStartFn, stopFn HookStartFn, options ...HookOption) HookStarter {
+func Hook(startFn HookStartFn, stopFn HookStopFn, options ...HookOption) HookStarter {
 	return hookStarter{startFn, stopFn, options}
 }

@@ -4,8 +4,6 @@ import (
 	"fmt"
 	"reflect"
 
-	loggerContracts "frisboo-bank/pkg/logger/contracts"
-
 	"go.uber.org/dig"
 )
 
@@ -55,20 +53,17 @@ func resolveDynamicGroup[T any](
 	return result, nil
 }
 
-func filterOptions[T any, O any](options []O, logger loggerContracts.Logger) []T {
+func filterOptions[T any, O any](options []O) ([]T, error) {
 	var filteredOptions []T
 
 	for _, option := range options {
-		if opt, ok := any(option).(T); !ok {
-			logger.Errorw("(dig-container) option doesn't seem to be a valid dig option",
-				loggerContracts.Fields{
-					"option":   option,
-					"expected": fmt.Sprintf("%T", *new(T)),
-				})
-		} else {
-			filteredOptions = append(filteredOptions, opt)
+		opt, ok := any(option).(T)
+		if !ok {
+			return nil, fmt.Errorf("option must be of type %T but is currently of type %T", *new(T), option)
 		}
+
+		filteredOptions = append(filteredOptions, opt)
 	}
 
-	return filteredOptions
+	return filteredOptions, nil
 }

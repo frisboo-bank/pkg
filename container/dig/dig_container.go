@@ -80,25 +80,25 @@ func (d *digContainer) start(ctx context.Context) error {
 
 	for _, m := range modules {
 		if err := d.registerProviders(m); err != nil {
-			return fmt.Errorf("(dig-container) failed to register providers from module %s with error: %v", m.GetName(), err)
+			return fmt.Errorf("(dig-container) failed to register providers from module %s with error: %w", m.GetName(), err)
 		}
 	}
 
 	for _, m := range modules {
 		if err := d.registerHooks(m); err != nil {
-			return fmt.Errorf("(dig-container) failed to register hooks from module %s with error: %v", m.GetName(), err)
+			return fmt.Errorf("(dig-container) failed to register hooks from module %s with error: %w", m.GetName(), err)
 		}
 	}
 
 	for _, m := range modules {
 		if err := d.registerDecorators(m); err != nil {
-			return fmt.Errorf("(dig-container) failed to register decorators from module %s with error: %v", m.GetName(), err)
+			return fmt.Errorf("(dig-container) failed to register decorators from module %s with error: %w", m.GetName(), err)
 		}
 	}
 
 	for _, m := range modules {
 		if err := d.registerInvokes(m); err != nil {
-			return fmt.Errorf("(dig-container) failed to invoke functions from module %s with error: %v", m.GetName(), err)
+			return fmt.Errorf("(dig-container) failed to invoke functions from module %s with error: %w", m.GetName(), err)
 		}
 	}
 
@@ -107,7 +107,7 @@ func (d *digContainer) start(ctx context.Context) error {
 	for _, m := range modules {
 		hooks, err := d.resolveHooks(m)
 		if err != nil {
-			return fmt.Errorf("(dig-container) failed to invoke hooks with error: %v", err)
+			return fmt.Errorf("(dig-container) failed to invoke hooks with error: %w", err)
 		}
 
 		d.waiter.Add(hooks...)
@@ -129,7 +129,7 @@ func (d *digContainer) Stop(ctx context.Context) error {
 
 func (d *digContainer) stop(ctx context.Context) error {
 	if !d.started {
-		return fmt.Errorf("(dig-container) seams like there is no container running, you need to call Start first")
+		return fmt.Errorf("(dig-container) seems like there is no container running, you need to call Start first")
 	}
 
 	d.waiter.Cancel()
@@ -160,10 +160,13 @@ func (d *digContainer) registerProviders(module container.Module) error {
 	d.metrics.IncrementProviders(module.GetName(), len(module.GetProviders()))
 
 	for id, provider := range module.GetProviders() {
-		options := filterOptions[dig.ProvideOption](provider.Options(), d.logger)
+		options, err := filterOptions[dig.ProvideOption](provider.Options())
+		if err != nil {
+			return fmt.Errorf("failed to convert options with error: %w", err)
+		}
 
 		if err := d.digContainer.Provide(provider.Fn(), options...); err != nil {
-			return fmt.Errorf("failed to register provider %d with error: %v", id, err)
+			return fmt.Errorf("failed to register provider %d with error: %w", id, err)
 		}
 	}
 
@@ -177,16 +180,19 @@ func (d *digContainer) registerHooks(module container.Module) error {
 		startGroup := fmt.Sprintf(hookGroupStartPattern, module.GetName(), id)
 		stopGroup := fmt.Sprintf(hookGroupStopPattern, module.GetName(), id)
 
-		options := filterOptions[dig.ProvideOption](hook.Options(), d.logger)
+		options, err := filterOptions[dig.ProvideOption](hook.Options())
+		if err != nil {
+			return fmt.Errorf("failed to convert options with error: %w", err)
+		}
 
 		startOptions := append(options, dig.Group(startGroup))
 		if err := d.digContainer.Provide(hook.StartFn(), startOptions...); err != nil {
-			return fmt.Errorf("failed to register hook start %d with error: %v", id, err)
+			return fmt.Errorf("failed to register hook start %d with error: %w", id, err)
 		}
 
 		stopOptions := append(options, dig.Group(stopGroup))
 		if err := d.digContainer.Provide(hook.StopFn(), stopOptions...); err != nil {
-			return fmt.Errorf("failed to register hook stop %d with error: %v", id, err)
+			return fmt.Errorf("failed to register hook stop %d with error: %w", id, err)
 		}
 	}
 
@@ -197,10 +203,13 @@ func (d *digContainer) registerDecorators(module container.Module) error {
 	d.metrics.IncrementDecorators(module.GetName(), len(module.GetDecorators()))
 
 	for id, decorator := range module.GetDecorators() {
-		options := filterOptions[dig.DecorateOption](decorator.Options(), d.logger)
+		options, err := filterOptions[dig.DecorateOption](decorator.Options())
+		if err != nil {
+			return fmt.Errorf("failed to convert options with error: %w", err)
+		}
 
 		if err := d.digContainer.Decorate(decorator.Fn(), options...); err != nil {
-			return fmt.Errorf("failed to register decorator %d with error: %v", id, err)
+			return fmt.Errorf("failed to register decorator %d with error: %w", id, err)
 		}
 	}
 
@@ -211,10 +220,13 @@ func (d *digContainer) registerInvokes(module container.Module) error {
 	d.metrics.IncrementInvokes(module.GetName(), len(module.GetInvokes()))
 
 	for id, invoke := range module.GetInvokes() {
-		options := filterOptions[dig.InvokeOption](invoke.Options(), d.logger)
+		options, err := filterOptions[dig.InvokeOption](invoke.Options())
+		if err != nil {
+			return fmt.Errorf("failed to convert options with error: %w", err)
+		}
 
 		if err := d.digContainer.Invoke(invoke.Fn(), options...); err != nil {
-			return fmt.Errorf("failed to invoke %d with error: %v", id, err)
+			return fmt.Errorf("failed to invoke %d with error: %w", id, err)
 		}
 	}
 
