@@ -2,6 +2,7 @@ package httpserver
 
 import (
 	"context"
+
 	"frisboo-bank/pkg/container"
 	"frisboo-bank/pkg/environment"
 	"frisboo-bank/pkg/http/http_server/contracts"
@@ -11,17 +12,20 @@ import (
 	waiterContracts "frisboo-bank/pkg/waiter/contracts"
 )
 
-var Module = container.NewModule("http_server",
+var Module = container.NewModule(
+	"http_server",
 	container.Provide(func(env environment.Environment) (*options.HttpServerOptions, error) {
 		return options.ProvideHttpServerOptions(env)
 	}),
-	container.Provide(func(config *options.HttpServerOptions, logger loggerContracts.Logger) (contracts.HttpServer, error) {
-		logger = logger.WithName("http-server")
+	container.Provide(
+		func(config *options.HttpServerOptions, logger loggerContracts.Logger) (contracts.HttpServer, error) {
+			logger = logger.WithName("http-server")
 
-		return factory.GetInstance(config,
-			options.WithLogger(logger),
-		)
-	}),
+			return factory.GetInstance(config,
+				options.WithLogger(logger),
+			)
+		},
+	),
 	container.Hook(startHook, stopHook),
 )
 

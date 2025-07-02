@@ -1,5 +1,6 @@
 package container
 
+// Dependency is an interface for anything that can be applied to a module.
 type Dependency interface {
 	apply(*module)
 }

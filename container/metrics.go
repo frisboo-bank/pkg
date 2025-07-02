@@ -25,13 +25,13 @@ type moduleMetrics struct {
 }
 
 type ContainerMetrics struct {
-	modules map[string]*moduleMetrics
+	modules map[string]moduleMetrics
 	mu      sync.RWMutex
 }
 
 func NewDigMetrics() *ContainerMetrics {
 	return &ContainerMetrics{
-		modules: make(map[string]*moduleMetrics),
+		modules: make(map[string]moduleMetrics),
 	}
 }
 
@@ -59,20 +59,22 @@ func (m *ContainerMetrics) ToString() string {
 	m.mu.RLock()
 	defer m.mu.RUnlock()
 
-	if len(m.modules) <= 0 {
+	if len(m.modules) == 0 {
 		return "no modules registered"
 	}
 
 	var buf strings.Builder
 	for name, metrics := range m.modules {
-		buf.WriteString(fmt.Sprintf("  • %s: ", name))
-		buf.WriteString(fmt.Sprintf("sub-modules=%d, ", metrics.modules))
-		buf.WriteString(fmt.Sprintf("providers=%d, ", metrics.providers))
-		buf.WriteString(fmt.Sprintf("hooks=%d, ", metrics.hooks))
-		buf.WriteString(fmt.Sprintf("decorators=%d, ", metrics.decorators))
-		buf.WriteString(fmt.Sprintf("invokes=%d\n", metrics.invokes))
+		fmt.Fprintf(&buf,
+			"  • %s: sub-modules=%d, providers=%d, hooks=%d, decorators=%d, invokes=%d\n",
+			name,
+			metrics.modules,
+			metrics.providers,
+			metrics.hooks,
+			metrics.decorators,
+			metrics.invokes,
+		)
 	}
-
 	return buf.String()
 }
 
@@ -80,10 +82,10 @@ func (m *ContainerMetrics) increment(moduleName string, metricType metricType, c
 	m.mu.Lock()
 	defer m.mu.Unlock()
 
-	if _, ok := m.modules[moduleName]; !ok {
-		m.modules[moduleName] = &moduleMetrics{}
+	metrics, ok := m.modules[moduleName]
+	if !ok {
+		metrics = moduleMetrics{}
 	}
-	metrics := m.modules[moduleName]
 
 	switch metricType {
 	case metricTypeModule:
@@ -97,4 +99,5 @@ func (m *ContainerMetrics) increment(moduleName string, metricType metricType, c
 	case metricTypeInvoke:
 		metrics.invokes += count
 	}
+	m.modules[moduleName] = metrics
 }

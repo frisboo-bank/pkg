@@ -16,7 +16,11 @@ type healthCheckEndpoint struct {
 
 var _ contracts.HealthEndpoint = (*healthCheckEndpoint)(nil)
 
-func NewHealthCheckEndpoint(config *options.HealthOptions, healthService contracts.HealthService, httpServer httpServerContracts.HttpServer) contracts.HealthEndpoint {
+func NewHealthCheckEndpoint(
+	config *options.HealthOptions,
+	healthService contracts.HealthService,
+	httpServer httpServerContracts.HttpServer,
+) contracts.HealthEndpoint {
 	return &healthCheckEndpoint{
 		config:        config,
 		healthService: healthService,

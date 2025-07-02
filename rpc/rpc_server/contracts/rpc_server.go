@@ -2,9 +2,10 @@ package contracts
 
 import (
 	"context"
+	"net"
+
 	loggerContracts "frisboo-bank/pkg/logger/contracts"
 	"frisboo-bank/pkg/rpc/rpc_server/options"
-	"net"
 )
 
 type RPCServer interface {

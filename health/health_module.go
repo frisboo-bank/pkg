@@ -10,16 +10,19 @@ import (
 	httpServerContracts "frisboo-bank/pkg/http/http_server/contracts"
 )
 
-var Module = container.NewModule("health",
+var Module = container.NewModule(
+	"health",
 	container.Provide(func(env environment.Environment) (*options.HealthOptions, error) {
 		return options.ProvideHealthOptions(env)
 	}),
 	container.Provide(func(config *options.HealthOptions) contracts.HealthService {
 		return services.NewHealthCheckService(config)
 	}),
-	container.Provide(func(config *options.HealthOptions, healthService contracts.HealthService, httpServer httpServerContracts.HttpServer) contracts.HealthEndpoint {
-		return endpoints.NewHealthCheckEndpoint(config, healthService, httpServer)
-	}),
+	container.Provide(
+		func(config *options.HealthOptions, healthService contracts.HealthService, httpServer httpServerContracts.HttpServer) contracts.HealthEndpoint {
+			return endpoints.NewHealthCheckEndpoint(config, healthService, httpServer)
+		},
+	),
 	container.Invoke(func(healthEndpoint contracts.HealthEndpoint) {
 		healthEndpoint.RegisterEndpoints()
 	}),

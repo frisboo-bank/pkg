@@ -2,9 +2,10 @@ package services
 
 import (
 	"context"
+	"sync"
+
 	"frisboo-bank/pkg/health/contracts"
 	"frisboo-bank/pkg/health/options"
-	"sync"
 )
 
 type healthService struct {
@@ -28,7 +29,11 @@ func (s *healthService) CheckHealth(ctx context.Context) contracts.CheckAllStatu
 
 	sync.OnceFunc(func() {
 		for _, service := range s.config.Services {
-			servicesCheck[service.GetServiceName()] = contracts.NewCheckStatus(service.CheckHealth(ctx), s.config.StatusUp, s.config.StatusDown)
+			servicesCheck[service.GetServiceName()] = contracts.NewCheckStatus(
+				service.CheckHealth(ctx),
+				s.config.StatusUp,
+				s.config.StatusDown,
+			)
 		}
 	})
 

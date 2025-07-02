@@ -50,7 +50,12 @@ func resolveDynamicGroup[T any](
 
 	result, ok := field.Interface().(T)
 	if !ok {
-		return *new(T), fmt.Errorf("type conversion failed for group %q: got %T, want %T", groupName, field.Interface(), *new(T))
+		return *new(T), fmt.Errorf(
+			"type conversion failed for group %q: got %T, want %T",
+			groupName,
+			field.Interface(),
+			*new(T),
+		)
 	}
 
 	return result, nil
@@ -64,7 +69,12 @@ func filterOptions[T any, O any](options []O) ([]T, error) {
 	for idx, option := range options {
 		opt, ok := any(option).(T)
 		if !ok {
-			return nil, fmt.Errorf("option at index %d must be of type %T but is currently of type %T", idx, *new(T), option)
+			return nil, fmt.Errorf(
+				"option at index %d must be of type %T but is currently of type %T",
+				idx,
+				*new(T),
+				option,
+			)
 		}
 		filteredOptions = append(filteredOptions, opt)
 	}

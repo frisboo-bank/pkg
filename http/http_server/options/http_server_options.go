@@ -1,14 +1,15 @@
 package options
 
 import (
+	"net"
+	"net/url"
+	"time"
+
 	"frisboo-bank/pkg/config"
 	"frisboo-bank/pkg/constants"
 	"frisboo-bank/pkg/environment"
 	loggerContracts "frisboo-bank/pkg/logger/contracts"
 	"frisboo-bank/pkg/reflection/typemapper"
-	"net"
-	"net/url"
-	"time"
 
 	"github.com/stoewer/go-strcase"
 )

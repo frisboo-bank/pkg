@@ -3,6 +3,9 @@ package dig
 import (
 	"context"
 	"fmt"
+	"reflect"
+	"sync"
+
 	"frisboo-bank/pkg/container"
 	"frisboo-bank/pkg/container/contracts"
 	loggerContracts "frisboo-bank/pkg/logger/contracts"
@@ -10,9 +13,6 @@ import (
 	"frisboo-bank/pkg/waiter"
 	waiterContracts "frisboo-bank/pkg/waiter/contracts"
 	waiterOptions "frisboo-bank/pkg/waiter/options"
-	"reflect"
-	"slices"
-	"sync"
 
 	"go.uber.org/dig"
 )
@@ -145,8 +145,8 @@ func (d *digContainer) stop(ctx context.Context) error {
 // collectAllModules traverses all modules using BFS, detects cycles, and avoids duplicate registrations.
 // It uses pointer identity to ensure each module is only processed once.
 func (d *digContainer) collectAllModules() []container.Module {
-	modules := make([]container.Module, 0)
-	queue := slices.Clone(d.modules)
+	queue := d.modules
+	modules := make([]container.Module, 0, len(queue))
 	visited := make(map[container.Module]struct{})
 
 	for len(queue) > 0 {
@@ -266,7 +266,12 @@ func (d *digContainer) resolveHooks(module container.Module) ([]waiterContracts.
 			reflect.TypeOf([]waiterContracts.WaitFunc{}),
 		)
 		if err != nil {
-			return nil, fmt.Errorf("failed to retrieve start hook from group %s in module %s: %w", startGroup, module.GetName(), err)
+			return nil, fmt.Errorf(
+				"failed to retrieve start hook from group %s in module %s: %w",
+				startGroup,
+				module.GetName(),
+				err,
+			)
 		}
 
 		if len(startFns) > 0 {
@@ -279,7 +284,12 @@ func (d *digContainer) resolveHooks(module container.Module) ([]waiterContracts.
 			reflect.TypeOf([]waiterContracts.CleanupFunc{}),
 		)
 		if err != nil {
-			return nil, fmt.Errorf("failed to retrieve stop hook from group %s in module %s: %w", stopGroup, module.GetName(), err)
+			return nil, fmt.Errorf(
+				"failed to retrieve stop hook from group %s in module %s: %w",
+				stopGroup,
+				module.GetName(),
+				err,
+			)
 		}
 
 		if len(stopFns) > 0 {

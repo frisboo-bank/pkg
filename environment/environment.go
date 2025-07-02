@@ -2,8 +2,9 @@ package environment
 
 import (
 	"fmt"
-	"frisboo-bank/pkg/constants"
 	"strings"
+
+	"frisboo-bank/pkg/constants"
 
 	"github.com/joho/godotenv"
 	"github.com/spf13/viper"

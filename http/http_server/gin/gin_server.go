@@ -4,11 +4,12 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"net/http"
+
 	"frisboo-bank/pkg/http/http_server/contracts"
 	requestid "frisboo-bank/pkg/http/http_server/gin/middlewares/request_id"
 	"frisboo-bank/pkg/http/http_server/options"
 	loggerContracts "frisboo-bank/pkg/logger/contracts"
-	"net/http"
 
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"

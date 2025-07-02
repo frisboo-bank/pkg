@@ -6,12 +6,12 @@ import (
 	"fmt"
 	"strings"
 
+	migrationConfig "frisboo-bank/pkg/db/migration/config"
 	"frisboo-bank/pkg/db/migration/contracts"
 	"frisboo-bank/pkg/db/postgres"
 
-	migrationConfig "frisboo-bank/pkg/db/migration/config"
-
 	migrate "github.com/golang-migrate/migrate/v4"
+
 	_ "github.com/golang-migrate/migrate/v4/database/postgres"
 	_ "github.com/golang-migrate/migrate/v4/source/file"
 )

@@ -3,6 +3,8 @@ package rpcserver
 import (
 	"context"
 	"errors"
+	"net"
+
 	"frisboo-bank/pkg/container"
 	"frisboo-bank/pkg/environment"
 	loggerContracts "frisboo-bank/pkg/logger/contracts"
@@ -10,22 +12,24 @@ import (
 	"frisboo-bank/pkg/rpc/rpc_server/factory"
 	"frisboo-bank/pkg/rpc/rpc_server/options"
 	waiterContracts "frisboo-bank/pkg/waiter/contracts"
-	"net"
 
 	"google.golang.org/grpc"
 )
 
-var Module = container.NewModule("rpc-server",
+var Module = container.NewModule(
+	"rpc-server",
 	container.Provide(func(env environment.Environment) (*options.RPCServerOptions, error) {
 		return options.ProvideRPCServerOptions(env)
 	}),
-	container.Provide(func(config *options.RPCServerOptions, logger loggerContracts.Logger) (contracts.RPCServer, error) {
-		logger = logger.WithName("rpc-server")
+	container.Provide(
+		func(config *options.RPCServerOptions, logger loggerContracts.Logger) (contracts.RPCServer, error) {
+			logger = logger.WithName("rpc-server")
 
-		return factory.GetInstance(config,
-			options.WithLogger(logger),
-		)
-	}),
+			return factory.GetInstance(config,
+				options.WithLogger(logger),
+			)
+		},
+	),
 	container.Hook(startHook, stopHook),
 )
 

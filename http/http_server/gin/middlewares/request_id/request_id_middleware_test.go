@@ -1,10 +1,11 @@
 package requestid
 
 import (
-	"frisboo-bank/pkg/constants"
 	"net/http"
 	"net/http/httptest"
 	"testing"
+
+	"frisboo-bank/pkg/constants"
 
 	"github.com/gin-gonic/gin"
 	"github.com/stretchr/testify/assert"

@@ -4,10 +4,9 @@ import (
 	applicationContracts "frisboo-bank/pkg/application/contracts"
 	"frisboo-bank/pkg/database/database_client/config"
 	"frisboo-bank/pkg/environment"
+	waiterContracts "frisboo-bank/pkg/waiter/contracts"
 
 	"go.uber.org/dig"
-
-	waiterContracts "frisboo-bank/pkg/waiter/contracts"
 )
 
 type DatabaseClientModule struct{}

@@ -44,32 +44,32 @@ func (m *module) apply(targetModule *module) {
 	targetModule.modules = append(targetModule.modules, m)
 }
 
-// returns the name of the module.
+// GetName returns the name of the module.
 func (m *module) GetName() string {
 	return m.name
 }
 
-// returns the submodules registered in the module.
+// GetModules returns the submodules registered in the module.
 func (m *module) GetModules() []Module {
 	return m.modules
 }
 
-// returns the providers registered in the module.
+// GetProviders returns the providers registered in the module.
 func (m *module) GetProviders() []Provider {
 	return m.providers
 }
 
-// returns the hooks registered in the module.
+// GetHooks returns the hooks registered in the module.
 func (m *module) GetHooks() []HookStarter {
 	return m.hooks
 }
 
-// returns the decorators registered in the module.
+// GetDecorators returns the decorators registered in the module.
 func (m *module) GetDecorators() []Decorator {
 	return m.decorators
 }
 
-// returns the invokers registered in the module.
+// GetInvokes returns the invokers registered in the module.
 func (m *module) GetInvokes() []Invoker {
 	return m.invokers
 }

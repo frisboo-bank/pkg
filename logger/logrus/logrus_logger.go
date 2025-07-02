@@ -1,10 +1,11 @@
 package logrus
 
 import (
+	"os"
+
 	"frisboo-bank/pkg/constants"
 	"frisboo-bank/pkg/logger/contracts"
 	"frisboo-bank/pkg/logger/options"
-	"os"
 
 	"github.com/nolleh/caption_json_formatter"
 	"github.com/sirupsen/logrus"

@@ -6,9 +6,8 @@ import (
 	"fmt"
 	"os"
 
-	"frisboo-bank/pkg/db/migration/gomigrate"
-
 	migrationConfig "frisboo-bank/pkg/db/migration/config"
+	"frisboo-bank/pkg/db/migration/gomigrate"
 
 	"github.com/spf13/cobra"
 )

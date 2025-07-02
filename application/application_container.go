@@ -3,12 +3,12 @@ package application
 import (
 	"context"
 	"fmt"
+
 	"frisboo-bank/pkg/application/contracts"
 	"frisboo-bank/pkg/container"
 	containerContracts "frisboo-bank/pkg/container/contracts"
-	loggerContracts "frisboo-bank/pkg/logger/contracts"
-
 	digContainer "frisboo-bank/pkg/container/dig"
+	loggerContracts "frisboo-bank/pkg/logger/contracts"
 )
 
 type applicationContainer struct {

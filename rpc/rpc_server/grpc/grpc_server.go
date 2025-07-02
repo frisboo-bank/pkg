@@ -4,10 +4,11 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"net"
+
 	loggerContracts "frisboo-bank/pkg/logger/contracts"
 	"frisboo-bank/pkg/rpc/rpc_server/contracts"
 	"frisboo-bank/pkg/rpc/rpc_server/options"
-	"net"
 
 	googlerpc "google.golang.org/grpc"
 )

@@ -2,6 +2,7 @@ package gin
 
 import (
 	"fmt"
+
 	"frisboo-bank/pkg/http/http_server/contracts"
 
 	"github.com/gin-gonic/gin"

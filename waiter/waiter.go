@@ -3,15 +3,16 @@ package waiter
 import (
 	"context"
 	"fmt"
-	loggerContracts "frisboo-bank/pkg/logger/contracts"
-	"frisboo-bank/pkg/waiter/contracts"
-	waiterOptions "frisboo-bank/pkg/waiter/options"
 	"os"
 	"os/signal"
 	"slices"
 	"sync"
 	"syscall"
 	"time"
+
+	loggerContracts "frisboo-bank/pkg/logger/contracts"
+	"frisboo-bank/pkg/waiter/contracts"
+	waiterOptions "frisboo-bank/pkg/waiter/options"
 
 	"golang.org/x/sync/errgroup"
 )
@@ -42,7 +43,13 @@ func NewWaiter(options ...waiterOptions.WaiterOption) contracts.Waiter {
 	if cfg.CancelOnShutdownSignal {
 		var signalCancel context.CancelFunc
 
-		signalCtx, signalCancel := signal.NotifyContext(w.ctx, os.Interrupt, syscall.SIGINT, syscall.SIGTERM, syscall.SIGQUIT)
+		signalCtx, signalCancel := signal.NotifyContext(
+			w.ctx,
+			os.Interrupt,
+			syscall.SIGINT,
+			syscall.SIGTERM,
+			syscall.SIGQUIT,
+		)
 
 		w.ctx = signalCtx
 		parentCancel := w.cancel

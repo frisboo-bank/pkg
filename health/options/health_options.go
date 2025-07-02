@@ -1,11 +1,12 @@
 package options
 
 import (
+	"net/http"
+
 	"frisboo-bank/pkg/config"
 	"frisboo-bank/pkg/environment"
 	"frisboo-bank/pkg/health/contracts"
 	"frisboo-bank/pkg/reflection/typemapper"
-	"net/http"
 
 	"github.com/stoewer/go-strcase"
 )

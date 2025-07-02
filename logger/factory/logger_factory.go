@@ -2,6 +2,7 @@ package factory
 
 import (
 	"fmt"
+
 	"frisboo-bank/pkg/logger/contracts"
 	"frisboo-bank/pkg/logger/logrus"
 	"frisboo-bank/pkg/logger/noop"

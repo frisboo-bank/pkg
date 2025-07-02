@@ -3,14 +3,14 @@ package config
 import (
 	"errors"
 	"fmt"
-	"frisboo-bank/pkg/constants"
-	"frisboo-bank/pkg/environment"
-	"frisboo-bank/pkg/reflection/typemapper"
-	"frisboo-bank/pkg/utils"
 	"path"
 	"strings"
 
+	"frisboo-bank/pkg/constants"
 	customErrors "frisboo-bank/pkg/custom_errors"
+	"frisboo-bank/pkg/environment"
+	"frisboo-bank/pkg/reflection/typemapper"
+	"frisboo-bank/pkg/utils"
 
 	envParser "github.com/caarlos0/env/v11"
 	"github.com/mcuadros/go-defaults"

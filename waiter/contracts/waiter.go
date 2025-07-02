@@ -2,6 +2,7 @@ package contracts
 
 import (
 	"context"
+
 	loggerContracts "frisboo-bank/pkg/logger/contracts"
 )
 

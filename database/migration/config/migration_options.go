@@ -2,10 +2,10 @@ package config
 
 import (
 	"errors"
-	"frisboo-bank/pkg/environment"
-	"frisboo-bank/pkg/reflection/typemapper"
 
 	configUtils "frisboo-bank/pkg/config/utils"
+	"frisboo-bank/pkg/environment"
+	"frisboo-bank/pkg/reflection/typemapper"
 
 	"github.com/stoewer/go-strcase"
 )

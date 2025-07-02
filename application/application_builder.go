@@ -2,6 +2,8 @@ package application
 
 import (
 	"fmt"
+	"os"
+
 	"frisboo-bank/pkg/application/contracts"
 	"frisboo-bank/pkg/application/infrastructure"
 	"frisboo-bank/pkg/container"
@@ -9,7 +11,6 @@ import (
 	loggerContracts "frisboo-bank/pkg/logger/contracts"
 	loggerFactory "frisboo-bank/pkg/logger/factory"
 	loggerOptions "frisboo-bank/pkg/logger/options"
-	"os"
 )
 
 type applicationBuilder struct {
