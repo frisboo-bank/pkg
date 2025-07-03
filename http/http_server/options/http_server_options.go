@@ -1,67 +1,37 @@
 package options
 
 import (
+	"fmt"
+	"frisboo-bank/pkg/constants"
+	"frisboo-bank/pkg/environment"
+	httpservertype "frisboo-bank/pkg/http/http_server/options/enums/http_server_type"
+	loggerContracts "frisboo-bank/pkg/logger/contracts"
+	"frisboo-bank/pkg/options"
+	optionsContracts "frisboo-bank/pkg/options/contracts"
 	"net"
 	"net/url"
 	"time"
-
-	"frisboo-bank/pkg/config"
-	"frisboo-bank/pkg/constants"
-	"frisboo-bank/pkg/environment"
-	loggerContracts "frisboo-bank/pkg/logger/contracts"
-	"frisboo-bank/pkg/reflection/typemapper"
-
-	"github.com/stoewer/go-strcase"
-)
-
-type (
-	HttpServerType string
-)
-
-const (
-	TypeGin = HttpServerType("gin")
-)
-
-const (
-	HeaderAccessControlAllowOrigin      = "Access-Control-Allow-Origin"
-	HeaderAccessControlAllowCredentials = "Access-Control-Allow-Credentials"
-	HeaderAccessControlAllowMethods     = "Access-Control-Allow-Methods"
-	HeaderAccessControlAllowHeaders     = "Access-Control-Allow-Headers"
-	HeaderXFrameOptions                 = "X-Frame-Options"
-	HeaderCacheControl                  = "Cache-Control"
-	HeaderPragma                        = "Pragma"
-	HeaderExpires                       = "Expires"
-	HeaderStrictTransportSecurity       = "Strict-Transport-Security"
-	HeaderContentSecurityPolicy         = "Content-Security-Policy"
-	HeaderContentTypeOptions            = "X-Content-Type-Options"
-	HeaderXSSProtection                 = "X-XSS-Protection"
-	HeaderReferrerPolicy                = "Referrer-Policy"
-	HeaderPermissionsPolicy             = "Permissions-Policy"
-	HeaderServer                        = "Server"
-	HeaderCrossOriginResourcePolicy     = "Cross-Origin-Resource-Policy"
 )
 
 type HttpServerOptions struct {
-	Type                  HttpServerType `mapstructure:"type"`
-	BasePath              string         `mapstructure:"basePath"`
-	Development           bool           `mapstructure:"development"`
-	Host                  string         `mapstructure:"host"`
-	Port                  string         `mapstructure:"port"`
-	IgnoreLogUrls         []string       `mapstructure:"ignoreLogUrls"`
-	BodyLimit             string         `mapstructure:"bodyLimit"`
-	IdleTimeout           time.Duration  `mapstructure:"idleTimeout"`
-	MaxHeaderBytes        int            `mapstructure:"maxHeaderBytes"`
-	ReadHeaderTimeout     time.Duration  `mapstructure:"readHeaderTimeout"`
-	ReadTimeout           time.Duration  `mapstructure:"readTimeout"`
-	ServerShutdownTimeout time.Duration  `mapstructure:"serverShutdownTimeout"`
-	WriteTimeout          time.Duration  `mapstructure:"writeTimeout"`
+	Type                  httpservertype.HttpServerType `mapstructure:"type"`
+	BasePath              string                        `mapstructure:"basePath"`
+	Development           bool                          `mapstructure:"development"`
+	Host                  string                        `mapstructure:"host"`
+	Port                  string                        `mapstructure:"port"`
+	IgnoreLogUrls         []string                      `mapstructure:"ignoreLogUrls"`
+	BodyLimit             string                        `mapstructure:"bodyLimit"`
+	IdleTimeout           time.Duration                 `mapstructure:"idleTimeout"`
+	MaxHeaderBytes        int                           `mapstructure:"maxHeaderBytes"`
+	ReadHeaderTimeout     time.Duration                 `mapstructure:"readHeaderTimeout"`
+	ReadTimeout           time.Duration                 `mapstructure:"readTimeout"`
+	ServerShutdownTimeout time.Duration                 `mapstructure:"serverShutdownTimeout"`
+	WriteTimeout          time.Duration                 `mapstructure:"writeTimeout"`
 	Logger                loggerContracts.Logger
 }
 
-type HttpServerOption = func(options *HttpServerOptions)
-
-var DefaultHttpServerOptions = HttpServerOptions{
-	Type:                  TypeGin,
+var defaultOptions = HttpServerOptions{
+	Type:                  httpservertype.HttpServerTypes.GIN,
 	BasePath:              "",
 	Development:           false,
 	Host:                  "0.0.0.0",
@@ -76,10 +46,72 @@ var DefaultHttpServerOptions = HttpServerOptions{
 	WriteTimeout:          constants.SERVER_WRITE_TIMEOUT,
 }
 
-func WithLogger(logger loggerContracts.Logger) HttpServerOption {
-	return func(options *HttpServerOptions) {
-		options.Logger = logger
+var _ optionsContracts.Options = (*HttpServerOptions)(nil)
+
+func (o *HttpServerOptions) Clone() optionsContracts.Options {
+	return options.CloneOptions(o)
+}
+
+// SetDefaults implements contracts.Options.
+func (o *HttpServerOptions) SetDefaults() {
+	if !o.Type.IsValid() {
+		o.Type = defaultOptions.Type
 	}
+
+	if o.BasePath == "" {
+		o.BasePath = defaultOptions.BasePath
+	}
+
+	if o.Host == "" {
+		o.Host = defaultOptions.Host
+	}
+
+	if o.Port == "" {
+		o.Port = defaultOptions.Port
+	}
+
+	if o.IgnoreLogUrls == nil {
+		o.IgnoreLogUrls = defaultOptions.IgnoreLogUrls
+	}
+
+	if o.BodyLimit == "" {
+		o.BodyLimit = defaultOptions.BodyLimit
+	}
+
+	if o.IdleTimeout <= 0 {
+		o.IdleTimeout = defaultOptions.IdleTimeout
+	}
+
+	if o.MaxHeaderBytes <= 0 {
+		o.MaxHeaderBytes = defaultOptions.MaxHeaderBytes
+	}
+
+	if o.ReadHeaderTimeout <= 0 {
+		o.ReadHeaderTimeout = defaultOptions.ReadHeaderTimeout
+	}
+
+	if o.ReadTimeout <= 0 {
+		o.ReadTimeout = defaultOptions.ReadTimeout
+	}
+
+	if o.ServerShutdownTimeout <= 0 {
+		o.ServerShutdownTimeout = defaultOptions.ServerShutdownTimeout
+	}
+
+	if o.WriteTimeout <= 0 {
+		o.WriteTimeout = defaultOptions.WriteTimeout
+	}
+}
+
+func (o *HttpServerOptions) Validate() error {
+	if o.Host == "" {
+		return fmt.Errorf("host must not be empty")
+	}
+
+	if o.Port == "" {
+		return fmt.Errorf("port must not be empty")
+	}
+	return nil
 }
 
 func (o *HttpServerOptions) Address() string {
@@ -95,64 +127,13 @@ func (o *HttpServerOptions) FullAddress() (string, error) {
 	return path, nil
 }
 
-var optionName = strcase.LowerCamelCase(typemapper.GetGenericTypeNameByT[HttpServerOptions]())
-
-func ProvideHttpServerOptions(env environment.Environment) (*HttpServerOptions, error) {
-	opt, err := config.BindConfigKey[*HttpServerOptions](optionName, env)
-	if err != nil {
-		return nil, err
+// ApplyHttpServerOptions applies a series of HttpServerOption functions to a HttpServerOptions struct.
+func ApplyHttpServerOptions(o *HttpServerOptions, opts ...HttpServerOption) {
+	for _, opt := range opts {
+		opt(o)
 	}
-
-	return setDefaultOptions(opt), nil
 }
 
-func setDefaultOptions(options *HttpServerOptions) *HttpServerOptions {
-	if options.Type == "" {
-		options.Type = DefaultHttpServerOptions.Type
-	}
-
-	if options.BasePath == "" {
-		options.BasePath = DefaultHttpServerOptions.BasePath
-	}
-
-	if options.Host == "" {
-		options.Host = DefaultHttpServerOptions.Host
-	}
-
-	if options.Port == "" {
-		options.Port = DefaultHttpServerOptions.Port
-	}
-
-	if options.IgnoreLogUrls == nil {
-		options.IgnoreLogUrls = DefaultHttpServerOptions.IgnoreLogUrls
-	}
-
-	if options.BodyLimit == "" {
-		options.BodyLimit = DefaultHttpServerOptions.BodyLimit
-	}
-
-	if options.IdleTimeout <= 0 {
-		options.IdleTimeout = DefaultHttpServerOptions.IdleTimeout
-	}
-
-	if options.MaxHeaderBytes <= 0 {
-		options.MaxHeaderBytes = DefaultHttpServerOptions.MaxHeaderBytes
-	}
-
-	if options.ReadHeaderTimeout <= 0 {
-		options.ReadHeaderTimeout = DefaultHttpServerOptions.ReadHeaderTimeout
-	}
-
-	if options.ReadTimeout <= 0 {
-		options.ReadTimeout = DefaultHttpServerOptions.ReadTimeout
-	}
-
-	if options.ServerShutdownTimeout <= 0 {
-		options.ServerShutdownTimeout = DefaultHttpServerOptions.ServerShutdownTimeout
-	}
-	if options.WriteTimeout <= 0 {
-		options.WriteTimeout = DefaultHttpServerOptions.WriteTimeout
-	}
-
-	return options
+func ProvideHttpServerOptions(env environment.Environment) (*HttpServerOptions, error) {
+	return options.LoadOptions[*HttpServerOptions](env, func(options *HttpServerOptions) { options.SetDefaults() })
 }

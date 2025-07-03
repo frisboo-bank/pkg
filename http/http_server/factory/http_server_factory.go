@@ -2,10 +2,11 @@ package factory
 
 import (
 	"fmt"
-
 	"frisboo-bank/pkg/http/http_server/contracts"
 	"frisboo-bank/pkg/http/http_server/gin"
 	"frisboo-bank/pkg/http/http_server/options"
+
+	httpservertype "frisboo-bank/pkg/http/http_server/options/enums/http_server_type"
 )
 
 func GetInstance(config *options.HttpServerOptions, configs ...options.HttpServerOption) (contracts.HttpServer, error) {
@@ -13,14 +14,10 @@ func GetInstance(config *options.HttpServerOptions, configs ...options.HttpServe
 		c(config)
 	}
 
-	if config.Type == "" {
-		return nil, fmt.Errorf("http-server: no server type specified")
-	}
-
 	switch config.Type {
-	case options.TypeGin:
+	case httpservertype.HttpServerTypes.GIN:
 		return gin.NewGinHttpServer(config), nil
+	default:
+		return nil, fmt.Errorf("(http-server-factory) no server of type `%q` exists", config.Type)
 	}
-
-	return nil, fmt.Errorf("http-server: no server of type `%s` exists", config.Type)
 }

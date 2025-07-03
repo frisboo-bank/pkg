@@ -1,14 +1,14 @@
 package options
 
 import (
-	"net"
-	"strings"
-	"time"
-
-	"frisboo-bank/pkg/config"
+	"fmt"
 	"frisboo-bank/pkg/environment"
 	loggerContracts "frisboo-bank/pkg/logger/contracts"
+	"frisboo-bank/pkg/options"
+	optionsContracts "frisboo-bank/pkg/options/contracts"
 	"frisboo-bank/pkg/reflection/typemapper"
+	"net"
+	"time"
 
 	"github.com/stoewer/go-strcase"
 )
@@ -21,23 +21,38 @@ type RPCServerOptions struct {
 	Logger                loggerContracts.Logger
 }
 
-type RPCServerOption = func(options *RPCServerOptions)
-
-var DefaultRPCServerOptions = RPCServerOptions{
+var defaultOptions = RPCServerOptions{
 	Host: "0.0.0.0",
 	Port: "9000",
 }
 
-func WithServices(services Services) RPCServerOption {
-	return func(options *RPCServerOptions) {
-		options.Services = services
+func (o *RPCServerOptions) Clone() optionsContracts.Options {
+	return options.CloneOptions(o)
+}
+
+func (o *RPCServerOptions) SetDefaults() {
+	if o.Host == "" {
+		o.Host = defaultOptions.Host
+	}
+
+	if o.Port == "" {
+		o.Port = defaultOptions.Port
+	}
+
+	if o.ServerShutdownTimeout <= 0 {
+		o.ServerShutdownTimeout = defaultOptions.ServerShutdownTimeout
 	}
 }
 
-func WithLogger(logger loggerContracts.Logger) RPCServerOption {
-	return func(options *RPCServerOptions) {
-		options.Logger = logger
+func (o *RPCServerOptions) Validate() error {
+	if o.Host == "" {
+		return fmt.Errorf("Host must not be empty")
 	}
+
+	if o.Port == "" {
+		return fmt.Errorf("Port must not be empty")
+	}
+	return nil
 }
 
 func (o *RPCServerOptions) Address() string {
@@ -46,27 +61,13 @@ func (o *RPCServerOptions) Address() string {
 
 var optionName = strcase.LowerCamelCase(typemapper.GetGenericTypeNameByT[RPCServerOptions]())
 
-func ProvideRPCServerOptions(env environment.Environment) (*RPCServerOptions, error) {
-	opt, err := config.BindConfigKey[*RPCServerOptions](optionName, env)
-	if err != nil {
-		return nil, err
+// ApplyRPCServerOptions applies a series of RPCServerOption functions to an RPCServerOptions struct.
+func ApplyRPCServerOptions(o *RPCServerOptions, opts ...RPCServerOption) {
+	for _, opt := range opts {
+		opt(o)
 	}
-
-	return setDefaultOptions(opt), nil
 }
 
-func setDefaultOptions(options *RPCServerOptions) *RPCServerOptions {
-	if strings.TrimSpace(options.Host) == "" {
-		options.Host = DefaultRPCServerOptions.Host
-	}
-
-	if strings.TrimSpace(options.Port) == "" {
-		options.Port = DefaultRPCServerOptions.Port
-	}
-
-	if options.ServerShutdownTimeout <= 0 {
-		options.ServerShutdownTimeout = DefaultRPCServerOptions.ServerShutdownTimeout
-	}
-
-	return options
+func ProvideRPCServerOptions(env environment.Environment) (*RPCServerOptions, error) {
+	return options.LoadOptions[*RPCServerOptions](env, func(options *RPCServerOptions) { options.SetDefaults() })
 }

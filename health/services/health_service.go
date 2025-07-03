@@ -2,10 +2,9 @@ package services
 
 import (
 	"context"
-	"sync"
-
 	"frisboo-bank/pkg/health/contracts"
 	"frisboo-bank/pkg/health/options"
+	"sync"
 )
 
 type healthService struct {
@@ -14,14 +13,8 @@ type healthService struct {
 
 var _ contracts.HealthService = (*healthService)(nil)
 
-func NewHealthCheckService(config *options.HealthOptions) contracts.HealthService {
+func New(config *options.HealthOptions) contracts.HealthService {
 	return &healthService{config}
-}
-
-func newHealthCheckService(config *options.HealthOptions) contracts.HealthService {
-	return &healthService{
-		config: config,
-	}
 }
 
 func (s *healthService) CheckHealth(ctx context.Context) contracts.CheckAllStatus {

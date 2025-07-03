@@ -1,30 +1,34 @@
 package logrus
 
 import (
-	"os"
-
 	"frisboo-bank/pkg/constants"
 	"frisboo-bank/pkg/logger/contracts"
 	"frisboo-bank/pkg/logger/options"
+	loglevel "frisboo-bank/pkg/logger/options/enums/log_level"
+	logtype "frisboo-bank/pkg/logger/options/enums/log_type"
+	"frisboo-bank/pkg/logger/utils"
+	"maps"
+	"os"
 
-	"github.com/nolleh/caption_json_formatter"
 	"github.com/sirupsen/logrus"
 )
 
-var logrusLevelMapping = map[options.LogLevel]logrus.Level{
-	options.LogLevelDebug: logrus.DebugLevel,
-	options.LogLevelInfo:  logrus.InfoLevel,
-	options.LogLevelWarn:  logrus.WarnLevel,
-	options.LogLevelError: logrus.ErrorLevel,
-	options.LogLevelPanic: logrus.PanicLevel,
-	options.LogLevelFatal: logrus.FatalLevel,
+var logrusLevelMapping = map[loglevel.LogLevel]logrus.Level{
+	loglevel.LogLevels.DEBUG_LEVEL: logrus.DebugLevel,
+	loglevel.LogLevels.INFO_LEVEL:  logrus.InfoLevel,
+	loglevel.LogLevels.WARN_LEVEL:  logrus.WarnLevel,
+	loglevel.LogLevels.ERROR_LEVEL: logrus.ErrorLevel,
+	loglevel.LogLevels.PANIC_LEVEL: logrus.PanicLevel,
+	loglevel.LogLevels.FATAL_LEVEL: logrus.FatalLevel,
 }
 
 type logrusLogger struct {
-	level    options.LogLevel
-	encoding string
-	logger   *logrus.Logger
-	config   *options.LogOptions
+	level  loglevel.LogLevel
+	logger *logrus.Logger
+	config *options.LogOptions
+	prefix string
+	name   string
+	fields contracts.Fields
 }
 
 var _ contracts.Logger = (*logrusLogger)(nil)
@@ -37,30 +41,25 @@ func newLogrusLogger(config *options.LogOptions) contracts.Logger {
 	logger := &logrusLogger{
 		level:  config.Level,
 		config: config,
+		fields: make(contracts.Fields),
 	}
 	logger.initLogger()
-
 	return logger
 }
 
 func (l *logrusLogger) initLogger() {
-	logLevel := l.GetLogLevel()
-
 	logger := logrus.New()
-	logger.SetLevel(logLevel)
+	logger.SetLevel(l.GetLogLevel())
 	logger.SetOutput(os.Stdout)
+	logger.SetReportCaller(false)
 
-	switch true {
-	case true:
-		logger.SetReportCaller(false)
+	switch l.config.Encoding {
+	default: // Default to text
 		logger.SetFormatter(&logrus.TextFormatter{
 			ForceColors:   true,
 			DisableColors: false,
 			FullTimestamp: true,
 		})
-	default:
-		logger.SetReportCaller(false)
-		logger.SetFormatter(&caption_json_formatter.Formatter{PrettyPrint: true})
 	}
 
 	l.logger = logger
@@ -78,106 +77,189 @@ func (l *logrusLogger) Configure(cfg func(internalLoggerConfig any)) {
 	cfg(l.logger)
 }
 
+// Helper to get entry with all contextual fields
+func (l *logrusLogger) getEntry() *logrus.Entry {
+	fields := logrus.Fields{}
+	if l.prefix != "" {
+		fields["prefix"] = l.prefix
+	}
+	if l.name != "" {
+		fields[constants.LOGGER_NAME] = l.name
+	}
+	for k, v := range l.fields {
+		fields[k] = v
+	}
+
+	return l.logger.WithFields(fields)
+}
+
+// --- Standard logging methods ---
+func (l *logrusLogger) log(level logrus.Level, v ...any) {
+	msg := utils.ConcatPrefix(l.prefix, v...)
+	switch level {
+	case logrus.DebugLevel:
+		l.logger.Debug(msg...)
+	case logrus.InfoLevel:
+		l.logger.Info(msg...)
+	case logrus.WarnLevel:
+		l.logger.Warn(msg...)
+	case logrus.ErrorLevel:
+		l.logger.Error(msg...)
+	case logrus.FatalLevel:
+		l.logger.Fatal(msg...)
+	case logrus.PanicLevel:
+		l.logger.Panic(msg...)
+	}
+}
+
+func (l *logrusLogger) logf(level logrus.Level, format string, v ...any) {
+	format, v = utils.ConcatPrefixf(l.prefix, format, v...)
+	switch level {
+	case logrus.DebugLevel:
+		l.logger.Debugf(format, v...)
+	case logrus.InfoLevel:
+		l.logger.Infof(format, v...)
+	case logrus.WarnLevel:
+		l.logger.Warnf(format, v...)
+	case logrus.ErrorLevel:
+		l.logger.Errorf(format, v...)
+	case logrus.FatalLevel:
+		l.logger.Fatalf(format, v...)
+	case logrus.PanicLevel:
+		l.logger.Panicf(format, v...)
+	}
+}
+
+func (l *logrusLogger) logw(level logrus.Level, message string, fields contracts.Fields) {
+	message = utils.ConcatPrefixStr(l.prefix, message)
+	entry := l.getEntry()
+
+	switch level {
+	case logrus.DebugLevel:
+		entry.Debug(message)
+	case logrus.InfoLevel:
+		entry.Info(message)
+	case logrus.WarnLevel:
+		entry.Warn(message)
+	case logrus.ErrorLevel:
+		entry.Error(message)
+	case logrus.FatalLevel:
+		entry.Fatal(message)
+	case logrus.PanicLevel:
+		entry.Panic(message)
+	}
+}
+
+// --- Concrete implementations ---
 func (l *logrusLogger) Debug(v ...any) {
-	l.logger.Debug(v...)
+	l.log(logrus.DebugLevel, v...)
 }
 
 func (l *logrusLogger) Debugf(format string, v ...any) {
-	l.logger.Debugf(format, v...)
+	l.logf(logrus.DebugLevel, format, v...)
 }
 
 func (l *logrusLogger) Debugw(message string, fields contracts.Fields) {
-	entry := l.mapToFields(fields)
-	entry.Debug(message)
-}
-
-func (l *logrusLogger) Error(v ...any) {
-	l.logger.Error(v...)
-}
-
-func (l *logrusLogger) Errorf(format string, v ...any) {
-	l.logger.Errorf(format, v...)
-}
-
-func (l *logrusLogger) Errorw(message string, fields contracts.Fields) {
-	entry := l.mapToFields(fields)
-	entry.Error(message)
-}
-
-func (l *logrusLogger) Fatal(v ...any) {
-	l.logger.Fatal(v...)
-}
-
-func (l *logrusLogger) Fatalf(format string, v ...any) {
-	l.logger.Fatalf(format, v...)
-}
-
-func (l *logrusLogger) Fatalw(message string, fields contracts.Fields) {
-	entry := l.mapToFields(fields)
-	entry.Fatal(message)
+	l.logw(logrus.DebugLevel, message, fields)
 }
 
 func (l *logrusLogger) Info(v ...any) {
-	l.logger.Info(v...)
+	l.log(logrus.InfoLevel, v...)
 }
 
 func (l *logrusLogger) Infof(format string, v ...any) {
-	l.logger.Infof(format, v...)
+	l.logf(logrus.InfoLevel, format, v...)
 }
 
 func (l *logrusLogger) Infow(message string, fields contracts.Fields) {
-	entry := l.mapToFields(fields)
-	entry.Info(message)
-}
-
-func (l *logrusLogger) LogType() options.LogType {
-	return options.TypeLogrus
-}
-
-func (l *logrusLogger) Panic(v ...any) {
-	l.logger.Panic(v...)
-}
-
-func (l *logrusLogger) Panicf(format string, v ...any) {
-	l.logger.Panicf(format, v...)
-}
-
-func (l *logrusLogger) Panicw(message string, fields contracts.Fields) {
-	entry := l.mapToFields(fields)
-	entry.Panic(message)
-}
-
-func (l *logrusLogger) Print(v ...any) {
-	l.logger.Print(v...)
-}
-
-func (l *logrusLogger) Printf(format string, v ...any) {
-	l.logger.Printf(format, v...)
-}
-
-func (l *logrusLogger) Printw(message string, fields contracts.Fields) {
-	entry := l.mapToFields(fields)
-	entry.Print(message)
+	l.logw(logrus.InfoLevel, message, fields)
 }
 
 func (l *logrusLogger) Warn(v ...any) {
-	l.logger.Warn(v...)
+	l.log(logrus.WarnLevel, v...)
 }
 
 func (l *logrusLogger) Warnf(format string, v ...any) {
-	l.logger.Warnf(format, v...)
+	l.logf(logrus.WarnLevel, format, v...)
 }
 
 func (l *logrusLogger) Warnw(message string, fields contracts.Fields) {
-	entry := l.mapToFields(fields)
-	entry.Warn(message)
+	l.logw(logrus.WarnLevel, message, fields)
+}
+
+func (l *logrusLogger) Error(v ...any) {
+	l.log(logrus.ErrorLevel, v...)
+}
+
+func (l *logrusLogger) Errorf(format string, v ...any) {
+	l.logf(logrus.ErrorLevel, format, v...)
+}
+
+func (l *logrusLogger) Errorw(message string, fields contracts.Fields) {
+	l.logw(logrus.ErrorLevel, message, fields)
+}
+
+func (l *logrusLogger) Fatal(v ...any) {
+	l.log(logrus.FatalLevel, v...)
+}
+
+func (l *logrusLogger) Fatalf(format string, v ...any) {
+	l.logf(logrus.FatalLevel, format, v...)
+}
+
+func (l *logrusLogger) Fatalw(message string, fields contracts.Fields) {
+	l.logw(logrus.FatalLevel, message, fields)
+}
+
+func (l *logrusLogger) Panic(v ...any) {
+	l.log(logrus.PanicLevel, v...)
+}
+
+func (l *logrusLogger) Panicf(format string, v ...any) {
+	l.logf(logrus.PanicLevel, format, v...)
+}
+
+func (l *logrusLogger) Panicw(message string, fields contracts.Fields) {
+	l.logw(logrus.PanicLevel, message, fields)
+}
+
+func (l *logrusLogger) Print(v ...any) {
+	l.log(logrus.InfoLevel, v...)
+}
+
+func (l *logrusLogger) Printf(format string, v ...any) {
+	l.logf(logrus.InfoLevel, format, v...)
+}
+
+func (l *logrusLogger) Printw(message string, fields contracts.Fields) {
+	l.logw(logrus.InfoLevel, message, fields)
+}
+
+func (l *logrusLogger) LogType() logtype.LogType {
+	return logtype.LogTypes.LOGRUS
 }
 
 func (l *logrusLogger) WithName(name string) contracts.Logger {
-	l.logger.WithField(constants.LOGGER_NAME, name)
-	return l
+	newLogger := *l
+	newLogger.name = name
+	return &newLogger
 }
 
-func (l *logrusLogger) mapToFields(fields map[string]any) *logrus.Entry {
-	return l.logger.WithFields(logrus.Fields{"ss": 1})
+func (l *logrusLogger) WithPrefix(prefix string) contracts.Logger {
+	newLogger := *l
+	newLogger.prefix = prefix
+	return &newLogger
+}
+
+func (l *logrusLogger) WithFields(fields contracts.Fields) contracts.Logger {
+	newLogger := *l
+	newLogger.fields = make(contracts.Fields, len(l.fields)+len(fields))
+	maps.Copy(newLogger.fields, l.fields)
+	maps.Copy(newLogger.fields, fields)
+
+	return &newLogger
+}
+
+func (l *logrusLogger) GetPrefix() string {
+	return l.prefix
 }

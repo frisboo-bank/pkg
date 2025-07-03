@@ -2,11 +2,12 @@ package factory
 
 import (
 	"fmt"
-
 	"frisboo-bank/pkg/logger/contracts"
 	"frisboo-bank/pkg/logger/logrus"
 	"frisboo-bank/pkg/logger/noop"
 	"frisboo-bank/pkg/logger/options"
+
+	logtype "frisboo-bank/pkg/logger/options/enums/log_type"
 )
 
 func GetInstance(config *options.LogOptions, configs ...options.LogOption) (contracts.Logger, error) {
@@ -14,16 +15,12 @@ func GetInstance(config *options.LogOptions, configs ...options.LogOption) (cont
 		c(config)
 	}
 
-	if config.Type == "" {
-		return nil, fmt.Errorf("logger: no logger type specified")
-	}
-
 	switch config.Type {
-	case options.TypeNoop:
-		return noop.NewNoopLogger(), nil
-	case options.TypeLogrus:
+	case logtype.LogTypes.LOGRUS:
 		return logrus.NewLogrusLogger(config), nil
+	case logtype.LogTypes.NOOP:
+		return noop.NewNoopLogger(), nil
+	default:
+		return nil, fmt.Errorf("logger-factory: type %q not supported", config.Type)
 	}
-
-	return nil, fmt.Errorf("logger: no logger of type `%s` exists", config.Type)
 }

@@ -1,6 +1,8 @@
 package contracts
 
-import "frisboo-bank/pkg/logger/options"
+import (
+	logtype "frisboo-bank/pkg/logger/options/enums/log_type"
+)
 
 type (
 	Fields map[string]any
@@ -19,7 +21,7 @@ type (
 		Info(v ...any)
 		Infof(format string, v ...any)
 		Infow(message string, fields Fields)
-		LogType() options.LogType
+		LogType() logtype.LogType
 		Panic(v ...any)
 		Panicf(format string, v ...any)
 		Panicw(message string, fields Fields)
@@ -30,5 +32,7 @@ type (
 		Warnf(format string, v ...any)
 		Warnw(message string, fields Fields)
 		WithName(name string) Logger
+		WithPrefix(prefix string) Logger
+		GetPrefix() string
 	}
 )

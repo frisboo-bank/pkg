@@ -2,10 +2,12 @@ package noop
 
 import (
 	"frisboo-bank/pkg/logger/contracts"
-	"frisboo-bank/pkg/logger/options"
+	logtype "frisboo-bank/pkg/logger/options/enums/log_type"
 )
 
-type noopLogger struct{}
+type noopLogger struct {
+	prefix string
+}
 
 var _ contracts.Logger = (*noopLogger)(nil)
 
@@ -56,8 +58,8 @@ func (n *noopLogger) Infof(format string, v ...any) {
 func (n *noopLogger) Infow(message string, fields contracts.Fields) {
 }
 
-func (n *noopLogger) LogType() options.LogType {
-	return options.TypeNoop
+func (n *noopLogger) LogType() logtype.LogType {
+	return logtype.LogTypes.NOOP
 }
 
 func (n *noopLogger) Panic(v ...any) {
@@ -89,4 +91,14 @@ func (n *noopLogger) Warnw(message string, fields contracts.Fields) {
 
 func (n *noopLogger) WithName(name string) contracts.Logger {
 	return n
+}
+
+// WithPrefix set the prefix
+func (n *noopLogger) WithPrefix(prefix string) contracts.Logger {
+	return n
+}
+
+// GetPrefix get the prefix
+func (n *noopLogger) GetPrefix() string {
+	return n.prefix
 }

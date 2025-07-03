@@ -1,65 +1,67 @@
 package options
 
 import (
-	"frisboo-bank/pkg/config"
+	"fmt"
 	"frisboo-bank/pkg/environment"
-	"frisboo-bank/pkg/reflection/typemapper"
+	"frisboo-bank/pkg/options"
 
-	"github.com/stoewer/go-strcase"
+	encodingtype "frisboo-bank/pkg/logger/options/enums/encoding_type"
+	loglevel "frisboo-bank/pkg/logger/options/enums/log_level"
+	logtype "frisboo-bank/pkg/logger/options/enums/log_type"
+
+	optionsContracts "frisboo-bank/pkg/options/contracts"
 )
 
-type (
-	LogType  string
-	LogLevel string
-)
-
-const (
-	TypeLogrus = LogType("logrus")
-	TypeNoop   = LogType("noop")
-)
-
-const (
-	LogLevelDebug = LogLevel("debug")
-	LogLevelInfo  = LogLevel("info")
-	LogLevelWarn  = LogLevel("warn")
-	LogLevelError = LogLevel("error")
-	LogLevelPanic = LogLevel("panic")
-	LogLevelFatal = LogLevel("fatal")
-)
-
+// LogOptions holds the logger configuration.
 type LogOptions struct {
-	Level         LogLevel `mapstructure:"level"`
-	Type          LogType  `mapstructure:"type"`
-	CallerEnabled bool     `mapstructure:"callerEnabled"`
-	EnableTracing bool     `mapstructure:"enableTracing"`
+	Level         loglevel.LogLevel         `mapstructure:"level"`
+	Type          logtype.LogType           `mapstructure:"type"`
+	CallerEnabled bool                      `mapstructure:"callerEnabled"`
+	EnableTracing bool                      `mapstructure:"enableTracing"`
+	CallDepth     int                       `mapstructure:"callDepth"`
+	Encoding      encodingtype.EncodingType `mapstructure:"encoding"`
 }
 
-type LogOption func(config *LogOptions)
-
-var DefaultLogOptions = LogOptions{
-	Level: LogLevelError,
-	Type:  TypeLogrus,
+var defaultLogOptions = &LogOptions{
+	Level:    loglevel.LogLevels.ERROR_LEVEL,
+	Type:     logtype.LogTypes.NOOP,
+	Encoding: encodingtype.EncodingTypes.TEXT,
 }
 
-var optionName = strcase.LowerCamelCase(typemapper.GetGenericTypeNameByT[LogOptions]())
+var _ optionsContracts.Options = (*LogOptions)(nil)
+
+func (o *LogOptions) Clone() optionsContracts.Options {
+	return options.CloneOptions(o)
+}
+
+func (o *LogOptions) SetDefaults() {
+	if !o.Level.IsValid() {
+		o.Level = defaultLogOptions.Level
+	}
+
+	if !o.Type.IsValid() {
+		o.Type = defaultLogOptions.Type
+	}
+
+	if !o.Encoding.IsValid() {
+		o.Encoding = defaultLogOptions.Encoding
+	}
+}
+
+func (o *LogOptions) Validate() error {
+	if !o.Level.IsValid() {
+		return fmt.Errorf("(log-options) invalid log level: %q", o.Level)
+	}
+	if !o.Type.IsValid() {
+		return fmt.Errorf("(log-options) invalid log type: %q", o.Type)
+	}
+	if !o.Encoding.IsValid() {
+		return fmt.Errorf("(log-options) invalid encoding type: %q", o.Encoding)
+	}
+
+	return nil
+}
 
 func ProvideLogOptions(env environment.Environment) (*LogOptions, error) {
-	opt, err := config.BindConfigKey[*LogOptions](optionName, env)
-	if err != nil {
-		return nil, err
-	}
-
-	return setDefaultOptions(opt), nil
-}
-
-func setDefaultOptions(options *LogOptions) *LogOptions {
-	if options.Level == "" {
-		options.Level = DefaultLogOptions.Level
-	}
-
-	if options.Type == "" {
-		options.Type = DefaultLogOptions.Type
-	}
-
-	return options
+	return options.LoadOptions[*LogOptions](env, func(options *LogOptions) { options.SetDefaults() })
 }

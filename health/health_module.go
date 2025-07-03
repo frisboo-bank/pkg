@@ -16,11 +16,11 @@ var Module = container.NewModule(
 		return options.ProvideHealthOptions(env)
 	}),
 	container.Provide(func(config *options.HealthOptions) contracts.HealthService {
-		return services.NewHealthCheckService(config)
+		return services.New(config)
 	}),
 	container.Provide(
 		func(config *options.HealthOptions, healthService contracts.HealthService, httpServer httpServerContracts.HttpServer) contracts.HealthEndpoint {
-			return endpoints.NewHealthCheckEndpoint(config, healthService, httpServer)
+			return endpoints.New(config, healthService, httpServer)
 		},
 	),
 	container.Invoke(func(healthEndpoint contracts.HealthEndpoint) {

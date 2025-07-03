@@ -9,6 +9,7 @@ import (
 	loggerContracts "frisboo-bank/pkg/logger/contracts"
 	"frisboo-bank/pkg/rpc/rpc_server/contracts"
 	"frisboo-bank/pkg/rpc/rpc_server/options"
+	"frisboo-bank/pkg/utils"
 
 	googlerpc "google.golang.org/grpc"
 )
@@ -22,6 +23,8 @@ type GRPCServer struct {
 var _ contracts.RPCServer = (*GRPCServer)(nil)
 
 func NewGRPCServer(config *options.RPCServerOptions) contracts.RPCServer {
+	utils.Assert(config.Logger != nil, "(rpc-server) logger must not be nil")
+
 	return newGRPCServer(config)
 }
 

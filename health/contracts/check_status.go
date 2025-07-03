@@ -37,6 +37,7 @@ func NewCheckStatus(err error, statusUp StatusType, statusDown StatusType) Check
 	}
 
 	status.Status = statusUp
+
 	return status
 }
 
