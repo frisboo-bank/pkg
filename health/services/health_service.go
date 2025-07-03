@@ -2,9 +2,10 @@ package services
 
 import (
 	"context"
+	"sync"
+
 	"frisboo-bank/pkg/health/contracts"
 	"frisboo-bank/pkg/health/options"
-	"sync"
 )
 
 type healthService struct {

@@ -3,11 +3,12 @@ package configloader
 import (
 	"errors"
 	"fmt"
+	"path"
+	"strings"
+
 	"frisboo-bank/pkg/constants"
 	"frisboo-bank/pkg/environment"
 	"frisboo-bank/pkg/utils"
-	"path"
-	"strings"
 
 	envParser "github.com/caarlos0/env/v11"
 	"github.com/go-viper/mapstructure/v2"

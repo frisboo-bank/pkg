@@ -8,7 +8,6 @@ require (
 	github.com/go-viper/mapstructure/v2 v2.3.0
 	github.com/google/uuid v1.6.0
 	github.com/joho/godotenv v1.5.1
-	github.com/mcuadros/go-defaults v1.2.0
 	github.com/sirupsen/logrus v1.9.3
 	github.com/spf13/cobra v1.9.1
 	github.com/stretchr/testify v1.10.0
@@ -66,7 +65,6 @@ require (
 	github.com/gin-contrib/cors v1.7.5
 	github.com/golang-migrate/migrate/v4 v4.18.3
 	github.com/jmoiron/sqlx v1.4.0
-	github.com/nolleh/caption_json_formatter v0.2.4
 	github.com/spf13/viper v1.20.1
 	github.com/stoewer/go-strcase v1.3.0
 	golang.org/x/sync v0.14.0

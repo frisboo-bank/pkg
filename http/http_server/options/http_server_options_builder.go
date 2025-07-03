@@ -1,9 +1,10 @@
 package options
 
 import (
+	"time"
+
 	httpservertype "frisboo-bank/pkg/http/http_server/options/enums/http_server_type"
 	loggerContracts "frisboo-bank/pkg/logger/contracts"
-	"time"
 )
 
 type HttpServerOption = func(options *HttpServerOptions)

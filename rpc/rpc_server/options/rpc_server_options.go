@@ -2,13 +2,14 @@ package options
 
 import (
 	"fmt"
+	"net"
+	"time"
+
 	"frisboo-bank/pkg/environment"
 	loggerContracts "frisboo-bank/pkg/logger/contracts"
 	"frisboo-bank/pkg/options"
 	optionsContracts "frisboo-bank/pkg/options/contracts"
 	"frisboo-bank/pkg/reflection/typemapper"
-	"net"
-	"time"
 
 	"github.com/stoewer/go-strcase"
 )

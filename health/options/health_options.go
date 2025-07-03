@@ -2,11 +2,12 @@ package options
 
 import (
 	"fmt"
+	"net/http"
+
 	"frisboo-bank/pkg/environment"
 	"frisboo-bank/pkg/health/contracts"
 	"frisboo-bank/pkg/options"
 	optionsContracts "frisboo-bank/pkg/options/contracts"
-	"net/http"
 )
 
 type HealthOptions struct {

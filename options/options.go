@@ -1,11 +1,12 @@
 package options
 
 import (
+	"strings"
+
 	configloader "frisboo-bank/pkg/config/config_loader"
 	"frisboo-bank/pkg/environment"
 	"frisboo-bank/pkg/options/contracts"
 	"frisboo-bank/pkg/reflection/typemapper"
-	"strings"
 
 	"github.com/stoewer/go-strcase"
 )

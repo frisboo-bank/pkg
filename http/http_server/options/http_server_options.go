@@ -2,15 +2,16 @@ package options
 
 import (
 	"fmt"
+	"net"
+	"net/url"
+	"time"
+
 	"frisboo-bank/pkg/constants"
 	"frisboo-bank/pkg/environment"
 	httpservertype "frisboo-bank/pkg/http/http_server/options/enums/http_server_type"
 	loggerContracts "frisboo-bank/pkg/logger/contracts"
 	"frisboo-bank/pkg/options"
 	optionsContracts "frisboo-bank/pkg/options/contracts"
-	"net"
-	"net/url"
-	"time"
 )
 
 type HttpServerOptions struct {

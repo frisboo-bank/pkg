@@ -3,15 +3,14 @@ package rpcserver
 import (
 	"context"
 	"errors"
+	"net"
+
 	"frisboo-bank/pkg/container"
 	"frisboo-bank/pkg/environment"
+	loggerContracts "frisboo-bank/pkg/logger/contracts"
 	"frisboo-bank/pkg/rpc/rpc_server/contracts"
 	"frisboo-bank/pkg/rpc/rpc_server/factory"
 	"frisboo-bank/pkg/rpc/rpc_server/options"
-	"net"
-
-	loggerContracts "frisboo-bank/pkg/logger/contracts"
-
 	waiterContracts "frisboo-bank/pkg/waiter/contracts"
 
 	"go.uber.org/dig"

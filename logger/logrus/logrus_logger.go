@@ -1,14 +1,15 @@
 package logrus
 
 import (
+	"maps"
+	"os"
+
 	"frisboo-bank/pkg/constants"
 	"frisboo-bank/pkg/logger/contracts"
 	"frisboo-bank/pkg/logger/options"
 	loglevel "frisboo-bank/pkg/logger/options/enums/log_level"
 	logtype "frisboo-bank/pkg/logger/options/enums/log_type"
 	"frisboo-bank/pkg/logger/utils"
-	"maps"
-	"os"
 
 	"github.com/sirupsen/logrus"
 )

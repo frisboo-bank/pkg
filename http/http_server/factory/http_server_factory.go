@@ -2,10 +2,10 @@ package factory
 
 import (
 	"fmt"
+
 	"frisboo-bank/pkg/http/http_server/contracts"
 	"frisboo-bank/pkg/http/http_server/gin"
 	"frisboo-bank/pkg/http/http_server/options"
-
 	httpservertype "frisboo-bank/pkg/http/http_server/options/enums/http_server_type"
 )
 

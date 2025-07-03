@@ -2,13 +2,12 @@ package options
 
 import (
 	"fmt"
-	"frisboo-bank/pkg/environment"
-	"frisboo-bank/pkg/options"
 
+	"frisboo-bank/pkg/environment"
 	encodingtype "frisboo-bank/pkg/logger/options/enums/encoding_type"
 	loglevel "frisboo-bank/pkg/logger/options/enums/log_level"
 	logtype "frisboo-bank/pkg/logger/options/enums/log_type"
-
+	"frisboo-bank/pkg/options"
 	optionsContracts "frisboo-bank/pkg/options/contracts"
 )
 

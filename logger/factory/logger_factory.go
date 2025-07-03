@@ -2,11 +2,11 @@ package factory
 
 import (
 	"fmt"
+
 	"frisboo-bank/pkg/logger/contracts"
 	"frisboo-bank/pkg/logger/logrus"
 	"frisboo-bank/pkg/logger/noop"
 	"frisboo-bank/pkg/logger/options"
-
 	logtype "frisboo-bank/pkg/logger/options/enums/log_type"
 )
 
