@@ -65,7 +65,7 @@ require (
 	github.com/golang-migrate/migrate/v4 v4.18.3
 	github.com/jmoiron/sqlx v1.4.0
 	github.com/spf13/viper v1.20.1
-	github.com/stoewer/go-strcase v1.3.0
+	github.com/stoewer/go-strcase v1.3.1
 	golang.org/x/sync v0.15.0
 	golang.org/x/sys v0.33.0 // indirect
 	google.golang.org/grpc v1.73.0
