@@ -4,7 +4,7 @@ go 1.24.3
 
 require (
 	github.com/caarlos0/env/v11 v11.3.1
-	github.com/gin-gonic/gin v1.10.0
+	github.com/gin-gonic/gin v1.10.1
 	github.com/go-viper/mapstructure/v2 v2.3.0
 	github.com/google/uuid v1.6.0
 	github.com/joho/godotenv v1.5.1
@@ -12,7 +12,6 @@ require (
 	github.com/spf13/cobra v1.9.1
 	github.com/stretchr/testify v1.10.0
 	go.uber.org/dig v1.19.0
-	golang.org/x/exp v0.0.0-20230315142452-642cacee5cc0
 )
 
 require (
