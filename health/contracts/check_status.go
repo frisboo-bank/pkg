@@ -2,11 +2,6 @@ package contracts
 
 type StatusType = string
 
-const (
-	StatusTypeUp   = StatusType("Up")
-	StatusTypeDown = StatusType("Down")
-)
-
 type CheckStatus struct {
 	statusUp   StatusType
 	statusDown StatusType

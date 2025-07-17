@@ -14,8 +14,8 @@ type DatabaseClientModule struct{}
 var _ applicationContracts.Module = (*DatabaseClientModule)(nil)
 
 func (d *DatabaseClientModule) Register(container *dig.Container, waiter waiterContracts.Waiter) error {
-	err := container.Provide(func(env environment.Environment) (*config.HttpServerOptions, error) {
-		return config.ProvideHttpServerConfig(env)
+	err := container.Provide(func(env environment.Environment) (*config.HTTPServerOptions, error) {
+		return config.ProvideHTTPServerConfig(env)
 	})
 	if err != nil {
 		return err

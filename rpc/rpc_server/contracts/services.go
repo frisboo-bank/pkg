@@ -1,4 +1,4 @@
-package options
+package contracts
 
 type Services map[string]string
 

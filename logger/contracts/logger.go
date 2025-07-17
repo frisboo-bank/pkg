@@ -1,6 +1,10 @@
 package contracts
 
 import (
+	"io"
+
+	encodingtype "frisboo-bank/pkg/logger/options/enums/encoding_type"
+	loglevel "frisboo-bank/pkg/logger/options/enums/log_level"
 	logtype "frisboo-bank/pkg/logger/options/enums/log_type"
 )
 
@@ -8,7 +12,14 @@ type (
 	Fields map[string]any
 
 	Logger interface {
-		Configure(config func(internalLoggerConfig any))
+		WithCaller(withCaller bool, depth int) Logger
+		WithEncoding(encoding encodingtype.EncodingType) Logger
+		WithLevel(logLevel loglevel.LogLevel) Logger
+		WithName(name string) Logger
+		WithOutput(output io.Writer) Logger
+		WithPrefix(prefix string) Logger
+		WithTracer(witlTracer bool) Logger
+
 		Debug(v ...any)
 		Debugf(format string, v ...any)
 		Debugw(message string, fields Fields)
@@ -21,7 +32,6 @@ type (
 		Info(v ...any)
 		Infof(format string, v ...any)
 		Infow(message string, fields Fields)
-		LogType() logtype.LogType
 		Panic(v ...any)
 		Panicf(format string, v ...any)
 		Panicw(message string, fields Fields)
@@ -31,8 +41,9 @@ type (
 		Warn(v ...any)
 		Warnf(format string, v ...any)
 		Warnw(message string, fields Fields)
-		WithName(name string) Logger
-		WithPrefix(prefix string) Logger
-		GetPrefix() string
+
+		LogType() logtype.LogType
+		Instance() any
+		Clone() Logger
 	}
 )

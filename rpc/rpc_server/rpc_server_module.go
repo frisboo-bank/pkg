@@ -3,44 +3,42 @@ package rpcserver
 import (
 	"context"
 	"errors"
-	"net"
-
 	"frisboo-bank/pkg/container"
 	"frisboo-bank/pkg/environment"
-	loggerContracts "frisboo-bank/pkg/logger/contracts"
 	"frisboo-bank/pkg/rpc/rpc_server/contracts"
-	"frisboo-bank/pkg/rpc/rpc_server/factory"
 	"frisboo-bank/pkg/rpc/rpc_server/options"
+	"net"
+
+	configContracts "frisboo-bank/pkg/config/contracts"
+
+	loggerContracts "frisboo-bank/pkg/logger/contracts"
+
 	waiterContracts "frisboo-bank/pkg/waiter/contracts"
 
-	"go.uber.org/dig"
 	"google.golang.org/grpc"
 )
-
-type RPCServerDeps struct {
-	dig.In
-	Config *options.RPCServerOptions
-	Logger loggerContracts.Logger `name:"rpcServerLogger"`
-}
 
 var Module = container.NewModule(
 	"rpc-server",
 
-	container.Provide(func(env environment.Environment) (*options.RPCServerOptions, error) {
-		return options.ProvideRPCServerOptions(env)
+	container.Provide(func(loader configContracts.ConfigLoader, env environment.Environment) (*options.RPCServerOptions, error) {
+		return options.ProvideRPCServerOptions(loader, env)
 	}),
 
-	container.Provide(func(logger loggerContracts.Logger) loggerContracts.Logger {
-		return logger.
-			WithPrefix("(rpc-Server)").
-			WithName("rpc-server")
-	}, dig.Name("rpcServerLogger")),
-
 	container.Provide(
-		func(dependencies RPCServerDeps) (contracts.RPCServer, error) {
-			return factory.GetInstance(dependencies.Config,
-				options.UseLogger(dependencies.Logger),
-			)
+		func(logger loggerContracts.Logger, config *options.RPCServerOptions) (contracts.RPCServer, error) {
+			rpcServerLogger := logger.Clone().
+				WithPrefix("rpc-server")
+
+			rpcServer, err := GetInstance(rpcServerLogger)
+			if err != nil {
+				return nil, err
+			}
+
+			return rpcServer.
+				WithHost(config.Host).
+				WithPort(config.Port).
+				WithServerShutdownTimeout(config.ServerShutdownTimeout), nil
 		},
 	),
 
@@ -49,7 +47,7 @@ var Module = container.NewModule(
 
 func startHook(rpcServer contracts.RPCServer) waiterContracts.WaitFunc {
 	return func(ctx context.Context) error {
-		addr := rpcServer.Config().Address()
+		addr := rpcServer.Address()
 
 		rpcServer.Logger().Info("starting server...")
 
