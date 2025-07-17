@@ -2,103 +2,67 @@ package noop
 
 import (
 	"frisboo-bank/pkg/logger/contracts"
+	"io"
+
+	encodingtype "frisboo-bank/pkg/logger/options/enums/encoding_type"
+	loglevel "frisboo-bank/pkg/logger/options/enums/log_level"
 	logtype "frisboo-bank/pkg/logger/options/enums/log_type"
 )
 
-type noopLogger struct {
-	prefix string
-}
+type noopLogger struct{}
 
 var _ contracts.Logger = (*noopLogger)(nil)
 
 func NewNoopLogger() contracts.Logger {
-	return newNoopLogger()
-}
-
-func newNoopLogger() contracts.Logger {
 	return &noopLogger{}
 }
 
-func (n *noopLogger) Configure(cfg func(internalLoggerConfig any)) {
+func (n *noopLogger) Clone() contracts.Logger {
+	return &noopLogger{}
 }
 
-func (n *noopLogger) Debug(v ...any) {
+func (n *noopLogger) WithCaller(_ bool, _ int) contracts.Logger {
+	return n
 }
 
-func (n *noopLogger) Debugf(format string, v ...any) {
-}
+func (n *noopLogger) WithEncoding(_ encodingtype.EncodingType) contracts.Logger { return n }
 
-func (n *noopLogger) Debugw(message string, fields contracts.Fields) {
-}
+func (n *noopLogger) WithLevel(_ loglevel.LogLevel) contracts.Logger { return n }
 
-func (n *noopLogger) Error(v ...any) {
-}
+func (n *noopLogger) WithName(_ string) contracts.Logger { return n }
 
-func (n *noopLogger) Errorf(format string, v ...any) {
-}
+func (n *noopLogger) WithOutput(_ io.Writer) contracts.Logger { return n }
 
-func (n *noopLogger) Errorw(message string, fields contracts.Fields) {
-}
+func (n *noopLogger) WithPrefix(_ string) contracts.Logger { return n }
 
-func (n *noopLogger) Fatal(v ...any) {
-}
+func (n *noopLogger) WithTracer(_ bool) contracts.Logger { return n }
 
-func (n *noopLogger) Fatalf(format string, v ...any) {
-}
-
-func (n *noopLogger) Fatalw(message string, fields contracts.Fields) {
-}
-
-func (n *noopLogger) Info(v ...any) {
-}
-
-func (n *noopLogger) Infof(format string, v ...any) {
-}
-
-func (n *noopLogger) Infow(message string, fields contracts.Fields) {
-}
+func (n *noopLogger) Debug(...any)                    {}
+func (n *noopLogger) Debugf(string, ...any)           {}
+func (n *noopLogger) Debugw(string, contracts.Fields) {}
+func (n *noopLogger) Info(...any)                     {}
+func (n *noopLogger) Infof(string, ...any)            {}
+func (n *noopLogger) Infow(string, contracts.Fields)  {}
+func (n *noopLogger) Warn(...any)                     {}
+func (n *noopLogger) Warnf(string, ...any)            {}
+func (n *noopLogger) Warnw(string, contracts.Fields)  {}
+func (n *noopLogger) Error(...any)                    {}
+func (n *noopLogger) Errorf(string, ...any)           {}
+func (n *noopLogger) Errorw(string, contracts.Fields) {}
+func (n *noopLogger) Fatal(...any)                    {}
+func (n *noopLogger) Fatalf(string, ...any)           {}
+func (n *noopLogger) Fatalw(string, contracts.Fields) {}
+func (n *noopLogger) Panic(...any)                    {}
+func (n *noopLogger) Panicf(string, ...any)           {}
+func (n *noopLogger) Panicw(string, contracts.Fields) {}
+func (n *noopLogger) Print(...any)                    {}
+func (n *noopLogger) Printf(string, ...any)           {}
+func (n *noopLogger) Printw(string, contracts.Fields) {}
 
 func (n *noopLogger) LogType() logtype.LogType {
 	return logtype.LogTypes.NOOP
 }
 
-func (n *noopLogger) Panic(v ...any) {
-}
-
-func (n *noopLogger) Panicf(format string, v ...any) {
-}
-
-func (n *noopLogger) Panicw(message string, fields contracts.Fields) {
-}
-
-func (n *noopLogger) Print(v ...any) {
-}
-
-func (n *noopLogger) Printf(format string, v ...any) {
-}
-
-func (n *noopLogger) Printw(message string, fields contracts.Fields) {
-}
-
-func (n *noopLogger) Warn(v ...any) {
-}
-
-func (n *noopLogger) Warnf(format string, v ...any) {
-}
-
-func (n *noopLogger) Warnw(message string, fields contracts.Fields) {
-}
-
-func (n *noopLogger) WithName(name string) contracts.Logger {
-	return n
-}
-
-// WithPrefix set the prefix
-func (n *noopLogger) WithPrefix(prefix string) contracts.Logger {
-	return n
-}
-
-// GetPrefix get the prefix
-func (n *noopLogger) GetPrefix() string {
-	return n.prefix
+func (n *noopLogger) Instance() any {
+	return nil
 }

@@ -69,5 +69,7 @@ func GetEnvFromConfig(fallback ...Environment) Environment {
 		environment = NewEnvironment(trimmed)
 	}
 
+	fmt.Printf("Environment: %s\n", environment)
+
 	return environment
 }

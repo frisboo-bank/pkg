@@ -5,34 +5,54 @@ import (
 	"errors"
 	"fmt"
 	"net"
+	"time"
 
 	loggerContracts "frisboo-bank/pkg/logger/contracts"
 	"frisboo-bank/pkg/rpc/rpc_server/contracts"
 	"frisboo-bank/pkg/rpc/rpc_server/options"
-	"frisboo-bank/pkg/utils"
 
 	googlerpc "google.golang.org/grpc"
 )
 
 type GRPCServer struct {
+	host                  string
+	port                  string
+	serverShutdownTimeout time.Duration
+	services              []contracts.Services
+
 	grpcServer *googlerpc.Server
 	logger     loggerContracts.Logger
-	config     *options.RPCServerOptions
+}
+
+func (g *GRPCServer) WithHost(host string) contracts.RPCServer {
+	g.host = host
+	return g
+}
+
+func (g *GRPCServer) WithPort(port string) contracts.RPCServer {
+	g.port = port
+	return g
+}
+
+func (g *GRPCServer) WithServerShutdownTimeout(serverShutdownTimeout time.Duration) contracts.RPCServer {
+	g.serverShutdownTimeout = serverShutdownTimeout
+	return g
+}
+
+func (g *GRPCServer) WithServices(services []contracts.Services) contracts.RPCServer {
+	g.services = services
+	return g
 }
 
 var _ contracts.RPCServer = (*GRPCServer)(nil)
 
-func NewGRPCServer(config *options.RPCServerOptions) contracts.RPCServer {
-	utils.Assert(config.Logger != nil, "(rpc-server) logger must not be nil")
-
-	return newGRPCServer(config)
-}
-
-func newGRPCServer(config *options.RPCServerOptions) contracts.RPCServer {
+func NewGRPCServer(logger loggerContracts.Logger) contracts.RPCServer {
 	return &GRPCServer{
-		grpcServer: googlerpc.NewServer(),
-		logger:     config.Logger,
-		config:     config,
+		host:                  options.Host,
+		port:                  options.Port,
+		serverShutdownTimeout: options.ServerShutdownTimeout,
+		grpcServer:            googlerpc.NewServer(),
+		logger:                logger,
 	}
 }
 
@@ -54,8 +74,12 @@ func (g *GRPCServer) Shutdown(ctx context.Context) error {
 	return nil
 }
 
-func (g *GRPCServer) Config() *options.RPCServerOptions {
-	return g.config
+func (g *GRPCServer) Instance() any {
+	return g.grpcServer
+}
+
+func (g *GRPCServer) Address() string {
+	return net.JoinHostPort(g.host, g.port)
 }
 
 func (g *GRPCServer) Logger() loggerContracts.Logger {
