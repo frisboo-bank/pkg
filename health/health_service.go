@@ -15,7 +15,7 @@ type healthService struct {
 }
 
 func (s *healthService) WithStatusDown(statusDown string) contracts.HealthService {
-	s.statusDown = contracts.StatusType(s.statusDown)
+	s.statusDown = contracts.StatusType(statusDown)
 	return s
 }
 
