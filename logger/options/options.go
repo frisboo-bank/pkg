@@ -1,11 +1,11 @@
 package options
 
 import (
+	"os"
+
 	"frisboo-bank/pkg/config"
 	configContracts "frisboo-bank/pkg/config/contracts"
 	"frisboo-bank/pkg/environment"
-	"os"
-
 	encodingtype "frisboo-bank/pkg/logger/options/enums/encoding_type"
 	loglevel "frisboo-bank/pkg/logger/options/enums/log_level"
 	logtype "frisboo-bank/pkg/logger/options/enums/log_type"

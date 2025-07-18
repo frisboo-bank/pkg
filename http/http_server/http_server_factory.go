@@ -10,11 +10,11 @@ import (
 )
 
 func GetInstance(
-	httpServerType httpservertype.HTTPServerType,
+	httpServerType httpservertype.HttpServerType,
 	logger loggerContracts.Logger,
 ) (contracts.HTTPServer, error) {
 	switch httpServerType {
-	case httpservertype.HTTPServerTypes.GIN:
+	case httpservertype.HttpServerTypes.GIN:
 		return gin.NewGinHTTPServer(logger), nil
 	default:
 		return nil, fmt.Errorf("(http-server-factory) no server of type `%q` exists", httpServerType)

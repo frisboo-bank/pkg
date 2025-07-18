@@ -2,17 +2,19 @@ package options
 
 import (
 	"frisboo-bank/pkg/config"
-	configContracts "frisboo-bank/pkg/config/contracts"
 	"frisboo-bank/pkg/constants"
 	"frisboo-bank/pkg/environment"
 	"time"
 
 	httpservertype "frisboo-bank/pkg/http/http_server/options/enums/http_server_type"
+
+	configContracts "frisboo-bank/pkg/config/contracts"
+
 	loggerContracts "frisboo-bank/pkg/logger/contracts"
 )
 
 var (
-	Type                  = httpservertype.HTTPServerTypes.GIN
+	Type                  = httpservertype.HttpServerTypes.GIN
 	BasePath              = ""
 	Host                  = "0.0.0.0"
 	Port                  = "8080"
@@ -26,7 +28,7 @@ var (
 )
 
 type HTTPServerOptions struct {
-	Type                  httpservertype.HTTPServerType `mapstructure:"type"`
+	Type                  httpservertype.HttpServerType `mapstructure:"type"`
 	BasePath              string                        `mapstructure:"basePath"`
 	Development           bool                          `mapstructure:"development"`
 	Host                  string                        `mapstructure:"host"`
@@ -42,6 +44,9 @@ type HTTPServerOptions struct {
 	Logger                loggerContracts.Logger
 }
 
-func ProvideHTTPServerOptions(loader configContracts.ConfigLoader, env environment.Environment) (*HTTPServerOptions, error) {
+func ProvideHTTPServerOptions(
+	loader configContracts.ConfigLoader,
+	env environment.Environment,
+) (*HTTPServerOptions, error) {
 	return config.LoadOptions[HTTPServerOptions](loader, env)
 }

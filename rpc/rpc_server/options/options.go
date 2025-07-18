@@ -1,14 +1,14 @@
 package options
 
 import (
+	"time"
+
 	"frisboo-bank/pkg/config"
 	configContracts "frisboo-bank/pkg/config/contracts"
 	"frisboo-bank/pkg/constants"
 	"frisboo-bank/pkg/environment"
-	"frisboo-bank/pkg/rpc/rpc_server/contracts"
-	"time"
-
 	loggerContracts "frisboo-bank/pkg/logger/contracts"
+	"frisboo-bank/pkg/rpc/rpc_server/contracts"
 )
 
 var (
@@ -25,6 +25,9 @@ type RPCServerOptions struct {
 	Logger                loggerContracts.Logger
 }
 
-func ProvideRPCServerOptions(loader configContracts.ConfigLoader, env environment.Environment) (*RPCServerOptions, error) {
+func ProvideRPCServerOptions(
+	loader configContracts.ConfigLoader,
+	env environment.Environment,
+) (*RPCServerOptions, error) {
 	return config.LoadOptions[RPCServerOptions](loader, env)
 }

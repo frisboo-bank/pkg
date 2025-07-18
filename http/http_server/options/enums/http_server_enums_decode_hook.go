@@ -15,8 +15,8 @@ func HTTPServerEnumsDecodeHook() mapstructure.DecodeHookFunc {
 		data any,
 	) (any, error) {
 		switch t {
-		case reflect.TypeOf(httpservertype.HTTPServerType{}):
-			return httpservertype.ParseHTTPServerType(data)
+		case reflect.TypeOf(httpservertype.HttpServerType{}):
+			return httpservertype.ParseHttpServerType(data)
 		}
 
 		return data, nil

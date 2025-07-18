@@ -2,13 +2,14 @@ package config
 
 import (
 	"fmt"
+	"path"
+	"strings"
+
 	"frisboo-bank/pkg/config/contracts"
 	"frisboo-bank/pkg/config/options"
 	"frisboo-bank/pkg/constants"
 	"frisboo-bank/pkg/environment"
 	"frisboo-bank/pkg/utils"
-	"path"
-	"strings"
 
 	envparse "github.com/caarlos0/env/v11"
 	"github.com/go-viper/mapstructure/v2"

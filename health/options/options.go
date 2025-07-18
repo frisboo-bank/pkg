@@ -1,11 +1,12 @@
 package options
 
 import (
+	"net/http"
+
 	"frisboo-bank/pkg/config"
 	configContracts "frisboo-bank/pkg/config/contracts"
 	"frisboo-bank/pkg/environment"
 	"frisboo-bank/pkg/health/contracts"
-	"net/http"
 )
 
 // default options
