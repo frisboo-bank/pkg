@@ -98,7 +98,7 @@ func (l *logrusLogger) WithTracer(withTracer bool) contracts.Logger {
 	l.enableTracing = withTracer
 
 	if l.enableTracing {
-		fmt.Println(l.instance.Hooks)
+		l.instance.Debug("Tracing enabled. Current hooks: ", l.instance.Hooks)
 
 		l.instance.AddHook(otellogrus.NewHook(otellogrus.WithLevels(
 			logrus.PanicLevel,
