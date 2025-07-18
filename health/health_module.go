@@ -11,9 +11,11 @@ import (
 
 var Module = container.NewModule(
 	"health",
-	container.Provide(func(loader configContracts.ConfigLoader, env environment.Environment) (*options.HealthOptions, error) {
-		return options.ProvideHealthOptions(loader, env)
-	}),
+	container.Provide(
+		func(loader configContracts.ConfigLoader, env environment.Environment) (*options.HealthOptions, error) {
+			return options.ProvideHealthOptions(loader, env)
+		},
+	),
 	container.Provide(func(config *options.HealthOptions) contracts.HealthService {
 		return NewHealthService(config.Services)
 	}),

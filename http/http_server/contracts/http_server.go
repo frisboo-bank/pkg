@@ -27,7 +27,7 @@ type HTTPServer interface {
 	AddMiddlewares(middlewares ...any)
 	SetupDefaultMiddlewares()
 	Instance() any
-	ServerType() httpservertype.HTTPServerType
+	ServerType() httpservertype.HttpServerType
 	Address() string
 
 	RouteBuilder() RouteBuilder

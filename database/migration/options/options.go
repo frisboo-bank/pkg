@@ -1,13 +1,10 @@
-package config
+package options
 
 import (
 	"errors"
-
-	configUtils "frisboo-bank/pkg/config/utils"
+	"frisboo-bank/pkg/config"
+	configContracts "frisboo-bank/pkg/config/contracts"
 	"frisboo-bank/pkg/environment"
-	"frisboo-bank/pkg/reflection/typemapper"
-
-	"github.com/stoewer/go-strcase"
 )
 
 type CommandType = string
@@ -29,8 +26,6 @@ type MigrationOptions struct {
 	MigrationDir string
 }
 
-var optionName = strcase.LowerCamelCase(typemapper.GetGenericTypeNameByT[MigrationOptions]())
-
-func ProvideMigrationConfig(environment environment.Environment) (*MigrationOptions, error) {
-	return configUtils.BindConfigKey[*MigrationOptions](optionName, environment)
+func ProvideMigrationConfig(loader configContracts.ConfigLoader, env environment.Environment) (*MigrationOptions, error) {
+	return config.LoadOptions[MigrationOptions](loader, env)
 }

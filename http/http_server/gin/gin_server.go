@@ -174,8 +174,8 @@ func (g *ginHTTPServer) SetupDefaultMiddlewares() {
 	)
 }
 
-func (g *ginHTTPServer) ServerType() httpservertype.HTTPServerType {
-	return httpservertype.HTTPServerTypes.GIN
+func (g *ginHTTPServer) ServerType() httpservertype.HttpServerType {
+	return httpservertype.HttpServerTypes.GIN
 }
 
 func (g *ginHTTPServer) Instance() any {
