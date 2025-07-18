@@ -1,157 +1,166 @@
 package logrus
 
 import (
-	"maps"
-	"os"
-
+	"fmt"
 	"frisboo-bank/pkg/constants"
 	"frisboo-bank/pkg/logger/contracts"
 	"frisboo-bank/pkg/logger/options"
+	"io"
+	"maps"
+
+	encodingtype "frisboo-bank/pkg/logger/options/enums/encoding_type"
 	loglevel "frisboo-bank/pkg/logger/options/enums/log_level"
 	logtype "frisboo-bank/pkg/logger/options/enums/log_type"
-	"frisboo-bank/pkg/logger/utils"
 
+	"github.com/nolleh/caption_json_formatter"
 	"github.com/sirupsen/logrus"
+	"github.com/uptrace/opentelemetry-go-extra/otellogrus"
 )
 
 var logrusLevelMapping = map[loglevel.LogLevel]logrus.Level{
 	loglevel.LogLevels.DEBUG_LEVEL: logrus.DebugLevel,
-	loglevel.LogLevels.INFO_LEVEL:  logrus.InfoLevel,
-	loglevel.LogLevels.WARN_LEVEL:  logrus.WarnLevel,
 	loglevel.LogLevels.ERROR_LEVEL: logrus.ErrorLevel,
-	loglevel.LogLevels.PANIC_LEVEL: logrus.PanicLevel,
 	loglevel.LogLevels.FATAL_LEVEL: logrus.FatalLevel,
+	loglevel.LogLevels.INFO_LEVEL:  logrus.InfoLevel,
+	loglevel.LogLevels.PANIC_LEVEL: logrus.PanicLevel,
+	loglevel.LogLevels.WARN_LEVEL:  logrus.WarnLevel,
 }
 
 type logrusLogger struct {
-	level  loglevel.LogLevel
-	logger *logrus.Logger
-	config *options.LogOptions
-	prefix string
-	name   string
-	fields contracts.Fields
+	callDepth     int
+	callerEnabled bool
+	enableTracing bool
+	encoding      encodingtype.EncodingType
+	level         loglevel.LogLevel
+	name          string
+	output        io.Writer
+	prefix        string
+
+	instance *logrus.Logger
+	fields   contracts.Fields
 }
 
-var _ contracts.Logger = (*logrusLogger)(nil)
+func (l *logrusLogger) WithCaller(enabled bool, depth int) contracts.Logger {
+	l.callerEnabled = enabled
+	l.callDepth = depth
 
-func NewLogrusLogger(config *options.LogOptions) contracts.Logger {
-	return newLogrusLogger(config)
+	l.instance.SetReportCaller(enabled)
+
+	return l
 }
 
-func newLogrusLogger(config *options.LogOptions) contracts.Logger {
-	logger := &logrusLogger{
-		level:  config.Level,
-		config: config,
-		fields: make(contracts.Fields),
-	}
-	logger.initLogger()
-	return logger
-}
+func (l *logrusLogger) WithEncoding(encoding encodingtype.EncodingType) contracts.Logger {
+	l.encoding = encoding
 
-func (l *logrusLogger) initLogger() {
-	logger := logrus.New()
-	logger.SetLevel(l.GetLogLevel())
-	logger.SetOutput(os.Stdout)
-	logger.SetReportCaller(false)
-
-	switch l.config.Encoding {
-	default: // Default to text
-		logger.SetFormatter(&logrus.TextFormatter{
+	switch encoding {
+	case encodingtype.EncodingTypes.JSON:
+		l.instance.SetFormatter(&caption_json_formatter.Formatter{
+			PrettyPrint: true,
+		})
+	default:
+		l.instance.SetFormatter(&logrus.TextFormatter{
 			ForceColors:   true,
 			DisableColors: false,
 			FullTimestamp: true,
 		})
 	}
 
-	l.logger = logger
+	return l
 }
 
-func (l *logrusLogger) GetLogLevel() logrus.Level {
-	level, exist := logrusLevelMapping[l.level]
-	if !exist {
-		return logrus.ErrorLevel
-	}
-	return level
+func (l *logrusLogger) WithLevel(logLevel loglevel.LogLevel) contracts.Logger {
+	l.level = logLevel
+
+	l.instance.SetLevel(l.getLogLevel())
+
+	return l
 }
 
-func (l *logrusLogger) Configure(cfg func(internalLoggerConfig any)) {
-	cfg(l.logger)
+func (l *logrusLogger) WithName(name string) contracts.Logger {
+	l.name = name
+	return l
 }
 
-// Helper to get entry with all contextual fields
-func (l *logrusLogger) getEntry() *logrus.Entry {
-	fields := logrus.Fields{}
-	if l.prefix != "" {
-		fields["prefix"] = l.prefix
-	}
-	if l.name != "" {
-		fields[constants.LOGGER_NAME] = l.name
-	}
-	for k, v := range l.fields {
-		fields[k] = v
-	}
+func (l *logrusLogger) WithOutput(output io.Writer) contracts.Logger {
+	l.output = output
 
-	return l.logger.WithFields(fields)
+	l.instance.SetOutput(output)
+
+	return l
 }
 
-// --- Standard logging methods ---
-func (l *logrusLogger) log(level logrus.Level, v ...any) {
-	msg := utils.ConcatPrefix(l.prefix, v...)
-	switch level {
-	case logrus.DebugLevel:
-		l.logger.Debug(msg...)
-	case logrus.InfoLevel:
-		l.logger.Info(msg...)
-	case logrus.WarnLevel:
-		l.logger.Warn(msg...)
-	case logrus.ErrorLevel:
-		l.logger.Error(msg...)
-	case logrus.FatalLevel:
-		l.logger.Fatal(msg...)
-	case logrus.PanicLevel:
-		l.logger.Panic(msg...)
-	}
+func (l *logrusLogger) WithPrefix(prefix string) contracts.Logger {
+	l.prefix = prefix
+	return l
 }
 
-func (l *logrusLogger) logf(level logrus.Level, format string, v ...any) {
-	format, v = utils.ConcatPrefixf(l.prefix, format, v...)
-	switch level {
-	case logrus.DebugLevel:
-		l.logger.Debugf(format, v...)
-	case logrus.InfoLevel:
-		l.logger.Infof(format, v...)
-	case logrus.WarnLevel:
-		l.logger.Warnf(format, v...)
-	case logrus.ErrorLevel:
-		l.logger.Errorf(format, v...)
-	case logrus.FatalLevel:
-		l.logger.Fatalf(format, v...)
-	case logrus.PanicLevel:
-		l.logger.Panicf(format, v...)
+func (l *logrusLogger) WithTracer(withTracer bool) contracts.Logger {
+	l.enableTracing = withTracer
+
+	if l.enableTracing {
+		l.instance.Debug("Tracing enabled. Current hooks: ", l.instance.Hooks)
+
+		l.instance.AddHook(otellogrus.NewHook(otellogrus.WithLevels(
+			logrus.PanicLevel,
+			logrus.FatalLevel,
+			logrus.ErrorLevel,
+			logrus.WarnLevel,
+		)))
 	}
+
+	return l
 }
 
-func (l *logrusLogger) logw(level logrus.Level, message string, fields contracts.Fields) {
-	message = utils.ConcatPrefixStr(l.prefix, message)
-	entry := l.getEntry()
+var _ contracts.Logger = (*logrusLogger)(nil)
 
-	switch level {
-	case logrus.DebugLevel:
-		entry.Debug(message)
-	case logrus.InfoLevel:
-		entry.Info(message)
-	case logrus.WarnLevel:
-		entry.Warn(message)
-	case logrus.ErrorLevel:
-		entry.Error(message)
-	case logrus.FatalLevel:
-		entry.Fatal(message)
-	case logrus.PanicLevel:
-		entry.Panic(message)
+func NewLogrusLogger() contracts.Logger {
+	logger := &logrusLogger{
+		callerEnabled: false,
+		enableTracing: false,
+		encoding:      options.Encoding,
+		fields:        make(contracts.Fields),
+		level:         options.Level,
+		output:        options.Output,
+		instance:      logrus.New(),
 	}
+
+	logger.initLogger()
+
+	return logger
 }
 
-// --- Concrete implementations ---
+func (l *logrusLogger) Clone() contracts.Logger {
+	clonedFields := make(contracts.Fields, len(l.fields))
+	maps.Copy(clonedFields, l.fields)
+
+	clone := &logrusLogger{
+		callDepth:     l.callDepth,
+		callerEnabled: l.callerEnabled,
+		enableTracing: l.enableTracing,
+		encoding:      l.encoding,
+		level:         l.level,
+		name:          l.name,
+		output:        l.output,
+		prefix:        l.prefix,
+		fields:        clonedFields,
+		instance:      logrus.New(),
+	}
+
+	clone.initLogger()
+
+	return clone
+}
+
+func (l *logrusLogger) initLogger() {
+	l.WithCaller(l.callerEnabled, l.callDepth).
+		WithEncoding(l.encoding).
+		WithLevel(l.level).
+		WithName(l.name).
+		WithOutput(l.output).
+		WithPrefix(l.prefix).
+		WithTracer(l.enableTracing)
+}
+
 func (l *logrusLogger) Debug(v ...any) {
 	l.log(logrus.DebugLevel, v...)
 }
@@ -240,27 +249,95 @@ func (l *logrusLogger) LogType() logtype.LogType {
 	return logtype.LogTypes.LOGRUS
 }
 
-func (l *logrusLogger) WithName(name string) contracts.Logger {
-	newLogger := *l
-	newLogger.name = name
-	return &newLogger
+func (l *logrusLogger) Instance() any {
+	return l.instance
 }
 
-func (l *logrusLogger) WithPrefix(prefix string) contracts.Logger {
-	newLogger := *l
-	newLogger.prefix = prefix
-	return &newLogger
+// Helper to get the log level in logrus format
+func (l *logrusLogger) getLogLevel() logrus.Level {
+	level, exist := logrusLevelMapping[l.level]
+	if !exist {
+		return logrus.ErrorLevel
+	}
+	return level
 }
 
-func (l *logrusLogger) WithFields(fields contracts.Fields) contracts.Logger {
-	newLogger := *l
-	newLogger.fields = make(contracts.Fields, len(l.fields)+len(fields))
-	maps.Copy(newLogger.fields, l.fields)
-	maps.Copy(newLogger.fields, fields)
+// Helper to get entry with all contextual fields
+func (l *logrusLogger) getEntry() *logrus.Entry {
+	fields := logrus.Fields{}
+	if l.prefix != "" {
+		fields["prefix"] = l.prefix
+	}
 
-	return &newLogger
+	if l.name != "" {
+		fields[constants.LOGGER_NAME] = l.name
+	}
+	maps.Copy(fields, l.fields)
+
+	return l.instance.WithFields(fields)
 }
 
-func (l *logrusLogger) GetPrefix() string {
-	return l.prefix
+// --- Standard logging methods ---
+func (l *logrusLogger) log(level logrus.Level, v ...any) {
+	if l.prefix != "" {
+		v = append([]any{fmt.Sprintf("%s: ", l.prefix)}, v...)
+	}
+
+	switch level {
+	case logrus.DebugLevel:
+		l.instance.Debug(v...)
+	case logrus.InfoLevel:
+		l.instance.Info(v...)
+	case logrus.WarnLevel:
+		l.instance.Warn(v...)
+	case logrus.ErrorLevel:
+		l.instance.Error(v...)
+	case logrus.FatalLevel:
+		l.instance.Fatal(v...)
+	case logrus.PanicLevel:
+		l.instance.Panic(v...)
+	}
+}
+
+func (l *logrusLogger) logf(level logrus.Level, format string, v ...any) {
+	if l.prefix != "" {
+		format = fmt.Sprintf("%s: %s", l.prefix, format)
+	}
+
+	switch level {
+	case logrus.DebugLevel:
+		l.instance.Debugf(format, v...)
+	case logrus.InfoLevel:
+		l.instance.Infof(format, v...)
+	case logrus.WarnLevel:
+		l.instance.Warnf(format, v...)
+	case logrus.ErrorLevel:
+		l.instance.Errorf(format, v...)
+	case logrus.FatalLevel:
+		l.instance.Fatalf(format, v...)
+	case logrus.PanicLevel:
+		l.instance.Panicf(format, v...)
+	}
+}
+
+func (l *logrusLogger) logw(level logrus.Level, message string, fields contracts.Fields) {
+	if l.prefix != "" {
+		message = fmt.Sprintf("%s: %s", l.prefix, message)
+	}
+	entry := l.getEntry()
+
+	switch level {
+	case logrus.DebugLevel:
+		entry.Debug(message)
+	case logrus.InfoLevel:
+		entry.Info(message)
+	case logrus.WarnLevel:
+		entry.Warn(message)
+	case logrus.ErrorLevel:
+		entry.Error(message)
+	case logrus.FatalLevel:
+		entry.Fatal(message)
+	case logrus.PanicLevel:
+		entry.Panic(message)
+	}
 }

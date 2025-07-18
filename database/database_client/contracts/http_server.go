@@ -7,7 +7,7 @@ import (
 	loggerContracts "frisboo-bank/pkg/logger/contracts"
 )
 
-type HttpServer interface {
+type HTTPServer interface {
 	Start() error
 	Shutdown(ctx context.Context) error
 	AddMiddlewares(middlewares ...any)
@@ -15,5 +15,5 @@ type HttpServer interface {
 	Instance() any
 	RouteBuilder() RouteBuilder
 	Logger() loggerContracts.Logger
-	Config() *config.HttpServerOptions
+	Config() *config.HTTPServerOptions
 }
