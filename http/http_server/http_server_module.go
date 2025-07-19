@@ -2,25 +2,18 @@ package httpserver
 
 import (
 	"context"
-
-	configContracts "frisboo-bank/pkg/config/contracts"
 	"frisboo-bank/pkg/container"
 	"frisboo-bank/pkg/environment"
 	"frisboo-bank/pkg/http/http_server/contracts"
 	"frisboo-bank/pkg/http/http_server/options"
 	"frisboo-bank/pkg/logger"
+
+	configContracts "frisboo-bank/pkg/config/contracts"
+
 	loggerContracts "frisboo-bank/pkg/logger/contracts"
 	loggerOptions "frisboo-bank/pkg/logger/options"
 	waiterContracts "frisboo-bank/pkg/waiter/contracts"
-
-	"go.uber.org/dig"
 )
-
-type HTTPServerDeps struct {
-	dig.In
-	Logger  loggerContracts.Logger `name:http_server_logger`
-	Options *options.HTTPServerOptions
-}
 
 var Module = container.NewModule(
 	"http_server",
@@ -32,26 +25,23 @@ var Module = container.NewModule(
 		},
 	),
 
-	// create a custom httpserver logger
-	container.Provide(func(options *loggerOptions.LogOptions) (loggerContracts.Logger, error) {
-		logger, err := logger.GetInstance(options.Type)
-		if err != nil {
-			return nil, err
-		}
-
-		return logger.WithOptions(options).
-			WithPrefix("http-server"), nil
-	}, dig.Name("http_server_logger")),
-
 	// create the httpserver
-	container.Provide(func(deps HTTPServerDeps) (contracts.HTTPServer, error) {
-		httpServer, err := GetInstance(deps.Options.Type, deps.Logger)
-		if err != nil {
-			return nil, err
-		}
+	container.Provide(
+		func(loggerOpts *loggerOptions.LogOptions, options *options.HTTPServerOptions) (contracts.HTTPServer, error) {
+			customLogger, err := logger.GetInstanceFromOptions(loggerOpts)
+			if err != nil {
+				return nil, err
+			}
+			customLogger = customLogger.WithPrefix("http-server")
 
-		return httpServer.WithOptions(deps.Options), nil
-	}),
+			httpServer, err := GetInstanceFromOptions(options, customLogger)
+			if err != nil {
+				return nil, err
+			}
+
+			return httpServer, nil
+		},
+	),
 
 	container.Hook(startHook, stopHook),
 )

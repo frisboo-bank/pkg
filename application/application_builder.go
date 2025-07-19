@@ -36,18 +36,17 @@ func NewApplicationBuilder(environments ...environment.Environment) contracts.Ap
 			httpServerEnums.HTTPServerEnumsDecodeHook(),
 		)
 
-	logOptions, err := loggerOptions.ProvideLogOptions(configLoader, env)
+	loggerOpts, err := loggerOptions.ProvideLogOptions(configLoader, env)
 	if err != nil {
 		fmt.Printf("application-builder: failed to load Logger options with error: %v\n", err)
 		os.Exit(1)
 	}
 
-	logger, err := logger.GetInstance(logOptions.Type)
+	logger, err := logger.GetInstanceFromOptions(loggerOpts)
 	if err != nil {
 		fmt.Printf("application-builder: failed to create Logger with error: %v\n", err)
 		os.Exit(1)
 	}
-	logger.WithOptions(logOptions)
 
 	return &applicationBuilder{
 		logger:      logger,
@@ -58,6 +57,7 @@ func NewApplicationBuilder(environments ...environment.Environment) contracts.Ap
 		providers: []container.Provider{
 			container.Provide(func() environment.Environment { return env }),
 			container.Provide(func() configContrats.ConfigLoader { return configLoader }),
+			container.Provide(func() *loggerOptions.LogOptions { return loggerOpts }),
 			container.Provide(func() loggerContracts.Logger { return logger }),
 		},
 	}
