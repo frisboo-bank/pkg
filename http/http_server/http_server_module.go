@@ -2,49 +2,59 @@ package httpserver
 
 import (
 	"context"
-
-	configContracts "frisboo-bank/pkg/config/contracts"
 	"frisboo-bank/pkg/container"
 	"frisboo-bank/pkg/environment"
 	"frisboo-bank/pkg/http/http_server/contracts"
 	"frisboo-bank/pkg/http/http_server/options"
+	"frisboo-bank/pkg/logger"
+
+	configContracts "frisboo-bank/pkg/config/contracts"
+
 	loggerContracts "frisboo-bank/pkg/logger/contracts"
+	loggerOptions "frisboo-bank/pkg/logger/options"
 	waiterContracts "frisboo-bank/pkg/waiter/contracts"
+
+	"go.uber.org/dig"
 )
+
+type HTTPServerDeps struct {
+	dig.In
+	Logger  loggerContracts.Logger `name:httpServerLogger`
+	Options *options.HTTPServerOptions
+}
 
 var Module = container.NewModule(
 	"http_server",
+
+	// load httpserver config
 	container.Provide(
 		func(loader configContracts.ConfigLoader, env environment.Environment) (*options.HTTPServerOptions, error) {
 			return options.ProvideHTTPServerOptions(loader, env)
 		},
 	),
 
-	container.Provide(
-		func(logger loggerContracts.Logger, config *options.HTTPServerOptions) (contracts.HTTPServer, error) {
-			httpServerLogger := logger.Clone()
-			httpServerLogger.WithPrefix("http-server")
+	// create a custom httpserver logger
+	container.Provide(func(options *loggerOptions.LogOptions) (loggerContracts.Logger, error) {
+		logger, err := logger.GetInstance(options.Type)
+		if err != nil {
+			return nil, err
+		}
 
-			httpServer, err := GetInstance(config.Type, httpServerLogger)
-			if err != nil {
-				return nil, err
-			}
+		logger.WithOptions(options).
+			WithPrefix("http-sever")
 
-			return httpServer.
-				WithBasePath(config.BasePath).
-				WithBodyLimit(config.BodyLimit).
-				HasDevelopment(config.Development).
-				WithHost(config.Host).
-				WithIdleTimeout(config.IdleTimeout).
-				WithIgnoreLogUrls(config.IgnoreLogUrls).
-				WithMaxHeaderBytes(config.MaxHeaderBytes).
-				WithPort(config.Port).
-				WithReadHeaderTimeout(config.ReadHeaderTimeout).
-				WithReadTimeout(config.ReadTimeout).
-				WithServerShutdownTimeout(config.ServerShutdownTimeout).
-				WithWriteTimeout(config.WriteTimeout), nil
-		},
-	),
+		return logger, nil
+	}, dig.Name("httpServerLogger")),
+
+	// create the httpserver
+	container.Provide(func(deps HTTPServerDeps) (contracts.HTTPServer, error) {
+		httpServer, err := GetInstance(deps.Options.Type, deps.Logger)
+		if err != nil {
+			return nil, err
+		}
+
+		return httpServer.WithOptions(deps.Options), nil
+	}),
 
 	container.Hook(startHook, stopHook),
 )

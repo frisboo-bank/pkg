@@ -1,6 +1,7 @@
 package contracts
 
 import (
+	"frisboo-bank/pkg/logger/options"
 	"io"
 
 	encodingtype "frisboo-bank/pkg/logger/options/enums/encoding_type"
@@ -12,6 +13,7 @@ type (
 	Fields map[string]any
 
 	Logger interface {
+		WithOptions(options *options.LogOptions) Logger
 		WithCaller(withCaller bool, depth int) Logger
 		WithEncoding(encoding encodingtype.EncodingType) Logger
 		WithLevel(logLevel loglevel.LogLevel) Logger
@@ -44,6 +46,5 @@ type (
 
 		LogType() logtype.LogType
 		Instance() any
-		Clone() Logger
 	}
 )

@@ -2,12 +2,12 @@ package logrus
 
 import (
 	"fmt"
-	"io"
-	"maps"
-
 	"frisboo-bank/pkg/constants"
 	"frisboo-bank/pkg/logger/contracts"
 	"frisboo-bank/pkg/logger/options"
+	"io"
+	"maps"
+
 	encodingtype "frisboo-bank/pkg/logger/options/enums/encoding_type"
 	loglevel "frisboo-bank/pkg/logger/options/enums/log_level"
 	logtype "frisboo-bank/pkg/logger/options/enums/log_type"
@@ -38,6 +38,16 @@ type logrusLogger struct {
 
 	instance *logrus.Logger
 	fields   contracts.Fields
+}
+
+var _ contracts.Logger = (*logrusLogger)(nil)
+
+func (l *logrusLogger) WithOptions(options *options.LogOptions) contracts.Logger {
+	return l.
+		WithCaller(options.CallerEnabled, options.CallDepth).
+		WithEncoding(options.Encoding).
+		WithLevel(options.Level).
+		WithTracer(options.EnableTracing)
 }
 
 func (l *logrusLogger) WithCaller(enabled bool, depth int) contracts.Logger {
@@ -111,8 +121,6 @@ func (l *logrusLogger) WithTracer(withTracer bool) contracts.Logger {
 	return l
 }
 
-var _ contracts.Logger = (*logrusLogger)(nil)
-
 func NewLogrusLogger() contracts.Logger {
 	logger := &logrusLogger{
 		callerEnabled: false,
@@ -127,28 +135,6 @@ func NewLogrusLogger() contracts.Logger {
 	logger.initLogger()
 
 	return logger
-}
-
-func (l *logrusLogger) Clone() contracts.Logger {
-	clonedFields := make(contracts.Fields, len(l.fields))
-	maps.Copy(clonedFields, l.fields)
-
-	clone := &logrusLogger{
-		callDepth:     l.callDepth,
-		callerEnabled: l.callerEnabled,
-		enableTracing: l.enableTracing,
-		encoding:      l.encoding,
-		level:         l.level,
-		name:          l.name,
-		output:        l.output,
-		prefix:        l.prefix,
-		fields:        clonedFields,
-		instance:      logrus.New(),
-	}
-
-	clone.initLogger()
-
-	return clone
 }
 
 func (l *logrusLogger) initLogger() {

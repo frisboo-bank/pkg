@@ -1,14 +1,12 @@
 package options
 
 import (
-	"time"
-
 	"frisboo-bank/pkg/config"
-	configContracts "frisboo-bank/pkg/config/contracts"
 	"frisboo-bank/pkg/constants"
 	"frisboo-bank/pkg/environment"
-	loggerContracts "frisboo-bank/pkg/logger/contracts"
-	"frisboo-bank/pkg/rpc/rpc_server/contracts"
+	"time"
+
+	configContracts "frisboo-bank/pkg/config/contracts"
 )
 
 var (
@@ -21,8 +19,6 @@ type RPCServerOptions struct {
 	Host                  string        `mapstructure:"host"`
 	Port                  string        `mapstructure:"port"`
 	ServerShutdownTimeout time.Duration `mapstructure:"serverShutdownTimeout"`
-	Services              contracts.Services
-	Logger                loggerContracts.Logger
 }
 
 func ProvideRPCServerOptions(

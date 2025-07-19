@@ -4,12 +4,12 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"frisboo-bank/pkg/rpc/rpc_server/contracts"
+	"frisboo-bank/pkg/rpc/rpc_server/options"
 	"net"
 	"time"
 
 	loggerContracts "frisboo-bank/pkg/logger/contracts"
-	"frisboo-bank/pkg/rpc/rpc_server/contracts"
-	"frisboo-bank/pkg/rpc/rpc_server/options"
 
 	googlerpc "google.golang.org/grpc"
 )
@@ -22,6 +22,13 @@ type GRPCServer struct {
 
 	grpcServer *googlerpc.Server
 	logger     loggerContracts.Logger
+}
+
+func (g *GRPCServer) WithOptions(options *options.RPCServerOptions) contracts.RPCServer {
+	return g.
+		WithHost(options.Host).
+		WithPort(options.Port).
+		WithServerShutdownTimeout(options.ServerShutdownTimeout)
 }
 
 func (g *GRPCServer) WithHost(host string) contracts.RPCServer {

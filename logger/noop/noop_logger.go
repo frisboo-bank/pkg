@@ -1,9 +1,10 @@
 package noop
 
 import (
+	"frisboo-bank/pkg/logger/contracts"
+	"frisboo-bank/pkg/logger/options"
 	"io"
 
-	"frisboo-bank/pkg/logger/contracts"
 	encodingtype "frisboo-bank/pkg/logger/options/enums/encoding_type"
 	loglevel "frisboo-bank/pkg/logger/options/enums/log_level"
 	logtype "frisboo-bank/pkg/logger/options/enums/log_type"
@@ -13,12 +14,8 @@ type noopLogger struct{}
 
 var _ contracts.Logger = (*noopLogger)(nil)
 
-func NewNoopLogger() contracts.Logger {
-	return &noopLogger{}
-}
-
-func (n *noopLogger) Clone() contracts.Logger {
-	return &noopLogger{}
+func (n *noopLogger) WithOptions(options *options.LogOptions) contracts.Logger {
+	return n
 }
 
 func (n *noopLogger) WithCaller(_ bool, _ int) contracts.Logger {
@@ -36,6 +33,10 @@ func (n *noopLogger) WithOutput(_ io.Writer) contracts.Logger { return n }
 func (n *noopLogger) WithPrefix(_ string) contracts.Logger { return n }
 
 func (n *noopLogger) WithTracer(_ bool) contracts.Logger { return n }
+
+func NewNoopLogger() contracts.Logger {
+	return &noopLogger{}
+}
 
 func (n *noopLogger) Debug(...any)                    {}
 func (n *noopLogger) Debugf(string, ...any)           {}

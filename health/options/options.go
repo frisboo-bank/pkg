@@ -1,12 +1,12 @@
 package options
 
 import (
-	"net/http"
-
 	"frisboo-bank/pkg/config"
-	configContracts "frisboo-bank/pkg/config/contracts"
 	"frisboo-bank/pkg/environment"
 	"frisboo-bank/pkg/health/contracts"
+	"net/http"
+
+	configContracts "frisboo-bank/pkg/config/contracts"
 )
 
 // default options
@@ -26,7 +26,6 @@ type HealthOptions struct {
 	StatusUp       string `mapstructure:"statusUp"`
 	StatusCodeDown int    `mapstructure:"statusCodeDown"`
 	StatusDown     string `mapstructure:"statusDown"`
-	Services       []contracts.HealthServiceCheck
 }
 
 func ProvideHealthOptions(loader configContracts.ConfigLoader, env environment.Environment) (*HealthOptions, error) {
