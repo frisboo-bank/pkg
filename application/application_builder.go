@@ -57,7 +57,8 @@ func NewApplicationBuilder(environments ...environment.Environment) contracts.Ap
 		providers: []container.Provider{
 			container.Provide(func() environment.Environment { return env }),
 			container.Provide(func() configContrats.ConfigLoader { return configLoader }),
-			container.Provide(func() (*loggerOptions.LogOptions, loggerContracts.Logger) { return loggerOpts, logger }),
+			container.Provide(func() *loggerOptions.LogOptions { return loggerOpts }),
+			container.Provide(func() loggerContracts.Logger { return logger }),
 		},
 	}
 }
