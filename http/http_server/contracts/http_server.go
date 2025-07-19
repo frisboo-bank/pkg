@@ -2,6 +2,7 @@ package contracts
 
 import (
 	"context"
+	"frisboo-bank/pkg/http/http_server/options"
 	"time"
 
 	httpservertype "frisboo-bank/pkg/http/http_server/options/enums/http_server_type"
@@ -9,6 +10,7 @@ import (
 )
 
 type HTTPServer interface {
+	WithOptions(options *options.HTTPServerOptions) HTTPServer
 	WithBasePath(base string) HTTPServer
 	HasDevelopment(dev bool) HTTPServer
 	WithHost(host string) HTTPServer

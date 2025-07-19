@@ -2,6 +2,7 @@ package contracts
 
 import (
 	"context"
+	"frisboo-bank/pkg/rpc/rpc_server/options"
 	"net"
 	"time"
 
@@ -9,6 +10,7 @@ import (
 )
 
 type RPCServer interface {
+	WithOptions(options *options.RPCServerOptions) RPCServer
 	WithHost(host string) RPCServer
 	WithPort(port string) RPCServer
 	WithServerShutdownTimeout(serverShutdownTimeout time.Duration) RPCServer

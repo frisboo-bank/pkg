@@ -17,7 +17,7 @@ var Module = container.NewModule(
 		},
 	),
 	container.Provide(func(config *options.HealthOptions) contracts.HealthService {
-		return NewHealthService(config.Services)
+		return NewHealthService(nil)
 	}),
 	container.Provide(
 		func(

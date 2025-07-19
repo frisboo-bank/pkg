@@ -4,7 +4,6 @@ import (
 	"frisboo-bank/pkg/config"
 	configContracts "frisboo-bank/pkg/config/contracts"
 	"frisboo-bank/pkg/environment"
-	loggerContracts "frisboo-bank/pkg/logger/contracts"
 )
 
 type (
@@ -22,7 +21,6 @@ type DatabaseClientOptions struct {
 	User     string `mapstructure:"user"`
 	Password string `mapstructure:"password"`
 	SSLMode  bool   `mapstructure:"sslMode"`
-	Logger   loggerContracts.Logger
 }
 
 // type DatabaseClientOption = func(options *DatabaseClientOptions)

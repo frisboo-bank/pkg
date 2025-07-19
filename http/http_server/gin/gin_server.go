@@ -39,6 +39,22 @@ type ginHTTPServer struct {
 	routeBuilder contracts.RouteBuilder
 }
 
+func (g *ginHTTPServer) WithOptions(options *options.HTTPServerOptions) contracts.HTTPServer {
+	return g.
+		WithBasePath(options.BasePath).
+		WithBodyLimit(options.BodyLimit).
+		HasDevelopment(options.Development).
+		WithHost(options.Host).
+		WithIdleTimeout(options.IdleTimeout).
+		WithIgnoreLogUrls(options.IgnoreLogUrls).
+		WithMaxHeaderBytes(options.MaxHeaderBytes).
+		WithPort(options.Port).
+		WithReadHeaderTimeout(options.ReadHeaderTimeout).
+		WithReadTimeout(options.ReadTimeout).
+		WithServerShutdownTimeout(options.ServerShutdownTimeout).
+		WithWriteTimeout(options.WriteTimeout)
+}
+
 func (g *ginHTTPServer) WithBasePath(base string) contracts.HTTPServer {
 	g.basePath = base
 	return g

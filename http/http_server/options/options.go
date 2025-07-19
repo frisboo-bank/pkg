@@ -9,8 +9,6 @@ import (
 	httpservertype "frisboo-bank/pkg/http/http_server/options/enums/http_server_type"
 
 	configContracts "frisboo-bank/pkg/config/contracts"
-
-	loggerContracts "frisboo-bank/pkg/logger/contracts"
 )
 
 var (
@@ -41,7 +39,6 @@ type HTTPServerOptions struct {
 	ReadTimeout           time.Duration                 `mapstructure:"readTimeout"`
 	ServerShutdownTimeout time.Duration                 `mapstructure:"serverShutdownTimeout"`
 	WriteTimeout          time.Duration                 `mapstructure:"writeTimeout"`
-	Logger                loggerContracts.Logger
 }
 
 func ProvideHTTPServerOptions(

@@ -3,42 +3,62 @@ package rpcserver
 import (
 	"context"
 	"errors"
+	"frisboo-bank/pkg/container"
+	"frisboo-bank/pkg/environment"
+	"frisboo-bank/pkg/logger"
+	"frisboo-bank/pkg/rpc/rpc_server/contracts"
+	"frisboo-bank/pkg/rpc/rpc_server/options"
 	"net"
 
 	configContracts "frisboo-bank/pkg/config/contracts"
-	"frisboo-bank/pkg/container"
-	"frisboo-bank/pkg/environment"
+
 	loggerContracts "frisboo-bank/pkg/logger/contracts"
-	"frisboo-bank/pkg/rpc/rpc_server/contracts"
-	"frisboo-bank/pkg/rpc/rpc_server/options"
+	loggerOptions "frisboo-bank/pkg/logger/options"
+
 	waiterContracts "frisboo-bank/pkg/waiter/contracts"
 
+	"go.uber.org/dig"
 	"google.golang.org/grpc"
 )
+
+type RPCServerDeps struct {
+	dig.In
+	Logger  loggerContracts.Logger `name:rpcServerLogger`
+	Options *options.RPCServerOptions
+}
 
 var Module = container.NewModule(
 	"rpc-server",
 
+	// load rpc config
 	container.Provide(
 		func(loader configContracts.ConfigLoader, env environment.Environment) (*options.RPCServerOptions, error) {
 			return options.ProvideRPCServerOptions(loader, env)
 		},
 	),
 
-	container.Provide(
-		func(logger loggerContracts.Logger, config *options.RPCServerOptions) (contracts.RPCServer, error) {
-			rpcServerLogger := logger.Clone()
-			rpcServerLogger.WithPrefix("rpc-server")
+	// create a custom rpcserver logger
+	container.Provide(func(options *loggerOptions.LogOptions) (loggerContracts.Logger, error) {
+		logger, err := logger.GetInstance(options.Type)
+		if err != nil {
+			return nil, err
+		}
 
-			rpcServer, err := GetInstance(rpcServerLogger)
+		logger = logger.WithOptions(options).
+			WithPrefix("rpc-server")
+
+		return logger, nil
+	}, dig.Name("rpcServerLogger")),
+
+	// create the rpcserver
+	container.Provide(
+		func(deps RPCServerDeps) (contracts.RPCServer, error) {
+			rpcServer, err := GetInstance(deps.Logger)
 			if err != nil {
 				return nil, err
 			}
 
-			return rpcServer.
-				WithHost(config.Host).
-				WithPort(config.Port).
-				WithServerShutdownTimeout(config.ServerShutdownTimeout), nil
+			return rpcServer.WithOptions(deps.Options), nil
 		},
 	),
 
