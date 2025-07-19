@@ -12,6 +12,6 @@ type AppOptions struct {
 	EnableGRPCServer bool   `mapstructure:"enableGRPCServer"`
 }
 
-func ProvideLogOptions(loader configContracts.ConfigLoader, env environment.Environment) (*AppOptions, error) {
+func ProvideLoggerOptions(loader configContracts.ConfigLoader, env environment.Environment) (*AppOptions, error) {
 	return config.LoadOptions[AppOptions](loader, env)
 }

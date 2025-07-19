@@ -36,7 +36,7 @@ func NewApplicationBuilder(environments ...environment.Environment) contracts.Ap
 			httpServerEnums.HTTPServerEnumsDecodeHook(),
 		)
 
-	loggerOpts, err := loggerOptions.ProvideLogOptions(configLoader, env)
+	loggerOpts, err := loggerOptions.ProvideLoggerOptions(configLoader, env)
 	if err != nil {
 		fmt.Printf("application-builder: failed to load Logger options with error: %v\n", err)
 		os.Exit(1)
