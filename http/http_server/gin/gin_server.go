@@ -4,14 +4,13 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"frisboo-bank/pkg/http/http_server/contracts"
-	"frisboo-bank/pkg/http/http_server/options"
 	"net"
 	"net/http"
 	"time"
 
+	"frisboo-bank/pkg/http/http_server/contracts"
 	requestid "frisboo-bank/pkg/http/http_server/gin/middlewares/request_id"
-
+	"frisboo-bank/pkg/http/http_server/options"
 	httpservertype "frisboo-bank/pkg/http/http_server/options/enums/http_server_type"
 	loggerContracts "frisboo-bank/pkg/logger/contracts"
 

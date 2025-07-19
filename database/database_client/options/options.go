@@ -65,6 +65,9 @@ type DatabaseClientOptions struct {
 // 	}
 // }
 
-func ProvideDatabaseClientOptions(loader configContracts.ConfigLoader, env environment.Environment) (*DatabaseClientOptions, error) {
+func ProvideDatabaseClientOptions(
+	loader configContracts.ConfigLoader,
+	env environment.Environment,
+) (*DatabaseClientOptions, error) {
 	return config.LoadOptions[DatabaseClientOptions](loader, env)
 }

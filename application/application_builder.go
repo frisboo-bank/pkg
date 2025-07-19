@@ -2,18 +2,16 @@ package application
 
 import (
 	"fmt"
+	"os"
+
 	"frisboo-bank/pkg/application/contracts"
 	"frisboo-bank/pkg/application/infrastructure"
 	"frisboo-bank/pkg/config"
+	configContrats "frisboo-bank/pkg/config/contracts"
 	"frisboo-bank/pkg/container"
 	"frisboo-bank/pkg/environment"
-	"frisboo-bank/pkg/logger"
-	"os"
-
-	configContrats "frisboo-bank/pkg/config/contracts"
-
 	httpServerEnums "frisboo-bank/pkg/http/http_server/options/enums"
-
+	"frisboo-bank/pkg/logger"
 	loggerContracts "frisboo-bank/pkg/logger/contracts"
 	loggerOptions "frisboo-bank/pkg/logger/options"
 	loggerEnums "frisboo-bank/pkg/logger/options/enums"

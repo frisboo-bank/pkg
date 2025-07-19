@@ -2,6 +2,7 @@ package options
 
 import (
 	"errors"
+
 	"frisboo-bank/pkg/config"
 	configContracts "frisboo-bank/pkg/config/contracts"
 	"frisboo-bank/pkg/environment"
@@ -26,6 +27,9 @@ type MigrationOptions struct {
 	MigrationDir string
 }
 
-func ProvideMigrationConfig(loader configContracts.ConfigLoader, env environment.Environment) (*MigrationOptions, error) {
+func ProvideMigrationConfig(
+	loader configContracts.ConfigLoader,
+	env environment.Environment,
+) (*MigrationOptions, error) {
 	return config.LoadOptions[MigrationOptions](loader, env)
 }

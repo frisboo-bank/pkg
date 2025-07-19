@@ -2,14 +2,13 @@ package httpserver
 
 import (
 	"context"
+
+	configContracts "frisboo-bank/pkg/config/contracts"
 	"frisboo-bank/pkg/container"
 	"frisboo-bank/pkg/environment"
 	"frisboo-bank/pkg/http/http_server/contracts"
 	"frisboo-bank/pkg/http/http_server/options"
 	"frisboo-bank/pkg/logger"
-
-	configContracts "frisboo-bank/pkg/config/contracts"
-
 	loggerContracts "frisboo-bank/pkg/logger/contracts"
 	loggerOptions "frisboo-bank/pkg/logger/options"
 	waiterContracts "frisboo-bank/pkg/waiter/contracts"
@@ -40,10 +39,8 @@ var Module = container.NewModule(
 			return nil, err
 		}
 
-		logger = logger.WithOptions(options).
-			WithPrefix("http-server")
-
-		return logger, nil
+		return logger.WithOptions(options).
+			WithPrefix("http-server"), nil
 	}, dig.Name("http_server_logger")),
 
 	// create the httpserver

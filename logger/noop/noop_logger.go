@@ -1,10 +1,10 @@
 package noop
 
 import (
-	"frisboo-bank/pkg/logger/contracts"
-	"frisboo-bank/pkg/logger/options"
 	"io"
 
+	"frisboo-bank/pkg/logger/contracts"
+	"frisboo-bank/pkg/logger/options"
 	encodingtype "frisboo-bank/pkg/logger/options/enums/encoding_type"
 	loglevel "frisboo-bank/pkg/logger/options/enums/log_level"
 	logtype "frisboo-bank/pkg/logger/options/enums/log_type"
