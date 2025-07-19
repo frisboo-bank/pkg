@@ -23,7 +23,7 @@ import (
 
 type RPCServerDeps struct {
 	dig.In
-	Logger  loggerContracts.Logger `name:rpcServerLogger`
+	Logger  loggerContracts.Logger `name:rpc_server_logger`
 	Options *options.RPCServerOptions
 }
 
@@ -48,7 +48,7 @@ var Module = container.NewModule(
 			WithPrefix("rpc-server")
 
 		return logger, nil
-	}, dig.Name("rpcServerLogger")),
+	}, dig.Name("rpc_server_logger")),
 
 	// create the rpcserver
 	container.Provide(

@@ -19,7 +19,7 @@ import (
 
 type HTTPServerDeps struct {
 	dig.In
-	Logger  loggerContracts.Logger `name:httpServerLogger`
+	Logger  loggerContracts.Logger `name:http_server_logger`
 	Options *options.HTTPServerOptions
 }
 
@@ -44,7 +44,7 @@ var Module = container.NewModule(
 			WithPrefix("http-server")
 
 		return logger, nil
-	}, dig.Name("httpServerLogger")),
+	}, dig.Name("http_server_logger")),
 
 	// create the httpserver
 	container.Provide(func(deps HTTPServerDeps) (contracts.HTTPServer, error) {
