@@ -26,6 +26,6 @@ type LogOptions struct {
 	Encoding      encodingtype.EncodingType `mapstructure:"encoding"`
 }
 
-func ProvideLogOptions(loader configContracts.ConfigLoader, env environment.Environment) (*LogOptions, error) {
+func ProvideLoggerOptions(loader configContracts.ConfigLoader, env environment.Environment) (*LogOptions, error) {
 	return config.LoadOptions[LogOptions](loader, env)
 }
