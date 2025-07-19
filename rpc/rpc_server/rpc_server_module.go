@@ -9,21 +9,13 @@ import (
 	"frisboo-bank/pkg/container"
 	"frisboo-bank/pkg/environment"
 	"frisboo-bank/pkg/logger"
-	loggerContracts "frisboo-bank/pkg/logger/contracts"
 	loggerOptions "frisboo-bank/pkg/logger/options"
 	"frisboo-bank/pkg/rpc/rpc_server/contracts"
 	"frisboo-bank/pkg/rpc/rpc_server/options"
 	waiterContracts "frisboo-bank/pkg/waiter/contracts"
 
-	"go.uber.org/dig"
 	"google.golang.org/grpc"
 )
-
-type RPCServerDeps struct {
-	dig.In
-	Logger  loggerContracts.Logger `name:rpc_server_logger`
-	Options *options.RPCServerOptions
-}
 
 var Module = container.NewModule(
 	"rpc-server",
@@ -35,26 +27,21 @@ var Module = container.NewModule(
 		},
 	),
 
-	// create a custom rpcserver logger
-	container.Provide(func(options *loggerOptions.LogOptions) (loggerContracts.Logger, error) {
-		logger, err := logger.GetInstance(options.Type)
-		if err != nil {
-			return nil, err
-		}
-
-		return logger.WithOptions(options).
-			WithPrefix("rpc-server"), nil
-	}, dig.Name("rpc_server_logger")),
-
 	// create the rpcserver
 	container.Provide(
-		func(deps RPCServerDeps) (contracts.RPCServer, error) {
-			rpcServer, err := GetInstance(deps.Logger)
+		func(loggerOpts *loggerOptions.LogOptions, options *options.RPCServerOptions) (contracts.RPCServer, error) {
+			customLogger, err := logger.GetInstanceFromOptions(loggerOpts)
+			if err != nil {
+				return nil, err
+			}
+			customLogger = customLogger.WithPrefix("rpc-server")
+
+			rpcServer, err := GetInstanceFromOptions(options, customLogger)
 			if err != nil {
 				return nil, err
 			}
 
-			return rpcServer.WithOptions(deps.Options), nil
+			return rpcServer, nil
 		},
 	),
 
