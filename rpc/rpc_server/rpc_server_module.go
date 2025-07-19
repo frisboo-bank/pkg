@@ -45,7 +45,7 @@ var Module = container.NewModule(
 		}
 
 		logger.WithOptions(options).
-			WithPrefix("rpc-sever")
+			WithPrefix("rpc-server")
 
 		return logger, nil
 	}, dig.Name("rpcServerLogger")),
