@@ -41,7 +41,7 @@ var Module = container.NewModule(
 		}
 
 		logger.WithOptions(options).
-			WithPrefix("http-sever")
+			WithPrefix("http-server")
 
 		return logger, nil
 	}, dig.Name("httpServerLogger")),
