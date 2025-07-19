@@ -2,9 +2,9 @@ package contracts
 
 import (
 	"context"
-	"frisboo-bank/pkg/http/http_server/options"
 	"time"
 
+	"frisboo-bank/pkg/http/http_server/options"
 	httpservertype "frisboo-bank/pkg/http/http_server/options/enums/http_server_type"
 	loggerContracts "frisboo-bank/pkg/logger/contracts"
 )

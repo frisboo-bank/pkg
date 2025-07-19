@@ -1,12 +1,12 @@
 package options
 
 import (
-	"frisboo-bank/pkg/config"
-	"frisboo-bank/pkg/constants"
-	"frisboo-bank/pkg/environment"
 	"time"
 
+	"frisboo-bank/pkg/config"
 	configContracts "frisboo-bank/pkg/config/contracts"
+	"frisboo-bank/pkg/constants"
+	"frisboo-bank/pkg/environment"
 )
 
 var (

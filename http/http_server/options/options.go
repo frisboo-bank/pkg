@@ -1,14 +1,13 @@
 package options
 
 import (
-	"frisboo-bank/pkg/config"
-	"frisboo-bank/pkg/constants"
-	"frisboo-bank/pkg/environment"
 	"time"
 
-	httpservertype "frisboo-bank/pkg/http/http_server/options/enums/http_server_type"
-
+	"frisboo-bank/pkg/config"
 	configContracts "frisboo-bank/pkg/config/contracts"
+	"frisboo-bank/pkg/constants"
+	"frisboo-bank/pkg/environment"
+	httpservertype "frisboo-bank/pkg/http/http_server/options/enums/http_server_type"
 )
 
 var (

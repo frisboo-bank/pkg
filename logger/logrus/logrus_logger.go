@@ -2,12 +2,12 @@ package logrus
 
 import (
 	"fmt"
-	"frisboo-bank/pkg/constants"
-	"frisboo-bank/pkg/logger/contracts"
-	"frisboo-bank/pkg/logger/options"
 	"io"
 	"maps"
 
+	"frisboo-bank/pkg/constants"
+	"frisboo-bank/pkg/logger/contracts"
+	"frisboo-bank/pkg/logger/options"
 	encodingtype "frisboo-bank/pkg/logger/options/enums/encoding_type"
 	loglevel "frisboo-bank/pkg/logger/options/enums/log_level"
 	logtype "frisboo-bank/pkg/logger/options/enums/log_type"

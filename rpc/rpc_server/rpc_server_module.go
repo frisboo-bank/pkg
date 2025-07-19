@@ -3,18 +3,16 @@ package rpcserver
 import (
 	"context"
 	"errors"
-	"frisboo-bank/pkg/container"
-	"frisboo-bank/pkg/environment"
-	"frisboo-bank/pkg/logger"
-	"frisboo-bank/pkg/rpc/rpc_server/contracts"
-	"frisboo-bank/pkg/rpc/rpc_server/options"
 	"net"
 
 	configContracts "frisboo-bank/pkg/config/contracts"
-
+	"frisboo-bank/pkg/container"
+	"frisboo-bank/pkg/environment"
+	"frisboo-bank/pkg/logger"
 	loggerContracts "frisboo-bank/pkg/logger/contracts"
 	loggerOptions "frisboo-bank/pkg/logger/options"
-
+	"frisboo-bank/pkg/rpc/rpc_server/contracts"
+	"frisboo-bank/pkg/rpc/rpc_server/options"
 	waiterContracts "frisboo-bank/pkg/waiter/contracts"
 
 	"go.uber.org/dig"
@@ -44,10 +42,8 @@ var Module = container.NewModule(
 			return nil, err
 		}
 
-		logger = logger.WithOptions(options).
-			WithPrefix("rpc-server")
-
-		return logger, nil
+		return logger.WithOptions(options).
+			WithPrefix("rpc-server"), nil
 	}, dig.Name("rpc_server_logger")),
 
 	// create the rpcserver
