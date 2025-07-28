@@ -11,7 +11,6 @@ require (
 	github.com/sirupsen/logrus v1.9.3
 	github.com/stretchr/testify v1.10.0
 	go.uber.org/dig v1.19.0
-	golang.org/x/exp v0.0.0-20250717185816-542afb5b7346
 )
 
 require (
@@ -52,7 +51,6 @@ require (
 	go.opentelemetry.io/otel v1.37.0 // indirect
 	go.opentelemetry.io/otel/log v0.13.0 // indirect
 	go.opentelemetry.io/otel/metric v1.37.0 // indirect
-	go.opentelemetry.io/otel/sdk v1.36.0 // indirect
 	go.opentelemetry.io/otel/trace v1.37.0 // indirect
 	go.uber.org/atomic v1.11.0 // indirect
 	go.uber.org/multierr v1.11.0 // indirect
@@ -74,5 +72,5 @@ require (
 	github.com/uptrace/opentelemetry-go-extra/otellogrus v0.3.2
 	golang.org/x/sync v0.16.0
 	golang.org/x/sys v0.34.0 // indirect
-	google.golang.org/grpc v1.73.0
+	google.golang.org/grpc v1.74.2
 )
