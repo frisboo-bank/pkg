@@ -31,5 +31,5 @@ func ProvideMigrationConfig(
 	loader configContracts.ConfigLoader,
 	env environment.Environment,
 ) (*MigrationOptions, error) {
-	return config.LoadConfig[MigrationOptions](loader, env)
+	return config.LoadConfig[MigrationOptions](loader, env, "migration")
 }
