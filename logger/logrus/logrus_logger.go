@@ -109,7 +109,7 @@ func (l *logrusLogger) Type() loggertype.LoggerType {
 func (l *logrusLogger) getEntry() *logrus.Entry {
 	fields := logrus.Fields{}
 	if l.Prefix() != "" {
-		fields["prefix"] = l.Prefix
+		fields["prefix"] = l.Prefix()
 	}
 
 	// if l.Name != "" {
