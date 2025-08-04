@@ -43,7 +43,7 @@ func GetOptionsWithDefault(config ...WaiterOption) *WaiterOptions {
 	cfg := &WaiterOptions{
 		ParentContext:          context.Background(),
 		CancelOnShutdownSignal: false,
-		Logger:                 noop.NewNoopLogger(),
+		Logger:                 noop.New(),
 	}
 
 	for _, option := range config {

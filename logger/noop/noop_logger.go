@@ -1,69 +1,35 @@
 package noop
 
 import (
-	"io"
-
 	"frisboo-bank/pkg/logger/contracts"
-	"frisboo-bank/pkg/logger/options"
-	encodingtype "frisboo-bank/pkg/logger/options/enums/encoding_type"
-	loglevel "frisboo-bank/pkg/logger/options/enums/log_level"
-	logtype "frisboo-bank/pkg/logger/options/enums/log_type"
+	loglevel "frisboo-bank/pkg/logger/contracts/enums/log_level"
+	loggertype "frisboo-bank/pkg/logger/contracts/enums/logger_type"
 )
 
-type noopLogger struct{}
-
-var _ contracts.Logger = (*noopLogger)(nil)
-
-func (n *noopLogger) WithOptions(options *options.LogOptions) contracts.Logger {
-	return n
+type NoopLogger struct {
+	contracts.BaseLogger
 }
 
-func (n *noopLogger) WithCaller(_ bool, _ int) contracts.Logger {
-	return n
+func New() contracts.Logger {
+	logger := &NoopLogger{}
+	logger.BaseLogger.Init(logger)
+	logger.SetupInstance()
+
+	return logger
 }
 
-func (n *noopLogger) WithEncoding(_ encodingtype.EncodingType) contracts.Logger { return n }
+func (l *NoopLogger) SetupInstance() {}
 
-func (n *noopLogger) WithLevel(_ loglevel.LogLevel) contracts.Logger { return n }
+func (l *NoopLogger) Log(level loglevel.LogLevel, v ...any) {}
 
-func (n *noopLogger) WithName(_ string) contracts.Logger { return n }
+func (l *NoopLogger) Logf(level loglevel.LogLevel, format string, v ...any) {}
 
-func (n *noopLogger) WithOutput(_ io.Writer) contracts.Logger { return n }
+func (l *NoopLogger) Logw(level loglevel.LogLevel, message string, fields contracts.Fields) {}
 
-func (n *noopLogger) WithPrefix(_ string) contracts.Logger { return n }
-
-func (n *noopLogger) WithTracer(_ bool) contracts.Logger { return n }
-
-func NewNoopLogger() contracts.Logger {
-	return &noopLogger{}
+func (l *NoopLogger) Instance() any {
+	return l
 }
 
-func (n *noopLogger) Debug(...any)                    {}
-func (n *noopLogger) Debugf(string, ...any)           {}
-func (n *noopLogger) Debugw(string, contracts.Fields) {}
-func (n *noopLogger) Info(...any)                     {}
-func (n *noopLogger) Infof(string, ...any)            {}
-func (n *noopLogger) Infow(string, contracts.Fields)  {}
-func (n *noopLogger) Warn(...any)                     {}
-func (n *noopLogger) Warnf(string, ...any)            {}
-func (n *noopLogger) Warnw(string, contracts.Fields)  {}
-func (n *noopLogger) Error(...any)                    {}
-func (n *noopLogger) Errorf(string, ...any)           {}
-func (n *noopLogger) Errorw(string, contracts.Fields) {}
-func (n *noopLogger) Fatal(...any)                    {}
-func (n *noopLogger) Fatalf(string, ...any)           {}
-func (n *noopLogger) Fatalw(string, contracts.Fields) {}
-func (n *noopLogger) Panic(...any)                    {}
-func (n *noopLogger) Panicf(string, ...any)           {}
-func (n *noopLogger) Panicw(string, contracts.Fields) {}
-func (n *noopLogger) Print(...any)                    {}
-func (n *noopLogger) Printf(string, ...any)           {}
-func (n *noopLogger) Printw(string, contracts.Fields) {}
-
-func (n *noopLogger) LogType() logtype.LogType {
-	return logtype.LogTypes.NOOP
-}
-
-func (n *noopLogger) Instance() any {
-	return nil
+func (l *NoopLogger) Type() loggertype.LoggerType {
+	return loggertype.LoggerTypes.NOOP
 }

@@ -4,8 +4,8 @@ import (
 	"context"
 	"sync"
 
+	"frisboo-bank/pkg/health/config"
 	"frisboo-bank/pkg/health/contracts"
-	"frisboo-bank/pkg/health/options"
 )
 
 type healthService struct {
@@ -31,8 +31,8 @@ func NewHealthService(
 ) contracts.HealthService {
 	return &healthService{
 		services:   services,
-		statusUp:   options.StatusTypeUp,
-		statusDown: options.StatusTypeDown,
+		statusUp:   config.StatusTypeUp,
+		statusDown: config.StatusTypeDown,
 	}
 }
 

@@ -5,90 +5,56 @@ import (
 	"errors"
 	"fmt"
 	"net"
-	"time"
+
+	"frisboo-bank/pkg/rpc/rpc_server/contracts"
+
+	rpcservertype "frisboo-bank/pkg/rpc/rpc_server/contracts/enums/rpc_server_type"
 
 	loggerContracts "frisboo-bank/pkg/logger/contracts"
-	"frisboo-bank/pkg/rpc/rpc_server/contracts"
-	"frisboo-bank/pkg/rpc/rpc_server/options"
 
 	googlerpc "google.golang.org/grpc"
 )
 
 type GRPCServer struct {
-	host                  string
-	port                  string
-	serverShutdownTimeout time.Duration
-	services              []contracts.Services
-
-	grpcServer *googlerpc.Server
-	logger     loggerContracts.Logger
+	contracts.BaseRPCServer
+	instance *googlerpc.Server
 }
 
-func (g *GRPCServer) WithOptions(options *options.RPCServerOptions) contracts.RPCServer {
-	return g.
-		WithHost(options.Host).
-		WithPort(options.Port).
-		WithServerShutdownTimeout(options.ServerShutdownTimeout)
-}
-
-func (g *GRPCServer) WithHost(host string) contracts.RPCServer {
-	g.host = host
-	return g
-}
-
-func (g *GRPCServer) WithPort(port string) contracts.RPCServer {
-	g.port = port
-	return g
-}
-
-func (g *GRPCServer) WithServerShutdownTimeout(serverShutdownTimeout time.Duration) contracts.RPCServer {
-	g.serverShutdownTimeout = serverShutdownTimeout
-	return g
-}
-
-func (g *GRPCServer) WithServices(services []contracts.Services) contracts.RPCServer {
-	g.services = services
-	return g
-}
-
-var _ contracts.RPCServer = (*GRPCServer)(nil)
-
-func NewGRPCServer(logger loggerContracts.Logger) contracts.RPCServer {
-	return &GRPCServer{
-		host:                  options.Host,
-		port:                  options.Port,
-		serverShutdownTimeout: options.ServerShutdownTimeout,
-		grpcServer:            googlerpc.NewServer(),
-		logger:                logger,
+func New(logger loggerContracts.Logger) contracts.RPCServer {
+	rpcServer := &GRPCServer{
+		instance: googlerpc.NewServer(),
 	}
+	rpcServer.Init(rpcServer)
+	rpcServer.SetupInstance()
+	rpcServer.WithLogger(logger)
+	return rpcServer
 }
 
-func (g *GRPCServer) Start(listener net.Listener) error {
-	if err := g.grpcServer.Serve(listener); err != nil && !errors.Is(err, googlerpc.ErrServerStopped) {
+func (s *GRPCServer) SetupInstance() {
+}
+
+func (s *GRPCServer) Start(listener net.Listener) error {
+	if err := s.instance.Serve(listener); err != nil && !errors.Is(err, googlerpc.ErrServerStopped) {
 		return err
 	}
 
 	return nil
 }
 
-func (g *GRPCServer) Shutdown(ctx context.Context) error {
-	if g.grpcServer == nil {
+func (s *GRPCServer) Shutdown(ctx context.Context) error {
+	if s.instance == nil {
 		return fmt.Errorf("grpc-server: looks like there is no server running")
 	}
 
-	g.grpcServer.GracefulStop()
+	s.instance.GracefulStop()
 
 	return nil
 }
 
-func (g *GRPCServer) Instance() any {
-	return g.grpcServer
+func (s *GRPCServer) Instance() any {
+	return s.instance
 }
 
-func (g *GRPCServer) Address() string {
-	return net.JoinHostPort(g.host, g.port)
-}
-
-func (g *GRPCServer) Logger() loggerContracts.Logger {
-	return g.logger
+func (s *GRPCServer) Type() rpcservertype.RpcServerType {
+	return rpcservertype.RpcServerTypes.GRPC
 }

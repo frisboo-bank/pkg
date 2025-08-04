@@ -1,8 +1,8 @@
 package health
 
 import (
+	"frisboo-bank/pkg/health/config"
 	"frisboo-bank/pkg/health/contracts"
-	"frisboo-bank/pkg/health/options"
 	httpServerContracts "frisboo-bank/pkg/http/http_server/contracts"
 
 	"github.com/gin-gonic/gin"
@@ -26,7 +26,6 @@ func (e *healthEndpoint) WithStatusCodeDown(statusCodeDown int) contracts.Health
 	return e
 }
 
-// WithStatusCodeUp implements contracts.HealthEndpoint.
 func (e *healthEndpoint) WithStatusCodeUp(statusCodeUp int) contracts.HealthEndpoint {
 	e.statusCodeUp = statusCodeUp
 	return e
@@ -39,11 +38,11 @@ func NewHealthEndpoint(
 	httpServer httpServerContracts.HTTPServer,
 ) contracts.HealthEndpoint {
 	return &healthEndpoint{
-		endpointPath:   options.EndpointPath,
+		endpointPath:   config.EndpointPath,
 		healthService:  healthService,
 		httpServer:     httpServer,
-		statusCodeDown: options.StatusCodeDown,
-		statusCodeUp:   options.StatusCodeUp,
+		statusCodeDown: config.StatusCodeDown,
+		statusCodeUp:   config.StatusCodeUp,
 	}
 }
 
