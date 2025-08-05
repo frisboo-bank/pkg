@@ -55,6 +55,26 @@ func (l *zerologLogger) Log(level loglevel.LogLevel, v ...any) {
 }
 
 func (l *zerologLogger) Logf(level loglevel.LogLevel, format string, v ...any) {
+	msg := format
+	if len(v) > 0 {
+		msg = fmt.Sprintf(format, v...)
+	}
+	switch level {
+	case loglevel.LogLevels.DEBUG:
+		l.instance.Debug().Msg(msg)
+	case loglevel.LogLevels.INFO:
+		l.instance.Info().Msg(msg)
+	case loglevel.LogLevels.WARN:
+		l.instance.Warn().Msg(msg)
+	case loglevel.LogLevels.ERROR:
+		l.instance.Error().Msg(msg)
+	case loglevel.LogLevels.FATAL:
+		l.instance.Fatal().Msg(msg)
+	case loglevel.LogLevels.PANIC:
+		l.instance.Panic().Msg(msg)
+	default:
+		l.instance.Info().Msg(msg)
+	}
 }
 
 func (l *zerologLogger) Logw(level loglevel.LogLevel, message string, fields contracts.Fields) {
