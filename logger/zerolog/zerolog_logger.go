@@ -32,6 +32,26 @@ func (l *zerologLogger) SetupInstance() {
 }
 
 func (l *zerologLogger) Log(level loglevel.LogLevel, v ...any) {
+	var evt *zerolog.Event
+	switch level {
+	case loglevel.LogLevels.DEBUG:
+		evt = l.instance.Debug()
+	case loglevel.LogLevels.INFO:
+		evt = l.instance.Info()
+	case loglevel.LogLevels.WARN:
+		evt = l.instance.Warn()
+	case loglevel.LogLevels.ERROR:
+		evt = l.instance.Error()
+	case loglevel.LogLevels.FATAL:
+		evt = l.instance.Fatal()
+	case loglevel.LogLevels.TRACE:
+		evt = l.instance.Trace()
+	default:
+		evt = l.instance.Info()
+	}
+	for _, val := range v {
+		evt.Msgf("%v", val)
+	}
 }
 
 func (l *zerologLogger) Logf(level loglevel.LogLevel, format string, v ...any) {
