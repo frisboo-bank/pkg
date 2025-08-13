@@ -39,7 +39,7 @@ func (d *decorator) IsDependency()                        {}
 
 func Hook(
 	startFn contracts.HookStartFn,
-	stopFn contracts.HookStartFn,
+	stopFn contracts.HookStopFn,
 	options ...contracts.HookOption,
 ) contracts.HookStarter {
 	return &hookStarter{startFn, stopFn, options}
