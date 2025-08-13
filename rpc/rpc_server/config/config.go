@@ -94,7 +94,7 @@ func Port(port string) options.Option[Config] {
 func ServerShutdownTimeout(serverShutdownTimeout time.Duration) options.Option[Config] {
 	return options.OptionFunc[Config](func(cfg *Config) error {
 		if serverShutdownTimeout <= 0 {
-			return pError.New(" serverShutdownTimeout must be positive")
+			return pError.New("serverShutdownTimeout must be positive")
 		}
 
 		cfg.ServerShutdownTimeout = serverShutdownTimeout
