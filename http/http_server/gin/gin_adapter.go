@@ -21,7 +21,7 @@ import (
 
 var _ contracts.HTTPServerAdapter = (*ginHTTPServerAdapter)(nil)
 
-var pError = customerrors.PrefixedError("gin client")
+var pError = customerrors.PrefixedError("gin server")
 
 type ginHTTPServerAdapter struct {
 	cfg          *config.Config
