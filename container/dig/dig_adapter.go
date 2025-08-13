@@ -71,7 +71,9 @@ func (d *digAdapter) RegisterHook(hooks ...contracts.HookStarter) error {
 	for _, hook := range hooks {
 		groudID := len(d.hookGroups) + 1
 		startGroup := fmt.Sprintf(hookGroupStartPattern, groudID)
-		stopGroup := fmt.Sprintf(hookGroupStopPattern, groudID)
+		groupID := len(d.hookGroups) + 1
+		startGroup := fmt.Sprintf(hookGroupStartPattern, groupID)
+		stopGroup := fmt.Sprintf(hookGroupStopPattern, groupID)
 
 		opts, err := filterOptions[dig.ProvideOption](hook.Options())
 		if err != nil {
