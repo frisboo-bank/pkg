@@ -83,7 +83,7 @@ func Port(port string) options.Option[Config] {
 		port = strings.TrimSpace(port)
 
 		if port == "" {
-			return pError.New(" port cannot be empty")
+			return pError.New("port cannot be empty")
 		}
 
 		cfg.Port = port
