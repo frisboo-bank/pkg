@@ -37,7 +37,11 @@ func (b *OptionBuilder[T]) Build() *T {
 	if b.err != nil {
 		panic(fmt.Sprintf("invalid configuration: %v", b.err))
 	}
-	return b.cfg
+func (b *OptionBuilder[T]) Build() (*T, error) {
+	if b.err != nil {
+		return nil, fmt.Errorf("invalid configuration: %v", b.err)
+	}
+	return b.cfg, nil
 }
 
 func Apply[T any](base *T) *OptionBuilder[T] {
