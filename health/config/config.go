@@ -1,26 +1,25 @@
-package options
+package config
 
 import (
 	"net/http"
 
 	"frisboo-bank/pkg/config"
-	configContracts "frisboo-bank/pkg/config/contracts"
 	"frisboo-bank/pkg/environment"
 	"frisboo-bank/pkg/health/contracts"
+
+	configContracts "frisboo-bank/pkg/config/contracts"
 )
 
 // default options
 const (
-	EndpointPath string = "/healthz"
-
+	EndpointPath   string               = "/healthz"
 	StatusTypeUp   contracts.StatusType = "Up"
 	StatusTypeDown contracts.StatusType = "Down"
-
-	StatusCodeUp   int = http.StatusOK
-	StatusCodeDown int = http.StatusServiceUnavailable
+	StatusCodeUp   int                  = http.StatusOK
+	StatusCodeDown int                  = http.StatusServiceUnavailable
 )
 
-type HealthOptions struct {
+type HealthConfig struct {
 	EndpointPath   string `mapstructure:"endpointPath"`
 	StatusCodeUp   int    `mapstructure:"statusCodeUp"`
 	StatusUp       string `mapstructure:"statusUp"`
@@ -28,6 +27,6 @@ type HealthOptions struct {
 	StatusDown     string `mapstructure:"statusDown"`
 }
 
-func ProvideHealthOptions(loader configContracts.ConfigLoader, env environment.Environment) (*HealthOptions, error) {
-	return config.LoadOptions[HealthOptions](loader, env)
+func ProvideHealthConfig(loader configContracts.ConfigLoader, env environment.Environment) (*HealthConfig, error) {
+	return config.LoadConfig[HealthConfig](loader, env, "health")
 }

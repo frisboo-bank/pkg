@@ -4,43 +4,40 @@ import (
 	"context"
 	"frisboo-bank/pkg/container"
 	"frisboo-bank/pkg/environment"
+	"frisboo-bank/pkg/http/http_server/config"
 	"frisboo-bank/pkg/http/http_server/contracts"
-	"frisboo-bank/pkg/http/http_server/options"
 	"frisboo-bank/pkg/logger"
 
 	configContracts "frisboo-bank/pkg/config/contracts"
 
+	loggerConfig "frisboo-bank/pkg/logger/config"
 	loggerContracts "frisboo-bank/pkg/logger/contracts"
-	loggerOptions "frisboo-bank/pkg/logger/options"
 	waiterContracts "frisboo-bank/pkg/waiter/contracts"
 )
 
 var Module = container.NewModule(
 	"http_server",
 
-	// load httpserver config
 	container.Provide(
-		func(loader configContracts.ConfigLoader, env environment.Environment) (*options.HTTPServerOptions, error) {
-			return options.ProvideHTTPServerOptions(loader, env)
+		func(loader configContracts.ConfigLoader, env environment.Environment) (*config.HTTPServerConfig, error) {
+			return config.ProvideHTTPServerConfig(loader, env)
 		},
 	),
 
-	// create the httpserver
-	container.Provide(
-		func(loggerOpts *loggerOptions.LogOptions, options *options.HTTPServerOptions) (contracts.HTTPServer, error) {
-			customLogger, err := logger.GetInstanceFromOptions(loggerOpts)
-			if err != nil {
-				return nil, err
-			}
-			customLogger = customLogger.WithPrefix("http-server")
+	container.Provide(func(loggerCfg *loggerConfig.LoggerConfig, options *config.HTTPServerConfig) (contracts.HTTPServer, error) {
+		customLogger, err := logger.GetInstanceFromConfig(loggerCfg)
+		if err != nil {
+			return nil, err
+		}
+		customLogger = customLogger.WithPrefix("http-server")
 
-			httpServer, err := GetInstanceFromOptions(options, customLogger)
-			if err != nil {
-				return nil, err
-			}
+		httpServer, err := GetInstanceFromConfig(options, customLogger)
+		if err != nil {
+			return nil, err
+		}
 
-			return httpServer, nil
-		},
+		return httpServer, nil
+	},
 	),
 
 	container.Hook(startHook, stopHook),

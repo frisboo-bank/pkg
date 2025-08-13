@@ -5,13 +5,16 @@ import (
 	"errors"
 	"net"
 
-	configContracts "frisboo-bank/pkg/config/contracts"
 	"frisboo-bank/pkg/container"
 	"frisboo-bank/pkg/environment"
 	"frisboo-bank/pkg/logger"
-	loggerOptions "frisboo-bank/pkg/logger/options"
+	"frisboo-bank/pkg/rpc/rpc_server/config"
 	"frisboo-bank/pkg/rpc/rpc_server/contracts"
-	"frisboo-bank/pkg/rpc/rpc_server/options"
+
+	configContracts "frisboo-bank/pkg/config/contracts"
+
+	loggerConfig "frisboo-bank/pkg/logger/config"
+
 	waiterContracts "frisboo-bank/pkg/waiter/contracts"
 
 	"google.golang.org/grpc"
@@ -20,23 +23,21 @@ import (
 var Module = container.NewModule(
 	"rpc-server",
 
-	// load rpc config
 	container.Provide(
-		func(loader configContracts.ConfigLoader, env environment.Environment) (*options.RPCServerOptions, error) {
-			return options.ProvideRPCServerOptions(loader, env)
+		func(loader configContracts.ConfigLoader, env environment.Environment) (*config.RPCServerConfig, error) {
+			return config.ProvideRPCServerConfig(loader, env)
 		},
 	),
 
-	// create the rpcserver
 	container.Provide(
-		func(loggerOpts *loggerOptions.LogOptions, options *options.RPCServerOptions) (contracts.RPCServer, error) {
-			customLogger, err := logger.GetInstanceFromOptions(loggerOpts)
+		func(loggerCfg *loggerConfig.LoggerConfig, options *config.RPCServerConfig) (contracts.RPCServer, error) {
+			customLogger, err := logger.GetInstanceFromConfig(loggerCfg)
 			if err != nil {
 				return nil, err
 			}
 			customLogger = customLogger.WithPrefix("rpc-server")
 
-			rpcServer, err := GetInstanceFromOptions(options, customLogger)
+			rpcServer, err := GetInstanceFromConfig(options, customLogger)
 			if err != nil {
 				return nil, err
 			}

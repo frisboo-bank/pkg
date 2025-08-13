@@ -7,14 +7,18 @@ import (
 	"frisboo-bank/pkg/application/contracts"
 	"frisboo-bank/pkg/application/infrastructure"
 	"frisboo-bank/pkg/config"
-	configContrats "frisboo-bank/pkg/config/contracts"
 	"frisboo-bank/pkg/container"
 	"frisboo-bank/pkg/environment"
-	httpServerEnums "frisboo-bank/pkg/http/http_server/options/enums"
 	"frisboo-bank/pkg/logger"
+
+	configContrats "frisboo-bank/pkg/config/contracts"
+
+	httpServerEnums "frisboo-bank/pkg/http/http_server/contracts/enums"
+	rpcServerEnums "frisboo-bank/pkg/rpc/rpc_server/contracts/enums"
+
+	loggerConfig "frisboo-bank/pkg/logger/config"
 	loggerContracts "frisboo-bank/pkg/logger/contracts"
-	loggerOptions "frisboo-bank/pkg/logger/options"
-	loggerEnums "frisboo-bank/pkg/logger/options/enums"
+	loggerEnums "frisboo-bank/pkg/logger/contracts/enums"
 )
 
 type applicationBuilder struct {
@@ -32,17 +36,18 @@ func NewApplicationBuilder(environments ...environment.Environment) contracts.Ap
 
 	configLoader := config.NewConfigLoader().
 		WithDecodeHooks(
+			rpcServerEnums.RPCServerEnumsDecodeHook(),
 			loggerEnums.LoggerEnumsDecodeHook(),
 			httpServerEnums.HTTPServerEnumsDecodeHook(),
 		)
 
-	loggerOpts, err := loggerOptions.ProvideLoggerOptions(configLoader, env)
+	loggerCfg, err := loggerConfig.ProvideLoggerConfig(configLoader, env)
 	if err != nil {
 		fmt.Printf("application-builder: failed to load Logger options with error: %v\n", err)
 		os.Exit(1)
 	}
 
-	logger, err := logger.GetInstanceFromOptions(loggerOpts)
+	logger, err := logger.GetInstanceFromConfig(loggerCfg)
 	if err != nil {
 		fmt.Printf("application-builder: failed to create Logger with error: %v\n", err)
 		os.Exit(1)
@@ -57,7 +62,7 @@ func NewApplicationBuilder(environments ...environment.Environment) contracts.Ap
 		providers: []container.Provider{
 			container.Provide(func() environment.Environment { return env }),
 			container.Provide(func() configContrats.ConfigLoader { return configLoader }),
-			container.Provide(func() *loggerOptions.LogOptions { return loggerOpts }),
+			container.Provide(func() *loggerConfig.LoggerConfig { return loggerCfg }),
 			container.Provide(func() loggerContracts.Logger { return logger }),
 		},
 	}

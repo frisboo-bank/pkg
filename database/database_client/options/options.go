@@ -69,5 +69,5 @@ func ProvideDatabaseClientOptions(
 	loader configContracts.ConfigLoader,
 	env environment.Environment,
 ) (*DatabaseClientOptions, error) {
-	return config.LoadOptions[DatabaseClientOptions](loader, env)
+	return config.LoadConfig[DatabaseClientOptions](loader, env, "databaseClient")
 }

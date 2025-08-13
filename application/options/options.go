@@ -6,12 +6,12 @@ import (
 	"frisboo-bank/pkg/environment"
 )
 
-type AppOptions struct {
+type AppConfig struct {
 	Name             string `mapstructure:"name"`
 	EnableHTTPServer bool   `mapstructure:"enableHTTPServer"`
 	EnableGRPCServer bool   `mapstructure:"enableGRPCServer"`
 }
 
-func ProvideLoggerOptions(loader configContracts.ConfigLoader, env environment.Environment) (*AppOptions, error) {
-	return config.LoadOptions[AppOptions](loader, env)
+func ProvideAppOptions(loader configContracts.ConfigLoader, env environment.Environment) (*AppConfig, error) {
+	return config.LoadConfig[AppConfig](loader, env, "app")
 }

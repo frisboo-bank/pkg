@@ -1,13 +1,15 @@
-package options
+package config
 
 import (
 	"time"
 
 	"frisboo-bank/pkg/config"
-	configContracts "frisboo-bank/pkg/config/contracts"
 	"frisboo-bank/pkg/constants"
 	"frisboo-bank/pkg/environment"
-	httpservertype "frisboo-bank/pkg/http/http_server/options/enums/http_server_type"
+
+	configContracts "frisboo-bank/pkg/config/contracts"
+
+	httpservertype "frisboo-bank/pkg/http/http_server/contracts/enums/http_server_type"
 )
 
 var (
@@ -24,7 +26,7 @@ var (
 	WriteTimeout          = constants.SERVER_WRITE_TIMEOUT
 )
 
-type HTTPServerOptions struct {
+type HTTPServerConfig struct {
 	Type                  httpservertype.HttpServerType `mapstructure:"type"`
 	BasePath              string                        `mapstructure:"basePath"`
 	Development           bool                          `mapstructure:"development"`
@@ -40,9 +42,6 @@ type HTTPServerOptions struct {
 	WriteTimeout          time.Duration                 `mapstructure:"writeTimeout"`
 }
 
-func ProvideHTTPServerOptions(
-	loader configContracts.ConfigLoader,
-	env environment.Environment,
-) (*HTTPServerOptions, error) {
-	return config.LoadOptions[HTTPServerOptions](loader, env)
+func ProvideHTTPServerConfig(loader configContracts.ConfigLoader, env environment.Environment) (*HTTPServerConfig, error) {
+	return config.LoadConfig[HTTPServerConfig](loader, env, "httpServer")
 }
