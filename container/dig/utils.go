@@ -63,19 +63,21 @@ func resolveDynamicGroup[T any](
 
 // filterOptions filters a slice of options of type O to a slice of type T.
 // Returns an error if any option cannot be converted to T.
-func filterOptions[T any, O any](options []O) ([]T, error) {
+func filterOptions[T any, O any](opts []O) ([]T, error) {
 	var filteredOptions []T
 
-	for idx, option := range options {
-		opt, ok := any(option).(T)
+	for idx, opt := range opts {
+		opt, ok := any(opt).(T)
+
 		if !ok {
 			return nil, fmt.Errorf(
 				"option at index %d must be of type %T but is currently of type %T",
 				idx,
 				*new(T),
-				option,
+				opt,
 			)
 		}
+
 		filteredOptions = append(filteredOptions, opt)
 	}
 

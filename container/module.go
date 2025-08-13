@@ -1,75 +1,43 @@
 package container
 
-// Module represents a dependency-injectable module in the container system.
-// Each module can have submodules, providers, decorators, invokes, and hooks.
-type Module interface {
-	Dependency
-	GetName() string
-	GetModules() []Module
-	GetProviders() []Provider
-	GetDecorators() []Decorator
-	GetInvokes() []Invoker
-	GetHooks() []HookStarter
-}
+import "frisboo-bank/pkg/container/contracts"
+
+var _ contracts.Module = (*module)(nil)
 
 type module struct {
+	decorators []contracts.Decorator
+	hooks      []contracts.HookStarter
+	invokers   []contracts.Invoker
+	modules    []contracts.Module
 	name       string
-	modules    []Module
-	providers  []Provider
-	decorators []Decorator
-	invokers   []Invoker
-	hooks      []HookStarter
+	providers  []contracts.Provider
 }
 
-var _ Module = (*module)(nil)
-
-func NewModule(name string, options ...Dependency) Module {
+func NewModule(name string, deps ...contracts.Dependency) contracts.Module {
 	m := &module{name: name}
 
-	for _, option := range options {
-		option.apply(m)
+	for _, dep := range deps {
+		switch d := dep.(type) {
+		case contracts.Decorator:
+			m.decorators = append(m.decorators, d)
+		case contracts.HookStarter:
+			m.hooks = append(m.hooks, d)
+		case contracts.Invoker:
+			m.invokers = append(m.invokers, d)
+		case contracts.Module:
+			m.modules = append(m.modules, d)
+		case contracts.Provider:
+			m.providers = append(m.providers, d)
+		}
 	}
 
 	return m
 }
 
-// apply adds the module as a submodule to the target module pointer.
-func (m *module) apply(targetModule *module) {
-	for _, mod := range targetModule.modules {
-		if mod == m {
-			return
-		}
-	}
-
-	targetModule.modules = append(targetModule.modules, m)
-}
-
-// GetName returns the name of the module.
-func (m *module) GetName() string {
-	return m.name
-}
-
-// GetModules returns the submodules registered in the module.
-func (m *module) GetModules() []Module {
-	return m.modules
-}
-
-// GetProviders returns the providers registered in the module.
-func (m *module) GetProviders() []Provider {
-	return m.providers
-}
-
-// GetHooks returns the hooks registered in the module.
-func (m *module) GetHooks() []HookStarter {
-	return m.hooks
-}
-
-// GetDecorators returns the decorators registered in the module.
-func (m *module) GetDecorators() []Decorator {
-	return m.decorators
-}
-
-// GetInvokes returns the invokers registered in the module.
-func (m *module) GetInvokes() []Invoker {
-	return m.invokers
-}
+func (m *module) Decorators() []contracts.Decorator { return m.decorators }
+func (m *module) Hooks() []contracts.HookStarter    { return m.hooks }
+func (m *module) Invokers() []contracts.Invoker     { return m.invokers }
+func (m *module) Modules() []contracts.Module       { return m.modules }
+func (m *module) Name() string                      { return m.name }
+func (m *module) Providers() []contracts.Provider   { return m.providers }
+func (m *module) IsDependency()                     {}

@@ -13,5 +13,5 @@ type AppConfig struct {
 }
 
 func ProvideAppOptions(loader configContracts.ConfigLoader, env environment.Environment) (*AppConfig, error) {
-	return config.LoadConfig[AppConfig](loader, env, "app")
+	return config.LoadConfig[AppConfig](loader, env)
 }

@@ -2,16 +2,14 @@ package httpserver
 
 import (
 	"context"
+
+	configContracts "frisboo-bank/pkg/config/contracts"
 	"frisboo-bank/pkg/container"
 	"frisboo-bank/pkg/environment"
 	"frisboo-bank/pkg/http/http_server/config"
 	"frisboo-bank/pkg/http/http_server/contracts"
 	"frisboo-bank/pkg/logger"
-
-	configContracts "frisboo-bank/pkg/config/contracts"
-
 	loggerConfig "frisboo-bank/pkg/logger/config"
-	loggerContracts "frisboo-bank/pkg/logger/contracts"
 	waiterContracts "frisboo-bank/pkg/waiter/contracts"
 )
 
@@ -19,61 +17,46 @@ var Module = container.NewModule(
 	"http_server",
 
 	container.Provide(
-		func(loader configContracts.ConfigLoader, env environment.Environment) (*config.HTTPServerConfig, error) {
-			return config.ProvideHTTPServerConfig(loader, env)
+		func(loader configContracts.ConfigLoader, env environment.Environment) (*config.EnvConfig, error) {
+			return config.LoadEnvConfig(loader, env)
 		},
 	),
 
-	container.Provide(func(loggerCfg *loggerConfig.LoggerConfig, options *config.HTTPServerConfig) (contracts.HTTPServer, error) {
-		customLogger, err := logger.GetInstanceFromConfig(loggerCfg)
-		if err != nil {
-			return nil, err
-		}
-		customLogger = customLogger.WithPrefix("http-server")
+	container.Provide(
+		func(loggerEnvCfg *loggerConfig.EnvConfig, envCfg *config.EnvConfig) (contracts.HTTPServer, error) {
+			loggerOpts := loggerConfig.FromEnvConfig(loggerEnvCfg).
+				With(loggerConfig.Prefix("http-server"))
 
-		httpServer, err := GetInstanceFromConfig(options, customLogger)
-		if err != nil {
-			return nil, err
-		}
+			logger, err := logger.GetInstance(loggerEnvCfg.Type, loggerOpts)
+			if err != nil {
+				return nil, err
+			}
 
-		return httpServer, nil
-	},
+			opts := config.FromEnvConfig(envCfg)
+
+			httpServer, err := GetInstance(envCfg.Type, logger, opts)
+			if err != nil {
+				return nil, err
+			}
+
+			return httpServer, nil
+		},
 	),
 
-	container.Hook(startHook, stopHook),
-)
+	container.Hook(func(httpServer contracts.HTTPServer) waiterContracts.WaitFunc {
+		return func(ctx context.Context) error {
+			httpServer.SetupDefaultMiddlewares()
 
-func startHook(httpServer contracts.HTTPServer) waiterContracts.WaitFunc {
-	return func(ctx context.Context) error {
-		httpServer.SetupDefaultMiddlewares()
+			var err error
+			go func() {
+				err = httpServer.Start(ctx)
+			}()
 
-		addr := httpServer.Address()
-
-		httpServer.Logger().Info("starting server...")
-
-		go func() {
-			if err := httpServer.Start(); err != nil {
-				httpServer.Logger().Fatalf("failed to start with error: %v", err)
-			}
-		}()
-
-		httpServer.Logger().Infof("server listening on address: %s", addr)
-
-		return nil
-	}
-}
-
-func stopHook(httpServer contracts.HTTPServer, logger loggerContracts.Logger) waiterContracts.CleanupFunc {
-	return func(ctx context.Context) error {
-		httpServer.Logger().Info("server shutting down...")
-
-		if err := httpServer.Shutdown(ctx); err != nil {
-			httpServer.Logger().Errorf("failed to stop with error: %v", err)
-			return nil
+			return err
 		}
-
-		httpServer.Logger().Info("server shutdown done successfully")
-
-		return nil
-	}
-}
+	}, func(httpServer contracts.HTTPServer) waiterContracts.CleanupFunc {
+		return func(ctx context.Context) error {
+			return httpServer.Shutdown(ctx)
+		}
+	}),
+)

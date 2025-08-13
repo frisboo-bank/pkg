@@ -14,4 +14,5 @@ const (
 	errorLevel
 	panicLevel
 	fatalLevel
+	traceLevel
 )

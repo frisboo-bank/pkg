@@ -1,20 +1,18 @@
 package contracts
 
 import (
-	"frisboo-bank/pkg/container"
+	containerContracts "frisboo-bank/pkg/container/contracts"
 	"frisboo-bank/pkg/environment"
 	loggerContracts "frisboo-bank/pkg/logger/contracts"
 )
 
 type ApplicationBuilder interface {
-	ProvideModule(modules ...container.Module)
-	Provide(providers ...container.Provider)
-	Decorate(decorators ...container.Decorator)
+	ProvideModule(modules ...containerContracts.Module)
 	Build() Application
-
-	GetModules() []container.Module
-	GetProviders() []container.Provider
-	GetDecorators() []container.Decorator
+	Modules() []containerContracts.Module
+	Providers() []containerContracts.Provider
+	Decorators() []containerContracts.Decorator
+	Container() containerContracts.Container
 	Logger() loggerContracts.Logger
 	Environment() environment.Environment
 }

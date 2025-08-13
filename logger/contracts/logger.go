@@ -1,11 +1,7 @@
 package contracts
 
 import (
-	"io"
-
 	"frisboo-bank/pkg/logger/config"
-
-	encodingtype "frisboo-bank/pkg/logger/contracts/enums/encoding_type"
 	loglevel "frisboo-bank/pkg/logger/contracts/enums/log_level"
 	loggertype "frisboo-bank/pkg/logger/contracts/enums/logger_type"
 )
@@ -13,28 +9,7 @@ import (
 type (
 	Fields map[string]any
 
-	loggerConfig interface {
-		WithConfig(config *config.LoggerConfig) Logger
-		WithCallDepth(callDepth int) Logger
-		WithCaller(withCaller bool) Logger
-		WithEncoding(encoding encodingtype.EncodingType) Logger
-		WithLevel(logLevel loglevel.LogLevel) Logger
-		WithName(name string) Logger
-		WithOutput(output io.Writer) Logger
-		WithPrefix(prefix string) Logger
-		WithTracer(withTracer bool) Logger
-
-		CallDepth() int
-		CallerEnabled() bool
-		Encoding() encodingtype.EncodingType
-		Level() loglevel.LogLevel
-		Name() string
-		Output() io.Writer
-		Prefix() string
-		TracerEnabled() bool
-	}
-
-	loggerCore interface {
+	Logger interface {
 		Debug(v ...any)
 		Debugf(format string, v ...any)
 		Debugw(message string, fields Fields)
@@ -53,23 +28,17 @@ type (
 		Print(v ...any)
 		Printf(format string, v ...any)
 		Printw(message string, fields Fields)
+		Type() loggertype.LoggerType
 		Warn(v ...any)
 		Warnf(format string, v ...any)
 		Warnw(message string, fields Fields)
-
-		Instance() any
-		Type() loggertype.LoggerType
 	}
 
-	Logger interface {
-		loggerConfig
-		loggerCore
-	}
-
-	LoggerInternal interface {
-		SetupInstance()
+	LoggerAdapter interface {
 		Log(level loglevel.LogLevel, v ...any)
 		Logf(level loglevel.LogLevel, format string, v ...any)
 		Logw(level loglevel.LogLevel, message string, fields Fields)
+		Setup(cfg *config.Config) error
+		Type() loggertype.LoggerType
 	}
 )

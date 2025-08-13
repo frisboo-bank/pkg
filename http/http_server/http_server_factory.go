@@ -5,27 +5,30 @@ import (
 
 	"frisboo-bank/pkg/http/http_server/config"
 	"frisboo-bank/pkg/http/http_server/contracts"
-	"frisboo-bank/pkg/http/http_server/gin"
-
 	httpservertype "frisboo-bank/pkg/http/http_server/contracts/enums/http_server_type"
-
+	"frisboo-bank/pkg/http/http_server/gin"
 	loggerContracts "frisboo-bank/pkg/logger/contracts"
+	"frisboo-bank/pkg/options"
 )
 
-func GetInstanceFromConfig(config *config.HTTPServerConfig, logger loggerContracts.Logger) (contracts.HTTPServer, error) {
-	instance, err := GetInstance(config.Type, logger)
+func GetInstance(
+	sType httpservertype.HttpServerType,
+	logger loggerContracts.Logger,
+	opt *options.OptionBuilder[config.Config],
+) (contracts.HTTPServer, error) {
+	var adapter contracts.HTTPServerAdapter
+
+	switch sType {
+	case httpservertype.HttpServerTypes.GIN:
+		adapter = gin.New(logger)
+	default:
+		return nil, fmt.Errorf("(http-server-factory) no server of type `%q` exists", sType)
+	}
+
+	server, err := New(adapter, logger, opt)
 	if err != nil {
 		return nil, err
 	}
 
-	return instance.WithConfig(config), nil
-}
-
-func GetInstance(httpServerType httpservertype.HttpServerType, logger loggerContracts.Logger) (contracts.HTTPServer, error) {
-	switch httpServerType {
-	case httpservertype.HttpServerTypes.GIN:
-		return gin.New(logger), nil
-	default:
-		return nil, fmt.Errorf("(http-server-factory) no server of type `%q` exists", httpServerType)
-	}
+	return server, nil
 }
