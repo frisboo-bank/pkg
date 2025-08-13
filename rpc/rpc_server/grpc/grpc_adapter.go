@@ -17,7 +17,7 @@ import (
 
 var _ contracts.RPCServerAdapter = (*grpcRPCServerAdapter)(nil)
 
-var pError = customerrors.PrefixedError("grpc client")
+var pError = customerrors.PrefixedError("grpc server")
 
 type grpcRPCServerAdapter struct {
 	cfg      *config.Config
