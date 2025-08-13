@@ -3,29 +3,32 @@ package rpcserver
 import (
 	"fmt"
 
+	loggerContracts "frisboo-bank/pkg/logger/contracts"
+	"frisboo-bank/pkg/options"
 	"frisboo-bank/pkg/rpc/rpc_server/config"
 	"frisboo-bank/pkg/rpc/rpc_server/contracts"
-	"frisboo-bank/pkg/rpc/rpc_server/grpc"
-
 	rpcservertype "frisboo-bank/pkg/rpc/rpc_server/contracts/enums/rpc_server_type"
-
-	loggerContracts "frisboo-bank/pkg/logger/contracts"
+	"frisboo-bank/pkg/rpc/rpc_server/grpc"
 )
 
-func GetInstanceFromConfig(config *config.RPCServerConfig, logger loggerContracts.Logger) (contracts.RPCServer, error) {
-	instance, err := GetInstance(config.Type, logger)
+func GetInstance(
+	sType rpcservertype.RpcServerType,
+	logger loggerContracts.Logger,
+	opt *options.OptionBuilder[config.Config],
+) (contracts.RPCServer, error) {
+	var adapter contracts.RPCServerAdapter
+
+	switch sType {
+	case rpcservertype.RpcServerTypes.GRPC:
+		adapter = grpc.New(logger)
+	default:
+		return nil, fmt.Errorf("(rpc-server-factory) no server of type `%q` exists", sType)
+	}
+
+	server, err := New(adapter, logger, opt)
 	if err != nil {
 		return nil, err
 	}
 
-	return instance.WithConfig(config), nil
-}
-
-func GetInstance(rpcServerType rpcservertype.RpcServerType, logger loggerContracts.Logger) (contracts.RPCServer, error) {
-	switch rpcServerType {
-	case rpcservertype.RpcServerTypes.GRPC:
-		return grpc.New(logger), nil
-	default:
-		return nil, fmt.Errorf("(rpc-server-factory) no server of type `%q` exists", rpcServerType)
-	}
+	return server, nil
 }

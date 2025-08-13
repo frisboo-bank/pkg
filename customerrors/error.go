@@ -1,0 +1,39 @@
+package customerrors
+
+import (
+	"errors"
+	"fmt"
+)
+
+type fatalError struct{ error }
+
+func (e *fatalError) Error() string { return e.error.Error() }
+func (e *fatalError) Unwrap() error { return e.error }
+
+func WrapAsFatal(err error) error {
+	return &fatalError{err}
+}
+
+func IsFatal(err error) bool {
+	var expectedError *fatalError
+	return errors.As(err, &expectedError)
+}
+
+func WrapWith(sentinel error, err error) error {
+	return errors.Join(sentinel, err)
+}
+
+type prefixedError struct {
+	prefix string
+	error
+}
+
+func PrefixedError(prefix string) prefixedError {
+	return prefixedError{
+		prefix: prefix,
+	}
+}
+
+func (p prefixedError) New(text string) error {
+	return fmt.Errorf("[%s] %s", p.prefix, text)
+}
