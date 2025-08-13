@@ -67,8 +67,8 @@ func FromEnvConfig(cfg *EnvConfig) *options.OptionBuilder[Config] {
 		opts.With(Level(cfg.Level))
 	}
 
-	if os.Stdout != nil {
-		opts.With(Output(os.Stdout))
+	if cfg.Output != nil {
+		opts.With(Output(cfg.Output))
 	}
 
 	opts.With(TracerEnabled(cfg.TracerEnabled))
