@@ -73,7 +73,7 @@ func filterOptions[T any, O any](opts []O) ([]T, error) {
 			return nil, fmt.Errorf(
 				"option at index %d must be of type %T but is currently of type %T",
 				idx,
-				new(T),
+				*new(T),
 				opt,
 			)
 		}
