@@ -5,12 +5,14 @@ import (
 	"os"
 
 	"frisboo-bank/pkg/config"
-	configContracts "frisboo-bank/pkg/config/contracts"
 	"frisboo-bank/pkg/environment"
+	"frisboo-bank/pkg/options"
+
+	configContracts "frisboo-bank/pkg/config/contracts"
+
 	encodingtype "frisboo-bank/pkg/logger/contracts/enums/encoding_type"
 	loglevel "frisboo-bank/pkg/logger/contracts/enums/log_level"
 	loggertype "frisboo-bank/pkg/logger/contracts/enums/logger_type"
-	"frisboo-bank/pkg/options"
 )
 
 type EnvConfig struct {
@@ -65,10 +67,6 @@ func FromEnvConfig(cfg *EnvConfig) *options.OptionBuilder[Config] {
 
 	if cfg.Level != loglevel.LogLevels.UNKNOWNLEVEL {
 		opts.With(Level(cfg.Level))
-	}
-
-	if cfg.Output != nil {
-		opts.With(Output(cfg.Output))
 	}
 
 	opts.With(TracerEnabled(cfg.TracerEnabled))

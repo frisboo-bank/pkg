@@ -7,10 +7,8 @@ import (
 
 	"frisboo-bank/pkg/application/contracts"
 	"frisboo-bank/pkg/container"
-	"frisboo-bank/pkg/environment"
-
 	containerContracts "frisboo-bank/pkg/container/contracts"
-
+	"frisboo-bank/pkg/environment"
 	loggerContracts "frisboo-bank/pkg/logger/contracts"
 )
 
