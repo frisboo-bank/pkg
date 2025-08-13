@@ -69,7 +69,6 @@ func (d *digAdapter) RegisterDecorator(decorators ...contracts.Decorator) error 
 
 func (d *digAdapter) RegisterHook(hooks ...contracts.HookStarter) error {
 	for _, hook := range hooks {
-		groudID := len(d.hookGroups) + 1
 		groupID := len(d.hookGroups) + 1
 		startGroup := fmt.Sprintf(hookGroupStartPattern, groupID)
 		stopGroup := fmt.Sprintf(hookGroupStopPattern, groupID)
