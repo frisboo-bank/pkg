@@ -6,7 +6,7 @@ import (
 	"path/filepath"
 	"strings"
 
-	customErrors "frisboo-bank/pkg/custom_errors"
+	"frisboo-bank/pkg/customerrors"
 )
 
 var (
@@ -32,7 +32,7 @@ func GetProjectRootWorkingDirectory() (string, error) {
 func searchRootDirectory(baseDir string) (string, error) {
 	files, err := os.ReadDir(baseDir)
 	if err != nil {
-		return "", customErrors.WrapWith(ErrReadingDirectory, err)
+		return "", customerrors.WrapWith(ErrReadingDirectory, err)
 	}
 
 	for _, file := range files {
@@ -48,7 +48,7 @@ func searchRootDirectory(baseDir string) (string, error) {
 
 	parentDir := filepath.Dir(baseDir)
 	if parentDir == baseDir {
-		return "", customErrors.WrapWith(ErrNoProjectFound, err)
+		return "", customerrors.WrapWith(ErrNoProjectFound, err)
 	}
 
 	return searchRootDirectory(parentDir)

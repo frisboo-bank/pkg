@@ -2,24 +2,24 @@ package contracts
 
 import (
 	"context"
-	"net"
-	"time"
 
 	loggerContracts "frisboo-bank/pkg/logger/contracts"
-	"frisboo-bank/pkg/rpc/rpc_server/options"
+	"frisboo-bank/pkg/rpc/rpc_server/config"
+	rpcservertype "frisboo-bank/pkg/rpc/rpc_server/contracts/enums/rpc_server_type"
 )
 
-type RPCServer interface {
-	WithOptions(options *options.RPCServerOptions) RPCServer
-	WithHost(host string) RPCServer
-	WithPort(port string) RPCServer
-	WithServerShutdownTimeout(serverShutdownTimeout time.Duration) RPCServer
-	WithServices(services []Services) RPCServer
+type (
+	RPCServer interface {
+		Start(ctx context.Context) error
+		Shutdown(ctx context.Context) error
+		Type() rpcservertype.RpcServerType
+		Logger() loggerContracts.Logger
+	}
 
-	Start(listener net.Listener) error
-	Shutdown(ctx context.Context) error
-	Instance() any
-	Address() string
-
-	Logger() loggerContracts.Logger
-}
+	RPCServerAdapter interface {
+		Setup(cfg *config.Config) error
+		Start(ctx context.Context) error
+		Shutdown(ctx context.Context) error
+		Type() rpcservertype.RpcServerType
+	}
+)

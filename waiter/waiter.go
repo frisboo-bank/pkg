@@ -10,57 +10,68 @@ import (
 	"syscall"
 	"time"
 
+	"frisboo-bank/pkg/customerrors"
 	loggerContracts "frisboo-bank/pkg/logger/contracts"
+	"frisboo-bank/pkg/options"
+	"frisboo-bank/pkg/utils"
+	"frisboo-bank/pkg/waiter/config"
 	"frisboo-bank/pkg/waiter/contracts"
-	waiterOptions "frisboo-bank/pkg/waiter/options"
 
 	"golang.org/x/sync/errgroup"
 )
 
+var _ contracts.Waiter = (*waiter)(nil)
+
+var pError = customerrors.PrefixedError("waiter")
+
 type waiter struct {
+	cancel     context.CancelFunc
+	cancelOnce sync.Once
+	cfg        *config.Config
 	ctx        context.Context
 	hooks      []contracts.WaiterHook
-	cancel     context.CancelFunc
 	isWaiting  bool
+	logger     loggerContracts.Logger
 	mu         sync.Mutex
 	waitOnce   sync.Once
-	cancelOnce sync.Once
-	logger     loggerContracts.Logger
 }
 
-func NewWaiter(options ...waiterOptions.WaiterOption) contracts.Waiter {
-	cfg := waiterOptions.GetOptionsWithDefault(options...)
+func New(logger loggerContracts.Logger, opts *options.OptionBuilder[config.Config]) (contracts.Waiter, error) {
+	utils.Assert(logger != nil, pError.New("logger can't be nil"))
+	utils.Assert(opts != nil, pError.New("opts can't be nil"))
 
-	w := &waiter{}
+	cfg := opts.Build()
 
 	parentContext := cfg.ParentContext
 	if parentContext == nil {
 		parentContext = context.Background()
 	}
-
-	w.ctx, w.cancel = context.WithCancel(parentContext)
+	ctx, cancel := context.WithCancel(parentContext)
 
 	if cfg.CancelOnShutdownSignal {
-		var signalCancel context.CancelFunc
-
 		signalCtx, signalCancel := signal.NotifyContext(
-			w.ctx,
+			ctx,
 			os.Interrupt,
 			syscall.SIGINT,
 			syscall.SIGTERM,
 			syscall.SIGQUIT,
 		)
 
-		w.ctx = signalCtx
-		parentCancel := w.cancel
+		ctx = signalCtx
+		parentCancel := cancel
 
-		w.cancel = func() {
+		cancel = func() {
 			signalCancel()
 			parentCancel()
 		}
 	}
 
-	return w
+	return &waiter{
+		cancel: cancel,
+		cfg:    cfg,
+		ctx:    ctx,
+		logger: logger,
+	}, nil
 }
 
 func (w *waiter) Wait() error {

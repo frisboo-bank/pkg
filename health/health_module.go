@@ -1,36 +1,51 @@
 package health
 
 import (
-	configContracts "frisboo-bank/pkg/config/contracts"
 	"frisboo-bank/pkg/container"
 	"frisboo-bank/pkg/environment"
+	"frisboo-bank/pkg/health/config"
 	"frisboo-bank/pkg/health/contracts"
-	"frisboo-bank/pkg/health/options"
+	"frisboo-bank/pkg/logger"
+
+	configContracts "frisboo-bank/pkg/config/contracts"
+
 	httpServerContracts "frisboo-bank/pkg/http/http_server/contracts"
+
+	loggerConfig "frisboo-bank/pkg/logger/config"
 )
 
 var Module = container.NewModule(
 	"health",
+
 	container.Provide(
-		func(loader configContracts.ConfigLoader, env environment.Environment) (*options.HealthOptions, error) {
-			return options.ProvideHealthOptions(loader, env)
+		func(loader configContracts.ConfigLoader, env environment.Environment) (*config.EnvConfig, error) {
+			return config.LoadEnvConfig(loader, env)
 		},
 	),
-	container.Provide(func(config *options.HealthOptions) contracts.HealthService {
-		return NewHealthService(nil)
-	}),
+
 	container.Provide(
 		func(
-			config *options.HealthOptions,
-			healthService contracts.HealthService,
+			loggerEnvCfg *loggerConfig.EnvConfig,
+			envCfg *config.EnvConfig,
 			httpServer httpServerContracts.HTTPServer,
-		) contracts.HealthEndpoint {
-			return NewHealthEndpoint(
-				healthService,
-				httpServer,
-			)
-		},
-	),
+			// services []contracts.HealthServiceCheck,
+		) (contracts.HealthService, contracts.HealthEndpoint, error) {
+			loggerOpts := loggerConfig.FromEnvConfig(loggerEnvCfg).
+				With(loggerConfig.Prefix("health"))
+
+			logger, err := logger.GetInstance(loggerEnvCfg.Type, loggerOpts)
+			if err != nil {
+				return nil, nil, err
+			}
+
+			opts := config.FromEnvConfig(envCfg)
+
+			service := NewHealthService(logger, opts)
+			// service.AddServices(services...)
+
+			return service, NewHealthEndpoint(logger, httpServer, service, opts), nil
+		}),
+
 	container.Invoke(func(healthEndpoint contracts.HealthEndpoint) {
 		healthEndpoint.RegisterEndpoints()
 	}),

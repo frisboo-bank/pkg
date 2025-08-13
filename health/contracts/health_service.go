@@ -5,8 +5,6 @@ import (
 )
 
 type HealthService interface {
-	WithStatusUp(statusUp string) HealthService
-	WithStatusDown(statusDown string) HealthService
-
+	AddServices(services ...HealthServiceCheck)
 	CheckHealth(ctx context.Context) CheckAllStatus
 }

@@ -2,36 +2,36 @@ package contracts
 
 import (
 	"context"
-	"time"
 
-	"frisboo-bank/pkg/http/http_server/options"
-	httpservertype "frisboo-bank/pkg/http/http_server/options/enums/http_server_type"
+	"frisboo-bank/pkg/http/http_server/config"
+	httpservertype "frisboo-bank/pkg/http/http_server/contracts/enums/http_server_type"
 	loggerContracts "frisboo-bank/pkg/logger/contracts"
 )
 
-type HTTPServer interface {
-	WithOptions(options *options.HTTPServerOptions) HTTPServer
-	WithBasePath(base string) HTTPServer
-	HasDevelopment(dev bool) HTTPServer
-	WithHost(host string) HTTPServer
-	WithPort(port string) HTTPServer
-	WithIgnoreLogUrls(urls []string) HTTPServer
-	WithBodyLimit(limit string) HTTPServer
-	WithIdleTimeout(timeout time.Duration) HTTPServer
-	WithMaxHeaderBytes(max int) HTTPServer
-	WithReadHeaderTimeout(timeout time.Duration) HTTPServer
-	WithReadTimeout(timeout time.Duration) HTTPServer
-	WithServerShutdownTimeout(timeout time.Duration) HTTPServer
-	WithWriteTimeout(timeout time.Duration) HTTPServer
+type (
+	HTTPServer interface {
+		SetupDefaultMiddlewares()
+		AddMiddlewares(middlewares ...any)
+		Start(ctx context.Context) error
+		Shutdown(ctx context.Context) error
+		Type() httpservertype.HttpServerType
+		RouteBuilder() RouteBuilder
+		Logger() loggerContracts.Logger
+	}
 
-	Start() error
-	Shutdown(ctx context.Context) error
-	AddMiddlewares(middlewares ...any)
-	SetupDefaultMiddlewares()
-	Instance() any
-	ServerType() httpservertype.HttpServerType
-	Address() string
+	HTTPServerAdapter interface {
+		Setup(cfg *config.Config) error
+		SetupDefaultMiddlewares()
+		AddMiddlewares(middlewares ...any)
+		Start(ctx context.Context) error
+		Shutdown(ctx context.Context) error
+		RouteBuilder() RouteBuilder
+		Type() httpservertype.HttpServerType
+	}
+)
 
-	RouteBuilder() RouteBuilder
-	Logger() loggerContracts.Logger
-}
+type (
+	httpServerCore interface {
+		SetupDefaultMiddlewares()
+	}
+)
