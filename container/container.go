@@ -56,32 +56,36 @@ func (c *container) RegisterModule(modules ...contracts.Module) error {
 		return err
 	}
 
-	var errs error
-
 	for _, module := range modules {
-		errs = errors.Join(errs, c.adapter.RegisterProvider(module.Providers()...))
+		if err := c.adapter.RegisterProvider(module.Providers()...); err != nil {
+			return fmt.Errorf("provider registration failed for module %q with error: %w", module.Name(), err)
+		}
 	}
 
 	for _, module := range modules {
-		errs = errors.Join(errs, c.adapter.RegisterHook(module.Hooks()...))
+		if err := c.adapter.RegisterHook(module.Hooks()...); err != nil {
+			return fmt.Errorf("hook registration failed for module %q with error: %w", module.Name(), err)
+		}
 	}
 
 	for _, module := range modules {
-		errs = errors.Join(errs, c.adapter.RegisterDecorator(module.Decorators()...))
+		if err := c.adapter.RegisterDecorator(module.Decorators()...); err != nil {
+			return fmt.Errorf("decorator registration failed for module %q with error: %w", module.Name(), err)
+		}
 	}
 
 	for _, module := range modules {
-		errs = errors.Join(errs, c.adapter.RegisterInvoker(module.Invokers()...))
+		if err := c.adapter.RegisterInvoker(module.Invokers()...); err != nil {
+			return fmt.Errorf("invoker registration failed for module %q with error: %w", module.Name(), err)
+		}
 	}
 
-	return errs
+	return nil
 }
 
-func (c *container) Start(ctx context.Context) error {
+func (c *container) Start(ctx context.Context) (err error) {
 	utils.Assert(ctx != nil, "container: your must set the context")
 	utils.Assert(!c.started, "container: container already running")
-
-	var err error
 
 	c.startOnce.Do(func() {
 		err = errors.Join(err, c.adapter.Start(ctx))
@@ -90,20 +94,19 @@ func (c *container) Start(ctx context.Context) error {
 		}
 	})
 
-	return err
+	return
 }
 
-func (c *container) Stop(ctx context.Context) error {
+func (c *container) Stop(ctx context.Context) (err error) {
 	utils.Assert(ctx != nil, "container: your must set the context")
 	utils.Assert(c.started, "container: no container running; you must call Start first")
 
-	var err error
 	c.stopOnce.Do(func() {
 		err = errors.Join(err, c.adapter.Stop(ctx))
 		c.started = false
 	})
 
-	return err
+	return
 }
 
 func (c *container) Type() containertype.ContainerType {
