@@ -5,10 +5,9 @@ import (
 
 	"frisboo-bank/pkg/http/http_server/config"
 	"frisboo-bank/pkg/http/http_server/contracts"
-	"frisboo-bank/pkg/options"
-
 	httpservertype "frisboo-bank/pkg/http/http_server/contracts/enums/http_server_type"
 	loggerContracts "frisboo-bank/pkg/logger/contracts"
+	"frisboo-bank/pkg/options"
 )
 
 var _ contracts.HTTPServer = (*httpServer)(nil)

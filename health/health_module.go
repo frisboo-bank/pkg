@@ -1,16 +1,13 @@
 package health
 
 import (
+	configContracts "frisboo-bank/pkg/config/contracts"
 	"frisboo-bank/pkg/container"
 	"frisboo-bank/pkg/environment"
 	"frisboo-bank/pkg/health/config"
 	"frisboo-bank/pkg/health/contracts"
-	"frisboo-bank/pkg/logger"
-
-	configContracts "frisboo-bank/pkg/config/contracts"
-
 	httpServerContracts "frisboo-bank/pkg/http/http_server/contracts"
-
+	"frisboo-bank/pkg/logger"
 	loggerConfig "frisboo-bank/pkg/logger/config"
 )
 

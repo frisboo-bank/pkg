@@ -8,11 +8,10 @@ import (
 
 	"frisboo-bank/pkg/container/config"
 	"frisboo-bank/pkg/container/contracts"
-	"frisboo-bank/pkg/options"
-	"frisboo-bank/pkg/utils"
-
 	containertype "frisboo-bank/pkg/container/contracts/enums/container_type"
 	loggerContracts "frisboo-bank/pkg/logger/contracts"
+	"frisboo-bank/pkg/options"
+	"frisboo-bank/pkg/utils"
 )
 
 var _ contracts.Container = (*container)(nil)
