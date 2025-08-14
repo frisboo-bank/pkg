@@ -153,7 +153,7 @@ func (d *digAdapter) Type() containertype.ContainerType {
 func (d *digAdapter) resolveHooks() ([]waiterContracts.WaiterHook, error) {
 	hooks := make([]waiterContracts.WaiterHook, len(d.hookGroups))
 
-	for _, hookGroup := range d.hookGroups {
+	for i, hookGroup := range d.hookGroups {
 		hook := waiterContracts.WaiterHook{}
 
 		startFns, err := resolveDynamicGroup[[]waiterContracts.WaitFunc](
@@ -182,7 +182,7 @@ func (d *digAdapter) resolveHooks() ([]waiterContracts.WaiterHook, error) {
 			hook.Cleanup = stopFns[0]
 		}
 
-		hooks = append(hooks, hook)
+		hooks[i] = hook
 	}
 
 	return hooks, nil

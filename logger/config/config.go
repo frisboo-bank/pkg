@@ -5,14 +5,12 @@ import (
 	"os"
 
 	"frisboo-bank/pkg/config"
-	"frisboo-bank/pkg/environment"
-	"frisboo-bank/pkg/options"
-
 	configContracts "frisboo-bank/pkg/config/contracts"
-
+	"frisboo-bank/pkg/environment"
 	encodingtype "frisboo-bank/pkg/logger/contracts/enums/encoding_type"
 	loglevel "frisboo-bank/pkg/logger/contracts/enums/log_level"
 	loggertype "frisboo-bank/pkg/logger/contracts/enums/logger_type"
+	"frisboo-bank/pkg/options"
 )
 
 type EnvConfig struct {
