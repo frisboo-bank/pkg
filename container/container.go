@@ -132,7 +132,7 @@ func (c *container) collectAllModules(modules ...contracts.Module) ([]contracts.
 
 		for _, child := range module.Modules() {
 			// Defensive: avoid self-cycle.
-			if child == module || child.Name() == module.Name() {
+			if child == module {
 				return nil, fmt.Errorf("module %q references itself; skipping to avoid cycle", module.Name())
 			}
 			queue = append(queue, child)
