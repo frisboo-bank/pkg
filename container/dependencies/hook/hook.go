@@ -59,7 +59,7 @@ func Group(group string) options.Option[HooksOptions] {
 		group = strings.TrimSpace(group)
 
 		if group == "" {
-			return errors.New("provider options: group can't be empty")
+			return errors.New("hook options: group can't be empty")
 		}
 
 		opts.Group = group
