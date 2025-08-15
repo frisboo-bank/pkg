@@ -84,7 +84,7 @@ func Name(name string) options.Option[HooksOptions] {
 		name = strings.TrimSpace(name)
 
 		if name == "" {
-			return errors.New("provider options: name can't be empty")
+			return errors.New("hook options: name can't be empty")
 		}
 
 		opts.Name = name
