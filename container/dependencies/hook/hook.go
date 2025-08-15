@@ -71,7 +71,7 @@ func Group(group string) options.Option[HooksOptions] {
 func LocationForPC(pc uintptr) options.Option[HooksOptions] {
 	return options.OptionFunc[HooksOptions](func(opts *HooksOptions) error {
 		if pc == 0 {
-			return errors.New("provider options: Location PC cannot be 0")
+			return errors.New("hook options: Location PC cannot be 0")
 		}
 
 		opts.LocationPC = pc
