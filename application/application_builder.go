@@ -7,16 +7,22 @@ import (
 	"frisboo-bank/pkg/application/contracts"
 	"frisboo-bank/pkg/application/infrastructure"
 	"frisboo-bank/pkg/config"
-	configContracts "frisboo-bank/pkg/config/contracts"
 	"frisboo-bank/pkg/container"
+	"frisboo-bank/pkg/container/dependencies/decorator"
+	"frisboo-bank/pkg/container/dependencies/module"
+	"frisboo-bank/pkg/container/dependencies/provider"
+	"frisboo-bank/pkg/environment"
+	"frisboo-bank/pkg/logger"
+
+	configContracts "frisboo-bank/pkg/config/contracts"
+
 	containerConfig "frisboo-bank/pkg/container/config"
 	containerContracts "frisboo-bank/pkg/container/contracts"
 	containerEnums "frisboo-bank/pkg/container/contracts/enums"
 	containertype "frisboo-bank/pkg/container/contracts/enums/container_type"
-	"frisboo-bank/pkg/container/dependencies"
-	"frisboo-bank/pkg/environment"
+
 	httpServerEnums "frisboo-bank/pkg/http/http_server/contracts/enums"
-	"frisboo-bank/pkg/logger"
+
 	loggerConfig "frisboo-bank/pkg/logger/config"
 	loggerContracts "frisboo-bank/pkg/logger/contracts"
 	loggerEnums "frisboo-bank/pkg/logger/contracts/enums"
@@ -27,9 +33,9 @@ var _ contracts.ApplicationBuilder = (*applicationBuilder)(nil)
 
 type applicationBuilder struct {
 	container   containerContracts.Container
-	providers   []dependencies.Provider
-	decorators  []dependencies.Decorator
-	modules     []dependencies.Module
+	providers   []provider.Provider
+	decorators  []decorator.Decorator
+	modules     []module.Module
 	logger      loggerContracts.Logger
 	environment environment.Environment
 }
@@ -67,23 +73,23 @@ func NewApplicationBuilder(environments ...environment.Environment) contracts.Ap
 	}
 
 	return &applicationBuilder{
-		modules: []dependencies.Module{
+		modules: []module.Module{
 			infrastructure.Module,
 		},
-		providers: []dependencies.Provider{
-			dependencies.Provide(func() environment.Environment { return env }),
-			dependencies.Provide(func() configContracts.ConfigLoader { return configLoader }),
-			dependencies.Provide(func() *loggerConfig.EnvConfig { return loggerEnvCfg }),
-			dependencies.Provide(func() loggerContracts.Logger { return logger }),
+		providers: []provider.Provider{
+			provider.Provide(func() environment.Environment { return env }),
+			provider.Provide(func() configContracts.ConfigLoader { return configLoader }),
+			provider.Provide(func() *loggerConfig.EnvConfig { return loggerEnvCfg }),
+			provider.Provide(func() loggerContracts.Logger { return logger }),
 		},
-		decorators:  []dependencies.Decorator{},
+		decorators:  []decorator.Decorator{},
 		container:   diContainer,
 		logger:      logger,
 		environment: env,
 	}
 }
 
-func (b *applicationBuilder) ProvideModule(modules ...dependencies.Module) {
+func (b *applicationBuilder) ProvideModule(modules ...module.Module) {
 	b.modules = append(b.modules, modules...)
 }
 
@@ -98,15 +104,15 @@ func (b *applicationBuilder) Build() contracts.Application {
 	)
 }
 
-func (b *applicationBuilder) Modules() []dependencies.Module {
+func (b *applicationBuilder) Modules() []module.Module {
 	return b.modules
 }
 
-func (b *applicationBuilder) Providers() []dependencies.Provider {
+func (b *applicationBuilder) Providers() []provider.Provider {
 	return b.providers
 }
 
-func (b *applicationBuilder) Decorators() []dependencies.Decorator {
+func (b *applicationBuilder) Decorators() []decorator.Decorator {
 	return b.decorators
 }
 

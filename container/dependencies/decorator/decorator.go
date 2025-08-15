@@ -1,11 +1,12 @@
-package dependencies
+package decorator
 
 import (
+	"frisboo-bank/pkg/container/dependencies"
 	"frisboo-bank/pkg/options"
 )
 
 type Decorator interface {
-	Dependency
+	dependencies.Dependency
 	Constructor() any
 	Options() *options.OptionBuilder[DecoratorOptions]
 }

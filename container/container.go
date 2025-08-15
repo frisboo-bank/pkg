@@ -7,11 +7,13 @@ import (
 
 	"frisboo-bank/pkg/container/config"
 	"frisboo-bank/pkg/container/contracts"
-	containertype "frisboo-bank/pkg/container/contracts/enums/container_type"
-	"frisboo-bank/pkg/container/dependencies"
-	loggerContracts "frisboo-bank/pkg/logger/contracts"
+	"frisboo-bank/pkg/container/dependencies/module"
 	"frisboo-bank/pkg/options"
 	"frisboo-bank/pkg/utils"
+
+	containertype "frisboo-bank/pkg/container/contracts/enums/container_type"
+
+	loggerContracts "frisboo-bank/pkg/logger/contracts"
 )
 
 var _ contracts.Container = (*container)(nil)
@@ -48,7 +50,7 @@ func New(
 	return container, nil
 }
 
-func (c *container) RegisterModule(modules ...dependencies.Module) error {
+func (c *container) RegisterModule(modules ...module.Module) error {
 	modules, err := c.collectAllModules(modules...)
 	if err != nil {
 		return err
@@ -120,10 +122,10 @@ func (c *container) Type() containertype.ContainerType {
 	return c.adapter.Type()
 }
 
-func (c *container) collectAllModules(modules ...dependencies.Module) ([]dependencies.Module, error) {
+func (c *container) collectAllModules(modules ...module.Module) ([]module.Module, error) {
 	queue := modules
-	tree := make([]dependencies.Module, 0, len(queue))
-	visited := make(map[dependencies.Module]struct{})
+	tree := make([]module.Module, 0, len(queue))
+	visited := make(map[module.Module]struct{})
 
 	for len(queue) > 0 {
 		module := queue[0]

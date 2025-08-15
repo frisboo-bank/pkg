@@ -1,11 +1,12 @@
-package dependencies
+package invoker
 
 import (
+	"frisboo-bank/pkg/container/dependencies"
 	"frisboo-bank/pkg/options"
 )
 
 type Invoker interface {
-	Dependency
+	dependencies.Dependency
 	Constructor() any
 	Options() *options.OptionBuilder[InvokerOptions]
 }
