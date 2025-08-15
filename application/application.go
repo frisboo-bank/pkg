@@ -6,29 +6,36 @@ import (
 	"os"
 
 	"frisboo-bank/pkg/application/contracts"
-	containerContracts "frisboo-bank/pkg/container/contracts"
 	"frisboo-bank/pkg/container/dependencies"
+	"frisboo-bank/pkg/container/dependencies/decorator"
+	"frisboo-bank/pkg/container/dependencies/hook"
+	"frisboo-bank/pkg/container/dependencies/invoker"
+	"frisboo-bank/pkg/container/dependencies/module"
+	"frisboo-bank/pkg/container/dependencies/provider"
 	"frisboo-bank/pkg/environment"
+
+	containerContracts "frisboo-bank/pkg/container/contracts"
+
 	loggerContracts "frisboo-bank/pkg/logger/contracts"
 )
 
 type application struct {
 	container   containerContracts.Container
-	decorators  []dependencies.Decorator
+	decorators  []decorator.Decorator
 	environment environment.Environment
-	hooks       []dependencies.Hooks
-	invokers    []dependencies.Invoker
+	hooks       []hook.Hooks
+	invokers    []invoker.Invoker
 	logger      loggerContracts.Logger
-	modules     []dependencies.Module
-	providers   []dependencies.Provider
+	modules     []module.Module
+	providers   []provider.Provider
 }
 
 var _ contracts.Application = (*application)(nil)
 
 func NewApplication(
-	modules []dependencies.Module,
-	providers []dependencies.Provider,
-	decorators []dependencies.Decorator,
+	modules []module.Module,
+	providers []provider.Provider,
+	decorators []decorator.Decorator,
 	container containerContracts.Container,
 	logger loggerContracts.Logger,
 	environment environment.Environment,
@@ -43,11 +50,11 @@ func NewApplication(
 	}
 }
 
-func (a *application) ResolveFunc(invoke dependencies.Invoker) {
+func (a *application) ResolveFunc(invoke invoker.Invoker) {
 	a.invokers = append(a.invokers, invoke)
 }
 
-func (a *application) RegisterHook(hook dependencies.Hooks) {
+func (a *application) RegisterHook(hook hook.Hooks) {
 	a.hooks = append(a.hooks, hook)
 }
 
@@ -91,7 +98,7 @@ func (a *application) registerDependencies() error {
 		deps = append(deps, dep)
 	}
 
-	return a.container.RegisterModule(dependencies.NewModule("app",
+	return a.container.RegisterModule(module.NewModule("app",
 		deps...,
 	))
 }

@@ -7,7 +7,10 @@ import (
 
 	"frisboo-bank/pkg/container/config"
 	"frisboo-bank/pkg/container/contracts"
-	"frisboo-bank/pkg/container/dependencies"
+	"frisboo-bank/pkg/container/dependencies/decorator"
+	"frisboo-bank/pkg/container/dependencies/hook"
+	"frisboo-bank/pkg/container/dependencies/invoker"
+	"frisboo-bank/pkg/container/dependencies/provider"
 	"frisboo-bank/pkg/customerrors"
 	"frisboo-bank/pkg/utils"
 
@@ -53,7 +56,7 @@ func New(logger loggerContracts.Logger, waiter waiterContracts.Waiter) contracts
 	}
 }
 
-func (d *digAdapter) RegisterDecorator(decorators ...dependencies.Decorator) error {
+func (d *digAdapter) RegisterDecorator(decorators ...decorator.Decorator) error {
 	for _, decorator := range decorators {
 		var opts []dig.DecorateOption
 		if decorator.Options() != nil {
@@ -68,7 +71,7 @@ func (d *digAdapter) RegisterDecorator(decorators ...dependencies.Decorator) err
 	return nil
 }
 
-func (d *digAdapter) RegisterHook(hooks ...dependencies.Hooks) error {
+func (d *digAdapter) RegisterHook(hooks ...hook.Hooks) error {
 	for _, hook := range hooks {
 		groupID := len(d.hookGroups) + 1
 		startGroup := fmt.Sprintf(hookGroupStartPattern, groupID)
@@ -98,7 +101,7 @@ func (d *digAdapter) RegisterHook(hooks ...dependencies.Hooks) error {
 	return nil
 }
 
-func (d *digAdapter) RegisterInvoker(invokers ...dependencies.Invoker) error {
+func (d *digAdapter) RegisterInvoker(invokers ...invoker.Invoker) error {
 	for _, invoker := range invokers {
 		var opts []dig.InvokeOption
 		if invoker.Options() != nil {
@@ -113,7 +116,7 @@ func (d *digAdapter) RegisterInvoker(invokers ...dependencies.Invoker) error {
 	return nil
 }
 
-func (d *digAdapter) RegisterProvider(providers ...dependencies.Provider) error {
+func (d *digAdapter) RegisterProvider(providers ...provider.Provider) error {
 	for _, provider := range providers {
 		var opts []dig.ProvideOption
 		if provider.Options() != nil {

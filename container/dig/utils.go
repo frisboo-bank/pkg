@@ -4,38 +4,73 @@ import (
 	"fmt"
 	"reflect"
 
-	"frisboo-bank/pkg/container/dependencies"
+	"frisboo-bank/pkg/container/dependencies/decorator"
+	"frisboo-bank/pkg/container/dependencies/hook"
+	"frisboo-bank/pkg/container/dependencies/invoker"
+	"frisboo-bank/pkg/container/dependencies/provider"
 
 	"go.uber.org/dig"
 )
 
-func ToDigDecoratorOptions(opts dependencies.DecoratorOptions) []dig.DecorateOption {
+func ToDigDecoratorOptions(opts decorator.DecoratorOptions) []dig.DecorateOption {
 	var result []dig.DecorateOption
 
 	return result
 }
 
-func ToDigHookOptions(opts dependencies.HooksOptions) []dig.ProvideOption {
+func ToDigHookOptions(opts hook.HooksOptions) []dig.ProvideOption {
 	var result []dig.ProvideOption
 
-	return result
-}
+	if len(opts.As) > 0 {
+		result = append(result, dig.As(opts.As...))
+	}
 
-func ToDigInvokerOptions(opts dependencies.InvokerOptions) []dig.InvokeOption {
-	var result []dig.InvokeOption
+	if opts.Export {
+		result = append(result, dig.Export(true))
+	}
 
-	return result
-}
+	if opts.Group != "" {
+		result = append(result, dig.Group(opts.Group))
+	}
 
-func ToDigProvideOptions(opts dependencies.ProviderOptions) []dig.ProvideOption {
-	var result []dig.ProvideOption
+	if opts.LocationPC != 0 {
+		result = append(result, dig.LocationForPC(opts.LocationPC))
+	}
 
 	if opts.Name != "" {
 		result = append(result, dig.Name(opts.Name))
 	}
 
+	return result
+}
+
+func ToDigInvokerOptions(opts invoker.InvokerOptions) []dig.InvokeOption {
+	var result []dig.InvokeOption
+
+	return result
+}
+
+func ToDigProvideOptions(opts provider.ProviderOptions) []dig.ProvideOption {
+	var result []dig.ProvideOption
+
+	if len(opts.As) > 0 {
+		result = append(result, dig.As(opts.As...))
+	}
+
+	if opts.Export {
+		result = append(result, dig.Export(true))
+	}
+
 	if opts.Group != "" {
 		result = append(result, dig.Group(opts.Group))
+	}
+
+	if opts.LocationPC != 0 {
+		result = append(result, dig.LocationForPC(opts.LocationPC))
+	}
+
+	if opts.Name != "" {
+		result = append(result, dig.Name(opts.Name))
 	}
 
 	return result

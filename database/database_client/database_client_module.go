@@ -7,10 +7,10 @@ import (
 	"frisboo-bank/pkg/environment"
 )
 
-var Module = dependencies.NewModule(
+var Module = module.NewModule(
 	"database_client",
 
-	dependencies.Provide(
+	provider.Provide(
 		func(loader configContracts.ConfigLoader, env environment.Environment) (*options.DatabaseClientOptions, error) {
 			return options.ProvideDatabaseClientOptions(loader, env)
 		},
