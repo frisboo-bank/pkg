@@ -45,7 +45,7 @@ func Group(group string) options.Option[ProviderOptions] {
 			return errors.New("provider options: group can't be empty")
 		}
 
-		opts.Name = group
+		opts.Group = group
 		return nil
 	})
 }
