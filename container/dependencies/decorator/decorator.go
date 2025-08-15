@@ -13,9 +13,6 @@ type Decorator interface {
 
 var _ Decorator = (*decorator)(nil)
 
-type DecoratorOptions struct {
-	BeforeCallback any
-// CallbackFunc defines the signature for decorator callbacks.
 type CallbackFunc func(args ...any) error
 
 type DecoratorOptions struct {
