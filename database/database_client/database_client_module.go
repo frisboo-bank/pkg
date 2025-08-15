@@ -2,7 +2,8 @@ package database_client
 
 import (
 	configContracts "frisboo-bank/pkg/config/contracts"
-	"frisboo-bank/pkg/container/dependencies"
+	"frisboo-bank/pkg/container/dependencies/module"
+	"frisboo-bank/pkg/container/dependencies/provider"
 	"frisboo-bank/pkg/database/database_client/options"
 	"frisboo-bank/pkg/environment"
 )

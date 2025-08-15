@@ -3,18 +3,15 @@ package rpcserver
 import (
 	"context"
 
+	configContracts "frisboo-bank/pkg/config/contracts"
 	"frisboo-bank/pkg/container/dependencies/hook"
 	"frisboo-bank/pkg/container/dependencies/module"
 	"frisboo-bank/pkg/container/dependencies/provider"
 	"frisboo-bank/pkg/environment"
 	"frisboo-bank/pkg/logger"
+	loggerConfig "frisboo-bank/pkg/logger/config"
 	"frisboo-bank/pkg/rpc/rpc_server/config"
 	"frisboo-bank/pkg/rpc/rpc_server/contracts"
-
-	configContracts "frisboo-bank/pkg/config/contracts"
-
-	loggerConfig "frisboo-bank/pkg/logger/config"
-
 	waiterContracts "frisboo-bank/pkg/waiter/contracts"
 )
 

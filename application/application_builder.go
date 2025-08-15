@@ -7,22 +7,18 @@ import (
 	"frisboo-bank/pkg/application/contracts"
 	"frisboo-bank/pkg/application/infrastructure"
 	"frisboo-bank/pkg/config"
-	"frisboo-bank/pkg/container"
-	"frisboo-bank/pkg/container/dependencies/decorator"
-	"frisboo-bank/pkg/container/dependencies/module"
-	"frisboo-bank/pkg/container/dependencies/provider"
-	"frisboo-bank/pkg/environment"
-	"frisboo-bank/pkg/logger"
-
 	configContracts "frisboo-bank/pkg/config/contracts"
-
+	"frisboo-bank/pkg/container"
 	containerConfig "frisboo-bank/pkg/container/config"
 	containerContracts "frisboo-bank/pkg/container/contracts"
 	containerEnums "frisboo-bank/pkg/container/contracts/enums"
 	containertype "frisboo-bank/pkg/container/contracts/enums/container_type"
-
+	"frisboo-bank/pkg/container/dependencies/decorator"
+	"frisboo-bank/pkg/container/dependencies/module"
+	"frisboo-bank/pkg/container/dependencies/provider"
+	"frisboo-bank/pkg/environment"
 	httpServerEnums "frisboo-bank/pkg/http/http_server/contracts/enums"
-
+	"frisboo-bank/pkg/logger"
 	loggerConfig "frisboo-bank/pkg/logger/config"
 	loggerContracts "frisboo-bank/pkg/logger/contracts"
 	loggerEnums "frisboo-bank/pkg/logger/contracts/enums"

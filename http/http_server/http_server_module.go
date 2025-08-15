@@ -3,6 +3,7 @@ package httpserver
 import (
 	"context"
 
+	configContracts "frisboo-bank/pkg/config/contracts"
 	"frisboo-bank/pkg/container/dependencies/hook"
 	"frisboo-bank/pkg/container/dependencies/module"
 	"frisboo-bank/pkg/container/dependencies/provider"
@@ -10,9 +11,6 @@ import (
 	"frisboo-bank/pkg/http/http_server/config"
 	"frisboo-bank/pkg/http/http_server/contracts"
 	"frisboo-bank/pkg/logger"
-
-	configContracts "frisboo-bank/pkg/config/contracts"
-
 	loggerConfig "frisboo-bank/pkg/logger/config"
 	waiterContracts "frisboo-bank/pkg/waiter/contracts"
 )
