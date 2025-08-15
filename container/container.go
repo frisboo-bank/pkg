@@ -2,13 +2,13 @@ package container
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"sync"
 
 	"frisboo-bank/pkg/container/config"
 	"frisboo-bank/pkg/container/contracts"
 	containertype "frisboo-bank/pkg/container/contracts/enums/container_type"
+	"frisboo-bank/pkg/container/dependencies"
 	loggerContracts "frisboo-bank/pkg/logger/contracts"
 	"frisboo-bank/pkg/options"
 	"frisboo-bank/pkg/utils"
@@ -17,13 +17,11 @@ import (
 var _ contracts.Container = (*container)(nil)
 
 type container struct {
-	cfg       *config.Config
-	adapter   contracts.ContainerAdapter
-	logger    loggerContracts.Logger
-	modules   []contracts.Module
-	started   bool
-	startOnce sync.Once
-	stopOnce  sync.Once
+	cfg     *config.Config
+	adapter contracts.ContainerAdapter
+	logger  loggerContracts.Logger
+	started bool
+	mu      sync.Mutex
 }
 
 func New(
@@ -50,7 +48,7 @@ func New(
 	return container, nil
 }
 
-func (c *container) RegisterModule(modules ...contracts.Module) error {
+func (c *container) RegisterModule(modules ...dependencies.Module) error {
 	modules, err := c.collectAllModules(modules...)
 	if err != nil {
 		return err
@@ -85,38 +83,47 @@ func (c *container) RegisterModule(modules ...contracts.Module) error {
 
 func (c *container) Start(ctx context.Context) (err error) {
 	utils.Assert(ctx != nil, "container: your must set the context")
-	utils.Assert(!c.started, "container: container already running")
 
-	c.startOnce.Do(func() {
-		err = errors.Join(err, c.adapter.Start(ctx))
-		if err == nil {
-			c.started = true
-		}
-	})
+	c.mu.Lock()
+	defer c.mu.Unlock()
 
-	return
+	if c.started {
+		return fmt.Errorf("container: already running")
+	}
+
+	if err := c.adapter.Start(ctx); err != nil {
+		return err
+	}
+
+	c.started = true
+
+	return nil
 }
 
-func (c *container) Stop(ctx context.Context) (err error) {
+func (c *container) Stop(ctx context.Context) error {
 	utils.Assert(ctx != nil, "container: your must set the context")
-	utils.Assert(c.started, "container: no container running; you must call Start first")
 
-	c.stopOnce.Do(func() {
-		err = errors.Join(err, c.adapter.Stop(ctx))
-		c.started = false
-	})
+	c.mu.Lock()
+	defer c.mu.Unlock()
 
-	return
+	if !c.started {
+		return fmt.Errorf("container: not running; call Start first")
+	}
+
+	err := c.adapter.Stop(ctx)
+	c.started = false
+
+	return err
 }
 
 func (c *container) Type() containertype.ContainerType {
 	return c.adapter.Type()
 }
 
-func (c *container) collectAllModules(modules ...contracts.Module) ([]contracts.Module, error) {
+func (c *container) collectAllModules(modules ...dependencies.Module) ([]dependencies.Module, error) {
 	queue := modules
-	tree := make([]contracts.Module, 0, len(queue))
-	visited := make(map[contracts.Module]struct{})
+	tree := make([]dependencies.Module, 0, len(queue))
+	visited := make(map[dependencies.Module]struct{})
 
 	for len(queue) > 0 {
 		module := queue[0]

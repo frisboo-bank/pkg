@@ -4,7 +4,7 @@ import (
 	"context"
 
 	configContracts "frisboo-bank/pkg/config/contracts"
-	"frisboo-bank/pkg/container"
+	"frisboo-bank/pkg/container/dependencies"
 	"frisboo-bank/pkg/environment"
 	"frisboo-bank/pkg/http/http_server/config"
 	"frisboo-bank/pkg/http/http_server/contracts"
@@ -13,16 +13,16 @@ import (
 	waiterContracts "frisboo-bank/pkg/waiter/contracts"
 )
 
-var Module = container.NewModule(
+var Module = dependencies.NewModule(
 	"http_server",
 
-	container.Provide(
+	dependencies.Provide(
 		func(loader configContracts.ConfigLoader, env environment.Environment) (*config.EnvConfig, error) {
 			return config.LoadEnvConfig(loader, env)
 		},
 	),
 
-	container.Provide(
+	dependencies.Provide(
 		func(loggerEnvCfg *loggerConfig.EnvConfig, envCfg *config.EnvConfig) (contracts.HTTPServer, error) {
 			loggerOpts := loggerConfig.FromEnvConfig(loggerEnvCfg).
 				With(loggerConfig.Prefix("http-server"))
@@ -43,7 +43,7 @@ var Module = container.NewModule(
 		},
 	),
 
-	container.Hook(func(httpServer contracts.HTTPServer) waiterContracts.WaitFunc {
+	dependencies.Hook(func(httpServer contracts.HTTPServer) waiterContracts.WaitFunc {
 		return func(ctx context.Context) error {
 			httpServer.SetupDefaultMiddlewares()
 

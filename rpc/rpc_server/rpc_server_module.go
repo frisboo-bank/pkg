@@ -4,7 +4,7 @@ import (
 	"context"
 
 	configContracts "frisboo-bank/pkg/config/contracts"
-	"frisboo-bank/pkg/container"
+	"frisboo-bank/pkg/container/dependencies"
 	"frisboo-bank/pkg/environment"
 	"frisboo-bank/pkg/logger"
 	loggerConfig "frisboo-bank/pkg/logger/config"
@@ -13,16 +13,16 @@ import (
 	waiterContracts "frisboo-bank/pkg/waiter/contracts"
 )
 
-var Module = container.NewModule(
+var Module = dependencies.NewModule(
 	"rpc-server",
 
-	container.Provide(
+	dependencies.Provide(
 		func(loader configContracts.ConfigLoader, env environment.Environment) (*config.EnvConfig, error) {
 			return config.LoadEnvConfig(loader, env)
 		},
 	),
 
-	container.Provide(
+	dependencies.Provide(
 		func(loggerEnvCfg *loggerConfig.EnvConfig, envCfg *config.EnvConfig) (contracts.RPCServer, error) {
 			loggerOpts := loggerConfig.FromEnvConfig(loggerEnvCfg).
 				With(loggerConfig.Prefix("rpc-server"))
@@ -43,7 +43,7 @@ var Module = container.NewModule(
 		},
 	),
 
-	container.Hook(func(rpcServer contracts.RPCServer) waiterContracts.WaitFunc {
+	dependencies.Hook(func(rpcServer contracts.RPCServer) waiterContracts.WaitFunc {
 		return func(ctx context.Context) error {
 			var err error
 

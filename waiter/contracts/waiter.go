@@ -2,8 +2,6 @@ package contracts
 
 import (
 	"context"
-
-	loggerContracts "frisboo-bank/pkg/logger/contracts"
 )
 
 type (
@@ -20,6 +18,4 @@ type Waiter interface {
 	Add(hooks ...WaiterHook)
 	Wait() error
 	Cancel()
-	Context() context.Context
-	Logger() loggerContracts.Logger
 }

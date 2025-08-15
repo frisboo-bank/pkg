@@ -2,7 +2,7 @@ package health
 
 import (
 	configContracts "frisboo-bank/pkg/config/contracts"
-	"frisboo-bank/pkg/container"
+	"frisboo-bank/pkg/container/dependencies"
 	"frisboo-bank/pkg/environment"
 	"frisboo-bank/pkg/health/config"
 	"frisboo-bank/pkg/health/contracts"
@@ -11,16 +11,16 @@ import (
 	loggerConfig "frisboo-bank/pkg/logger/config"
 )
 
-var Module = container.NewModule(
+var Module = dependencies.NewModule(
 	"health",
 
-	container.Provide(
+	dependencies.Provide(
 		func(loader configContracts.ConfigLoader, env environment.Environment) (*config.EnvConfig, error) {
 			return config.LoadEnvConfig(loader, env)
 		},
 	),
 
-	container.Provide(
+	dependencies.Provide(
 		func(
 			loggerEnvCfg *loggerConfig.EnvConfig,
 			envCfg *config.EnvConfig,
@@ -43,7 +43,7 @@ var Module = container.NewModule(
 			return service, NewHealthEndpoint(logger, httpServer, service, opts), nil
 		}),
 
-	container.Invoke(func(healthEndpoint contracts.HealthEndpoint) {
+	dependencies.Invoke(func(healthEndpoint contracts.HealthEndpoint) {
 		healthEndpoint.RegisterEndpoints()
 	}),
 )

@@ -13,6 +13,7 @@ import (
 	containerContracts "frisboo-bank/pkg/container/contracts"
 	containerEnums "frisboo-bank/pkg/container/contracts/enums"
 	containertype "frisboo-bank/pkg/container/contracts/enums/container_type"
+	"frisboo-bank/pkg/container/dependencies"
 	"frisboo-bank/pkg/environment"
 	httpServerEnums "frisboo-bank/pkg/http/http_server/contracts/enums"
 	"frisboo-bank/pkg/logger"
@@ -26,9 +27,9 @@ var _ contracts.ApplicationBuilder = (*applicationBuilder)(nil)
 
 type applicationBuilder struct {
 	container   containerContracts.Container
-	providers   []containerContracts.Provider
-	decorators  []containerContracts.Decorator
-	modules     []containerContracts.Module
+	providers   []dependencies.Provider
+	decorators  []dependencies.Decorator
+	modules     []dependencies.Module
 	logger      loggerContracts.Logger
 	environment environment.Environment
 }
@@ -66,23 +67,23 @@ func NewApplicationBuilder(environments ...environment.Environment) contracts.Ap
 	}
 
 	return &applicationBuilder{
-		modules: []containerContracts.Module{
+		modules: []dependencies.Module{
 			infrastructure.Module,
 		},
-		providers: []containerContracts.Provider{
-			container.Provide(func() environment.Environment { return env }),
-			container.Provide(func() configContracts.ConfigLoader { return configLoader }),
-			container.Provide(func() *loggerConfig.EnvConfig { return loggerEnvCfg }),
-			container.Provide(func() loggerContracts.Logger { return logger }),
+		providers: []dependencies.Provider{
+			dependencies.Provide(func() environment.Environment { return env }),
+			dependencies.Provide(func() configContracts.ConfigLoader { return configLoader }),
+			dependencies.Provide(func() *loggerConfig.EnvConfig { return loggerEnvCfg }),
+			dependencies.Provide(func() loggerContracts.Logger { return logger }),
 		},
-		decorators:  []containerContracts.Decorator{},
+		decorators:  []dependencies.Decorator{},
 		container:   diContainer,
 		logger:      logger,
 		environment: env,
 	}
 }
 
-func (b *applicationBuilder) ProvideModule(modules ...containerContracts.Module) {
+func (b *applicationBuilder) ProvideModule(modules ...dependencies.Module) {
 	b.modules = append(b.modules, modules...)
 }
 
@@ -97,15 +98,15 @@ func (b *applicationBuilder) Build() contracts.Application {
 	)
 }
 
-func (b *applicationBuilder) Modules() []containerContracts.Module {
+func (b *applicationBuilder) Modules() []dependencies.Module {
 	return b.modules
 }
 
-func (b *applicationBuilder) Providers() []containerContracts.Provider {
+func (b *applicationBuilder) Providers() []dependencies.Provider {
 	return b.providers
 }
 
-func (b *applicationBuilder) Decorators() []containerContracts.Decorator {
+func (b *applicationBuilder) Decorators() []dependencies.Decorator {
 	return b.decorators
 }
 

@@ -8,7 +8,6 @@ import (
 	"slices"
 	"sync"
 	"syscall"
-	"time"
 
 	"frisboo-bank/pkg/customerrors"
 	loggerContracts "frisboo-bank/pkg/logger/contracts"
@@ -42,11 +41,7 @@ func New(logger loggerContracts.Logger, opts *options.OptionBuilder[config.Confi
 
 	cfg := opts.Build()
 
-	parentContext := cfg.ParentContext
-	if parentContext == nil {
-		parentContext = context.Background()
-	}
-	ctx, cancel := context.WithCancel(parentContext)
+	ctx, cancel := context.WithCancel(cfg.ParentContext)
 
 	if cfg.CancelOnShutdownSignal {
 		signalCtx, signalCancel := signal.NotifyContext(
@@ -93,7 +88,7 @@ func (w *waiter) Wait() error {
 
 			if waitFn != nil {
 				group.Go(func() error {
-					waitCtx, waitCancel := context.WithTimeout(gctx, 200*time.Millisecond)
+					waitCtx, waitCancel := context.WithTimeout(gctx, w.cfg.WaitTimeout)
 					defer waitCancel()
 
 					return waitFn(waitCtx)
@@ -104,7 +99,7 @@ func (w *waiter) Wait() error {
 				group.Go(func() error {
 					<-gctx.Done()
 
-					cleanupCtx, cleanupCancel := context.WithTimeout(context.Background(), 200*time.Millisecond)
+					cleanupCtx, cleanupCancel := context.WithTimeout(context.Background(), w.cfg.CleanupTimeout)
 					defer cleanupCancel()
 
 					if err := cleanupFn(cleanupCtx); err != nil {
@@ -141,12 +136,4 @@ func (w *waiter) Cancel() {
 
 		w.cancel()
 	})
-}
-
-func (w *waiter) Context() context.Context {
-	return w.ctx
-}
-
-func (w *waiter) Logger() loggerContracts.Logger {
-	return w.logger
 }

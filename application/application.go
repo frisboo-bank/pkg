@@ -6,29 +6,29 @@ import (
 	"os"
 
 	"frisboo-bank/pkg/application/contracts"
-	"frisboo-bank/pkg/container"
 	containerContracts "frisboo-bank/pkg/container/contracts"
+	"frisboo-bank/pkg/container/dependencies"
 	"frisboo-bank/pkg/environment"
 	loggerContracts "frisboo-bank/pkg/logger/contracts"
 )
 
 type application struct {
 	container   containerContracts.Container
-	decorators  []containerContracts.Decorator
+	decorators  []dependencies.Decorator
 	environment environment.Environment
-	hooks       []containerContracts.HookStarter
-	invokers    []containerContracts.Invoker
+	hooks       []dependencies.Hooks
+	invokers    []dependencies.Invoker
 	logger      loggerContracts.Logger
-	modules     []containerContracts.Module
-	providers   []containerContracts.Provider
+	modules     []dependencies.Module
+	providers   []dependencies.Provider
 }
 
 var _ contracts.Application = (*application)(nil)
 
 func NewApplication(
-	modules []containerContracts.Module,
-	providers []containerContracts.Provider,
-	decorators []containerContracts.Decorator,
+	modules []dependencies.Module,
+	providers []dependencies.Provider,
+	decorators []dependencies.Decorator,
 	container containerContracts.Container,
 	logger loggerContracts.Logger,
 	environment environment.Environment,
@@ -43,11 +43,11 @@ func NewApplication(
 	}
 }
 
-func (a *application) ResolveFunc(invoke containerContracts.Invoker) {
+func (a *application) ResolveFunc(invoke dependencies.Invoker) {
 	a.invokers = append(a.invokers, invoke)
 }
 
-func (a *application) RegisterHook(hook containerContracts.HookStarter) {
+func (a *application) RegisterHook(hook dependencies.Hooks) {
 	a.hooks = append(a.hooks, hook)
 }
 
@@ -69,29 +69,29 @@ func (a *application) Stop(ctx context.Context) error {
 
 func (a *application) registerDependencies() error {
 	dependenciesLen := len(a.modules) + len(a.providers) + len(a.decorators) + len(a.invokers) + len(a.hooks)
-	dependencies := make([]containerContracts.Dependency, 0, dependenciesLen)
+	deps := make([]dependencies.Dependency, 0, dependenciesLen)
 
 	for _, dep := range a.modules {
-		dependencies = append(dependencies, dep)
+		deps = append(deps, dep)
 	}
 
 	for _, dep := range a.providers {
-		dependencies = append(dependencies, dep)
+		deps = append(deps, dep)
 	}
 
 	for _, dep := range a.decorators {
-		dependencies = append(dependencies, dep)
+		deps = append(deps, dep)
 	}
 
 	for _, dep := range a.invokers {
-		dependencies = append(dependencies, dep)
+		deps = append(deps, dep)
 	}
 
 	for _, dep := range a.hooks {
-		dependencies = append(dependencies, dep)
+		deps = append(deps, dep)
 	}
 
-	return a.container.RegisterModule(container.NewModule("app",
-		dependencies...,
+	return a.container.RegisterModule(dependencies.NewModule("app",
+		deps...,
 	))
 }

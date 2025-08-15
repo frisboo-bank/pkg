@@ -3,12 +3,12 @@ package contracts
 import (
 	"context"
 
-	containerContract "frisboo-bank/pkg/container/contracts"
+	"frisboo-bank/pkg/container/dependencies"
 )
 
 type Application interface {
-	ResolveFunc(invoker containerContract.Invoker)
-	RegisterHook(hook containerContract.HookStarter)
+	ResolveFunc(invoker dependencies.Invoker)
+	RegisterHook(hook dependencies.Hooks)
 	Start(ctx context.Context) error
 	Stop(ctx context.Context) error
 }

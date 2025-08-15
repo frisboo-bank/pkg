@@ -5,20 +5,21 @@ import (
 
 	"frisboo-bank/pkg/container/config"
 	containertype "frisboo-bank/pkg/container/contracts/enums/container_type"
+	"frisboo-bank/pkg/container/dependencies"
 )
 
 type Container interface {
-	RegisterModule(modules ...Module) error
+	RegisterModule(modules ...dependencies.Module) error
 	Start(ctx context.Context) error
 	Stop(ctx context.Context) error
 	Type() containertype.ContainerType
 }
 
 type ContainerAdapter interface {
-	RegisterDecorator(decorators ...Decorator) error
-	RegisterHook(hooks ...HookStarter) error
-	RegisterInvoker(invokers ...Invoker) error
-	RegisterProvider(providers ...Provider) error
+	RegisterDecorator(decorators ...dependencies.Decorator) error
+	RegisterHook(hooks ...dependencies.Hooks) error
+	RegisterInvoker(invokers ...dependencies.Invoker) error
+	RegisterProvider(providers ...dependencies.Provider) error
 	Setup(cfg *config.Config) error
 	Start(ctx context.Context) error
 	Stop(ctx context.Context) error
