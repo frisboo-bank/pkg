@@ -37,7 +37,7 @@ func As(ifaces ...any) options.Option[HooksOptions] {
 		for _, i := range ifaces {
 			t := reflect.TypeOf(i)
 			if t == nil || t.Kind() != reflect.Ptr || t.Elem().Kind() != reflect.Interface {
-				return errors.New("provider options: As expects pointers to interface types")
+				return errors.New("hook options: As expects pointers to interface types")
 			}
 		}
 
