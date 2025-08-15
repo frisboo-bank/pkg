@@ -13,10 +13,20 @@ type Invoker interface {
 
 var _ Invoker = (*invoker)(nil)
 
-type InvokerOptions struct{}
+type InvokerOptions struct {
+	Info any
+}
 
 func InvokeWithOptions() *options.OptionBuilder[InvokerOptions] {
 	return options.Apply(&InvokerOptions{})
+}
+
+// WithInfo sets a pointer that will receive invocation info (e.g. *dig.InvokeInfo).
+func WithInfo(info any) options.Option[InvokerOptions] {
+	return options.OptionFunc[InvokerOptions](func(o *InvokerOptions) error {
+		o.Info = info
+		return nil
+	})
 }
 
 type invoker struct {

@@ -15,6 +15,18 @@ import (
 func ToDigDecoratorOptions(opts decorator.DecoratorOptions) []dig.DecorateOption {
 	var result []dig.DecorateOption
 
+	if bcb, ok := opts.BeforeCallback.(dig.BeforeCallback); ok && bcb != nil {
+		result = append(result, dig.WithDecoratorBeforeCallback(bcb))
+	}
+
+	if cb, ok := opts.Callback.(dig.Callback); ok && cb != nil {
+		result = append(result, dig.WithDecoratorCallback(cb))
+	}
+
+	if info, ok := opts.Info.(*dig.DecorateInfo); ok && info != nil {
+		result = append(result, dig.FillDecorateInfo(info))
+	}
+
 	return result
 }
 
@@ -46,6 +58,10 @@ func ToDigHookOptions(opts hook.HooksOptions) []dig.ProvideOption {
 
 func ToDigInvokerOptions(opts invoker.InvokerOptions) []dig.InvokeOption {
 	var result []dig.InvokeOption
+
+	if info, ok := opts.Info.(*dig.InvokeInfo); ok && info != nil {
+		result = append(result, dig.FillInvokeInfo(info))
+	}
 
 	return result
 }

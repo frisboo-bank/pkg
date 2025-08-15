@@ -2,14 +2,14 @@ package contracts
 
 import (
 	"context"
+
 	"frisboo-bank/pkg/container/config"
+	containertype "frisboo-bank/pkg/container/contracts/enums/container_type"
 	"frisboo-bank/pkg/container/dependencies/decorator"
 	"frisboo-bank/pkg/container/dependencies/hook"
 	"frisboo-bank/pkg/container/dependencies/invoker"
 	"frisboo-bank/pkg/container/dependencies/module"
 	"frisboo-bank/pkg/container/dependencies/provider"
-
-	containertype "frisboo-bank/pkg/container/contracts/enums/container_type"
 )
 
 type Container interface {

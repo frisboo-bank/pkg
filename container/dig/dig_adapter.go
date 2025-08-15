@@ -7,17 +7,14 @@ import (
 
 	"frisboo-bank/pkg/container/config"
 	"frisboo-bank/pkg/container/contracts"
+	containertype "frisboo-bank/pkg/container/contracts/enums/container_type"
 	"frisboo-bank/pkg/container/dependencies/decorator"
 	"frisboo-bank/pkg/container/dependencies/hook"
 	"frisboo-bank/pkg/container/dependencies/invoker"
 	"frisboo-bank/pkg/container/dependencies/provider"
 	"frisboo-bank/pkg/customerrors"
-	"frisboo-bank/pkg/utils"
-
-	containertype "frisboo-bank/pkg/container/contracts/enums/container_type"
-
 	loggerContracts "frisboo-bank/pkg/logger/contracts"
-
+	"frisboo-bank/pkg/utils"
 	waiterContracts "frisboo-bank/pkg/waiter/contracts"
 
 	"go.uber.org/dig"

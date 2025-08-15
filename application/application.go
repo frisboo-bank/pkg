@@ -6,6 +6,7 @@ import (
 	"os"
 
 	"frisboo-bank/pkg/application/contracts"
+	containerContracts "frisboo-bank/pkg/container/contracts"
 	"frisboo-bank/pkg/container/dependencies"
 	"frisboo-bank/pkg/container/dependencies/decorator"
 	"frisboo-bank/pkg/container/dependencies/hook"
@@ -13,9 +14,6 @@ import (
 	"frisboo-bank/pkg/container/dependencies/module"
 	"frisboo-bank/pkg/container/dependencies/provider"
 	"frisboo-bank/pkg/environment"
-
-	containerContracts "frisboo-bank/pkg/container/contracts"
-
 	loggerContracts "frisboo-bank/pkg/logger/contracts"
 )
 
