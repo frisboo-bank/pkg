@@ -4,8 +4,42 @@ import (
 	"fmt"
 	"reflect"
 
+	"frisboo-bank/pkg/container/dependencies"
+
 	"go.uber.org/dig"
 )
+
+func ToDigDecoratorOptions(opts dependencies.DecoratorOptions) []dig.DecorateOption {
+	var result []dig.DecorateOption
+
+	return result
+}
+
+func ToDigHookOptions(opts dependencies.HooksOptions) []dig.ProvideOption {
+	var result []dig.ProvideOption
+
+	return result
+}
+
+func ToDigInvokerOptions(opts dependencies.InvokerOptions) []dig.InvokeOption {
+	var result []dig.InvokeOption
+
+	return result
+}
+
+func ToDigProvideOptions(opts dependencies.ProviderOptions) []dig.ProvideOption {
+	var result []dig.ProvideOption
+
+	if opts.Name != "" {
+		result = append(result, dig.Name(opts.Name))
+	}
+
+	if opts.Group != "" {
+		result = append(result, dig.Group(opts.Group))
+	}
+
+	return result
+}
 
 // resolveDynamicGroup dynamically resolves a dig group into a value of type T.
 // It constructs a struct input with a group tag and invokes the container.
@@ -59,27 +93,4 @@ func resolveDynamicGroup[T any](
 	}
 
 	return result, nil
-}
-
-// filterOptions filters a slice of options of type O to a slice of type T.
-// Returns an error if any option cannot be converted to T.
-func filterOptions[T any, O any](opts []O) ([]T, error) {
-	var filteredOptions []T
-
-	for idx, opt := range opts {
-		opt, ok := any(opt).(T)
-
-		if !ok {
-			return nil, fmt.Errorf(
-				"option at index %d must be of type %T but is currently of type %T",
-				idx,
-				*new(T),
-				opt,
-			)
-		}
-
-		filteredOptions = append(filteredOptions, opt)
-	}
-
-	return filteredOptions, nil
 }

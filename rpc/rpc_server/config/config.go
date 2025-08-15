@@ -70,7 +70,7 @@ func Host(host string) options.Option[Config] {
 		host = strings.TrimSpace(host)
 
 		if host == "" {
-			return pError.New("host cannot be empty")
+			return pError.New("host can't be empty")
 		}
 
 		cfg.Host = host
@@ -83,7 +83,7 @@ func Port(port string) options.Option[Config] {
 		port = strings.TrimSpace(port)
 
 		if port == "" {
-			return pError.New("port cannot be empty")
+			return pError.New("port can't be empty")
 		}
 
 		cfg.Port = port
