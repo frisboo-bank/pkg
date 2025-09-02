@@ -16,7 +16,7 @@ type Option = options.OptionFn[Config]
 
 var Type = options.OptionErr(func(c *Config, sType loggertype.LoggerType) error {
 	if sType == loggertype.LoggerTypes.UNKNOWN {
-		return syserrors.UnknownEnumError("Type", loglevel.LogLevels.All())
+		return syserrors.UnknownEnumError("Type", loggertype.LoggerTypes.All())
 	}
 	c.Type = sType
 	return nil
