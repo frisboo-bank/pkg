@@ -3,16 +3,20 @@ package grpc
 import (
 	"context"
 
-	healthContracts "frisboo-bank/pkg/health/contracts"
 	"frisboo-bank/pkg/rpc/rpc_server/contracts"
+
+	loggerContracts "frisboo-bank/pkg/logger/contracts"
+
+	healthContracts "frisboo-bank/pkg/health/contracts"
 )
+
+var _ healthContracts.HealthServiceCheck = (*GRPCHealthService)(nil)
 
 type GRPCHealthService struct {
 	client contracts.RPCServer
 	health string
+	logger loggerContracts.Logger
 }
-
-var _ healthContracts.HealthServiceCheck = (*GRPCHealthService)(nil)
 
 func NewGRPCHealthService(client contracts.RPCServer) healthContracts.HealthServiceCheck {
 	return &GRPCHealthService{
@@ -26,4 +30,8 @@ func (g *GRPCHealthService) CheckHealth(ctx context.Context) error {
 
 func (g *GRPCHealthService) GetServiceName() string {
 	return "grpc"
+}
+
+func (g *GRPCHealthService) Logger() loggerContracts.Logger {
+	return g.logger
 }

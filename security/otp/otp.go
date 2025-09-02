@@ -2,7 +2,6 @@ package otp
 
 import (
 	"crypto/rand"
-	"fmt"
 	"math/big"
 
 	"frisboo-bank/pkg/syserrors"

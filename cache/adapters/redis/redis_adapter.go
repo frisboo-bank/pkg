@@ -6,8 +6,7 @@ import (
 
 	"frisboo-bank/pkg/cache/config"
 	"frisboo-bank/pkg/cache/contracts"
-	customErrors "frisboo-bank/pkg/custom_errors"
-	"frisboo-bank/pkg/utils"
+	"frisboo-bank/pkg/syserrors"
 
 	cachetype "frisboo-bank/pkg/cache/contracts/enums/cache_type"
 	loggerContracts "frisboo-bank/pkg/logger/contracts"
@@ -17,8 +16,6 @@ import (
 
 var _ contracts.CacheAdapter = (*redisClientAdapter)(nil)
 
-var pError = customErrors.PrefixedError("redis server")
-
 type redisClientAdapter struct {
 	cfg    *config.Config
 	ctx    context.Context
@@ -26,43 +23,52 @@ type redisClientAdapter struct {
 	logger loggerContracts.Logger
 }
 
-func New(logger loggerContracts.Logger) contracts.CacheAdapter {
-	syserrors.Assert(logger != nil, pError.New("logger can't be nil"))
+func New(cfg *config.Config, logger loggerContracts.Logger) contracts.CacheAdapter {
+	syserrors.AssertNotNil("cfg", cfg)
+	syserrors.AssertNotNil("logger", logger)
 
 	return &redisClientAdapter{
 		logger: logger,
+		cfg:    cfg,
+		ctx:    nil,
+		client: nil,
 	}
 }
 
-func (r *redisClientAdapter) Setup(cfg *config.Config) error {
-	r.cfg = cfg
-	r.client = redis.NewClient(&redis.Options{
-		Addr:     "",
-		Password: "",
-		DB:       0,
-	})
-
-	return nil
-}
-
-func (r *redisClientAdapter) Del(key string) error {
-	return r.client.Del(r.ctx, key).Err()
-}
-
-func (r *redisClientAdapter) Flush() error {
-	return r.client.FlushAll(r.ctx).Err()
-}
-
-func (r *redisClientAdapter) Get(key string) any {
+func (r *redisClientAdapter) Close(ctx context.Context) error {
 	panic("unimplemented")
 }
 
-func (r *redisClientAdapter) Has(key string) bool {
+func (r *redisClientAdapter) Decrement(ctx context.Context, key string, delta int64) (int64, error) {
 	panic("unimplemented")
 }
 
-func (r *redisClientAdapter) Set(key string, value any, t time.Duration) error {
-	return r.client.Set(r.ctx, key, value, t).Err()
+func (r *redisClientAdapter) Delete(ctx context.Context, key string) error {
+	panic("unimplemented")
+}
+
+func (r *redisClientAdapter) Exists(ctx context.Context, key string) (bool, error) {
+	panic("unimplemented")
+}
+
+func (r *redisClientAdapter) Flush(ctx context.Context) error {
+	panic("unimplemented")
+}
+
+func (r *redisClientAdapter) Get(ctx context.Context, key string, dest any) (found bool, err error) {
+	panic("unimplemented")
+}
+
+func (r *redisClientAdapter) Increment(ctx context.Context, key string, delta int64) (int64, error) {
+	panic("unimplemented")
+}
+
+func (r *redisClientAdapter) Logger() loggerContracts.Logger {
+	panic("unimplemented")
+}
+
+func (r *redisClientAdapter) Set(ctx context.Context, key string, value any, ttl time.Duration) error {
+	panic("unimplemented")
 }
 
 func (r *redisClientAdapter) Type() cachetype.CacheType {
