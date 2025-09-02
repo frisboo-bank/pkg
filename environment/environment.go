@@ -2,10 +2,9 @@ package environment
 
 import (
 	"fmt"
-	"strings"
-
 	"frisboo-bank/pkg/constants"
 	"frisboo-bank/pkg/syserrors"
+	"strings"
 
 	"github.com/joho/godotenv"
 	"github.com/spf13/viper"
@@ -31,7 +30,7 @@ func NewEnvironment(env string) Environment {
 	case constants.PRODUCTION:
 		return Production
 	default:
-		panic(syserrors.Newf("environment: env `%s` is not a valid", env))
+		panic(syserrors.Newf("env `%s` is not a valid environment", env))
 	}
 }
 
