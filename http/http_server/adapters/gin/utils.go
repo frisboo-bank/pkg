@@ -23,7 +23,7 @@ func ToMiddlewaresType(middlewares ...any) ([]gin.HandlerFunc, error) {
 	for i, m := range middlewares {
 		mw, err := ToMiddlewareType(m)
 		if err != nil {
-			return nil, syserrors.Newf("error while converting middleware %d: %w", i, err)
+			return nil, syserrors.Wrapf(err, "error while converting middleware %d", i)
 		}
 
 		mws[i] = mw
