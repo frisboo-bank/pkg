@@ -59,7 +59,7 @@ var StatusDown = options.OptionErr(func(c *Config, statusDown string) error {
 
 var StatusCodeDown = options.OptionErr(func(c *Config, statusCodeDown int) error {
 	if statusCodeDown <= 0 {
-		return syserrors.New("statusCodeDown must be positive")
+		return syserrors.MustBePositiveError("StatusCodeDown", statusCodeDown)
 	}
 	c.StatusCodeDown = statusCodeDown
 	return nil
