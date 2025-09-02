@@ -72,27 +72,4 @@ func executeMigration(cmd *cobra.Command, commandType migrationcommandtype.Migra
 		migration.Module,
 	)
 
-	// config := &config.MigrationOptions{
-	// 	Host:         "localhost",
-	// 	Port:         "5432",
-	// 	User:         "postgres",
-	// 	DBName:       "customers-service",
-	// 	SSLMode:      false,
-	// 	Password:     "postgres",
-	// 	MigrationDir: "db/migrations",
-	// }
-	//
-	// migrationRunner, err := gomigrate.NewPostgresqlMigrator(config)
-	// if err != nil {
-	// 	return err
-	// }
-	//
-	// switch commandType {
-	// case config.CommandTypeUp:
-	// 	return migrationRunner.Up(context.Background(), 0)
-	// case config.CommandTypeDown:
-	// 	return migrationRunner.Down(context.Background(), 0)
-	// }
-	//
-	// panic(syserrors.Newf("migration: unsupported command type: `%s`", commandType))
 }
