@@ -1,50 +1,46 @@
 package health
 
 import (
-	"frisboo-bank/pkg/customerrors"
 	"frisboo-bank/pkg/health/config"
 	"frisboo-bank/pkg/health/contracts"
 	httpServerContracts "frisboo-bank/pkg/http/http_server/contracts"
 	loggerContracts "frisboo-bank/pkg/logger/contracts"
-	"frisboo-bank/pkg/options"
-	"frisboo-bank/pkg/utils"
+	"frisboo-bank/pkg/syserrors"
 
 	"github.com/gin-gonic/gin"
 )
 
 var _ contracts.HealthEndpoint = (*healthEndpoint)(nil)
 
-var pHEError = customerrors.PrefixedError("health endpoint")
-
 type healthEndpoint struct {
 	cfg           *config.Config
-	healthService contracts.HealthService
+	logger        loggerContracts.Logger
 	httpServer    httpServerContracts.HTTPServer
+	healthService contracts.HealthService
 }
 
 func NewHealthEndpoint(
+	cfg *config.Config,
 	logger loggerContracts.Logger,
 	httpServer httpServerContracts.HTTPServer,
 	healthService contracts.HealthService,
-	opts *options.OptionBuilder[config.Config],
 ) contracts.HealthEndpoint {
-	utils.Assert(logger != nil, pHEError.New("logger can't be nil"))
-	utils.Assert(httpServer != nil, pHEError.New("httpServer can't be nil"))
-	utils.Assert(healthService != nil, pHEError.New("healthService can't be nil"))
-	utils.Assert(opts != nil, pHEError.New("opts can't be nil"))
-
-	cfg := opts.Build()
+	syserrors.AssertNotNil("cfg", cfg)
+	syserrors.AssertNotNil("logger", logger)
+	syserrors.AssertNotNil("httpServer", httpServer)
+	syserrors.AssertNotNil("healthService", healthService)
 
 	return &healthEndpoint{
 		cfg:           cfg,
 		healthService: healthService,
 		httpServer:    httpServer,
+		logger:        logger,
 	}
 }
 
 func (e *healthEndpoint) RegisterEndpoints() {
 	e.httpServer.RouteBuilder().RegisterRoutes(func(server any) {
-		server.(*gin.Engine).GET(e.cfg.EndpointPath, e.checkHealth)
+		server.(*gin.Engine).GET(e.cfg.LivenessPath, e.checkHealth)
 	})
 }
 
@@ -56,4 +52,8 @@ func (e *healthEndpoint) checkHealth(ctx *gin.Context) {
 	}
 
 	ctx.JSON(e.cfg.StatusCodeUp, status)
+}
+
+func (e *healthEndpoint) Logger() loggerContracts.Logger {
+	return e.logger
 }

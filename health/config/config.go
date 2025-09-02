@@ -3,131 +3,97 @@ package config
 import (
 	"net/http"
 	"strings"
+	"time"
 
 	"frisboo-bank/pkg/config"
-	configContracts "frisboo-bank/pkg/config/contracts"
-	"frisboo-bank/pkg/customerrors"
 	"frisboo-bank/pkg/environment"
 	"frisboo-bank/pkg/options"
+	"frisboo-bank/pkg/syserrors"
+
+	loggerConfig "frisboo-bank/pkg/logger/config"
+
+	configloaderContracts "frisboo-bank/pkg/config/config_loader/contracts"
+
+	responseformat "frisboo-bank/pkg/health/contracts/enums/response_format"
+
+	"github.com/hashicorp/go-multierror"
 )
 
-var pError = customerrors.PrefixedError("health config")
-
-type EnvConfig struct {
-	EndpointPath   string `mapstructure:"endpointPath"`
-	StatusCodeUp   int    `mapstructure:"statusCodeUp"`
-	StatusUp       string `mapstructure:"statusUp"`
-	StatusCodeDown int    `mapstructure:"statusCodeDown"`
-	StatusDown     string `mapstructure:"statusDown"`
-}
-
-func LoadEnvConfig(loader configContracts.ConfigLoader, env environment.Environment) (*EnvConfig, error) {
-	return config.LoadConfig[EnvConfig](loader, env, "health")
-}
+var _ config.Validatable = (*Config)(nil)
 
 type Config struct {
-	EndpointPath   string
-	StatusCodeUp   int
-	StatusUp       string
-	StatusCodeDown int
-	StatusDown     string
+	Enabled bool `mapstructure:"enabled"`
+
+	LivenessPath  string `mapstructure:"livenessPath"`
+	ReadinessPath string `mapstructure:"readinessPath"`
+
+	StatusUp       string `mapstructure:"statusUp"`
+	StatusCodeUp   int    `mapstructure:"statusCodeUp"`
+	StatusDown     string `mapstructure:"statusDown"`
+	StatusCodeDown int    `mapstructure:"statusCodeDown"`
+
+	AdditionalHeaders map[string]string             `mapstructure:"additionalHeaders"`
+	ResponseFormat    responseformat.ResponseFormat `mapstructure:"responseFormat"`
+
+	StartupGracePeriod  time.Duration `mapstructure:"startupGracePeriod"`  // During this window readiness may be forced "Down" or "Degraded".
+	ShutdownDrainPeriod time.Duration `mapstructure:"shutdownDrainPeriod"` // Time to keep reporting not-ready so traffic drains.
+	GlobalCheckTimeout  time.Duration `mapstructure:"globalCheckTimeout"`  // Upper bound across all dependency checks (0 = disabled).
+
+	Logger loggerConfig.Config `mapstructure:"logger"`
 }
 
-var defaultConfig = &Config{
-	EndpointPath:   "/healthz",
-	StatusCodeUp:   http.StatusOK,
-	StatusUp:       "Up",
-	StatusCodeDown: http.StatusServiceUnavailable,
-	StatusDown:     "Down",
+func Default() *Config {
+	loggerCfg := loggerConfig.Default()
+	loggerCfg.Prefix = "health"
+
+	return &Config{
+		Enabled:             true,
+		LivenessPath:        "/healthz",
+		ReadinessPath:       "/readyz",
+		StatusUp:            "UP",
+		StatusCodeUp:        http.StatusOK,
+		StatusDown:          "DOWN",
+		StatusCodeDown:      http.StatusServiceUnavailable,
+		AdditionalHeaders:   map[string]string{},
+		ResponseFormat:      responseformat.ResponseFormats.JSON,
+		StartupGracePeriod:  15 * time.Second,
+		ShutdownDrainPeriod: 5 * time.Second,
+		GlobalCheckTimeout:  5 * time.Second,
+		Logger:              *loggerCfg,
+	}
 }
 
-func Apply() *options.OptionBuilder[Config] {
-	return options.Apply(defaultConfig)
-}
+func (c *Config) Validate() error {
+	var errs *multierror.Error
 
-func FromEnvConfig(cfg *EnvConfig) *options.OptionBuilder[Config] {
-	opts := Apply()
-
-	if cfg.EndpointPath != "" {
-		opts.With(EndpointPath(cfg.EndpointPath))
+	if !c.Enabled {
+		return nil
 	}
 
-	if cfg.StatusCodeUp != 0 {
-		opts.With(StatusCodeUp(cfg.StatusCodeUp))
+	if strings.TrimSpace(c.LivenessPath) == "" {
+		errs = multierror.Append(errs, syserrors.CantBeEmptyError("LivenessPath"))
+	}
+	if strings.HasPrefix(c.LivenessPath, "/") {
+		errs = multierror.Append(errs, syserrors.New("LivenessPath must start with /: got %q", c.LivenessPath))
+	}
+	if strings.TrimSpace(c.ReadinessPath) == "" {
+		errs = multierror.Append(errs, syserrors.CantBeEmptyError("ReadinessPath"))
+	}
+	if strings.HasPrefix(c.ReadinessPath, "/") {
+		errs = multierror.Append(errs, syserrors.New("ReadinessPath must start with /: got %q", c.ReadinessPath))
 	}
 
-	if cfg.StatusUp != "" {
-		opts.With(StatusUp(cfg.StatusUp))
+	return errs.ErrorOrNil()
+}
+
+func New(opts ...Option) (*Config, error) {
+	return options.New(Default, opts...)
+}
+
+func Load(loader configloaderContracts.ConfigLoader, env environment.Environment, opts ...Option) (*Config, error) {
+	cfg := Default()
+	if err := loader.LoadByKey("health", env, cfg); err != nil {
+		return nil, err
 	}
-
-	if cfg.StatusCodeDown != 0 {
-		opts.With(StatusCodeDown(cfg.StatusCodeDown))
-	}
-
-	if cfg.StatusDown != "" {
-		opts.With(StatusDown(cfg.StatusDown))
-	}
-
-	return opts
-}
-
-func EndpointPath(endpointPath string) options.Option[Config] {
-	return options.OptionFunc[Config](func(cfg *Config) error {
-		endpointPath = strings.TrimSpace(endpointPath)
-
-		if endpointPath == "" {
-			return pError.New("endpointPath can't be empty")
-		}
-
-		cfg.EndpointPath = endpointPath
-		return nil
-	})
-}
-
-func StatusCodeUp(statusCodeUp int) options.Option[Config] {
-	return options.OptionFunc[Config](func(cfg *Config) error {
-		if statusCodeUp <= 0 {
-			return pError.New("statusCodeUp must be positive")
-		}
-
-		cfg.StatusCodeUp = statusCodeUp
-		return nil
-	})
-}
-
-func StatusUp(statusUp string) options.Option[Config] {
-	return options.OptionFunc[Config](func(cfg *Config) error {
-		statusUp = strings.TrimSpace(statusUp)
-
-		if statusUp == "" {
-			return pError.New("statusUp can't be empty")
-		}
-
-		cfg.StatusUp = statusUp
-		return nil
-	})
-}
-
-func StatusCodeDown(statusCodeDown int) options.Option[Config] {
-	return options.OptionFunc[Config](func(cfg *Config) error {
-		if statusCodeDown <= 0 {
-			return pError.New("statusCodeDown must be positive")
-		}
-
-		cfg.StatusCodeDown = statusCodeDown
-		return nil
-	})
-}
-
-func StatusDown(statusDown string) options.Option[Config] {
-	return options.OptionFunc[Config](func(cfg *Config) error {
-		statusDown = strings.TrimSpace(statusDown)
-
-		if statusDown == "" {
-			return pError.New("statusDown can't be empty")
-		}
-
-		cfg.StatusDown = statusDown
-		return nil
-	})
+	return options.New(func() *Config { return cfg }, opts...)
 }

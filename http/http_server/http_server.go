@@ -3,39 +3,22 @@ package httpserver
 import (
 	"context"
 
-	"frisboo-bank/pkg/http/http_server/config"
 	"frisboo-bank/pkg/http/http_server/contracts"
+	"frisboo-bank/pkg/syserrors"
+
 	httpservertype "frisboo-bank/pkg/http/http_server/contracts/enums/http_server_type"
 	loggerContracts "frisboo-bank/pkg/logger/contracts"
-	"frisboo-bank/pkg/options"
 )
 
 var _ contracts.HTTPServer = (*httpServer)(nil)
 
 type httpServer struct {
-	cfg     *config.Config
 	adapter contracts.HTTPServerAdapter
-	logger  loggerContracts.Logger
 }
 
-func New(
-	adapter contracts.HTTPServerAdapter,
-	logger loggerContracts.Logger,
-	opt *options.OptionBuilder[config.Config],
-) (contracts.HTTPServer, error) {
-	cfg := opt.Build()
-
-	server := &httpServer{
-		cfg:     cfg,
-		adapter: adapter,
-		logger:  logger,
-	}
-
-	if err := adapter.Setup(cfg); err != nil {
-		return nil, err
-	}
-
-	return server, nil
+func New(adapter contracts.HTTPServerAdapter) contracts.HTTPServer {
+	syserrors.Assert(adapter != nil, "adapter can't be nil")
+	return &httpServer{adapter}
 }
 
 func (h *httpServer) AddMiddlewares(middlewares ...any) {
@@ -63,5 +46,5 @@ func (h *httpServer) RouteBuilder() contracts.RouteBuilder {
 }
 
 func (h *httpServer) Logger() loggerContracts.Logger {
-	return h.logger
+	return h.adapter.Logger()
 }

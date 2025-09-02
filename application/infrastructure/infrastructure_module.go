@@ -1,16 +1,28 @@
 package infrastructure
 
 import (
+	appConfig "frisboo-bank/pkg/application/config"
 	"frisboo-bank/pkg/container/dependencies/module"
 	"frisboo-bank/pkg/health"
 	httpserver "frisboo-bank/pkg/http/http_server"
-	rpcserver "frisboo-bank/pkg/rpc/rpc_server"
 )
 
-var Module = module.NewModule(
-	"infrastructure",
+func ModuleFunc(cfg *appConfig.Config) module.Module {
+	// if cfg {
+	// 	deps = append(deps, httpserver.Module)
+	// }
+	//
+	// if cfg.EnableGRPCServer {
+	// 	deps = append(deps, rpcserver.Module)
+	// }
 
-	httpserver.Module,
-	rpcserver.Module,
-	health.Module,
-)
+	m := module.ModuleFunc(
+		"infrastructure",
+
+		httpserver.ModuleFunc(),
+
+		health.ModuleFunc(),
+	)
+
+	return m
+}

@@ -1,19 +1,15 @@
 package database_client
 
 import (
-	configContracts "frisboo-bank/pkg/config/contracts"
 	"frisboo-bank/pkg/container/dependencies/module"
 	"frisboo-bank/pkg/container/dependencies/provider"
-	"frisboo-bank/pkg/database/database_client/options"
-	"frisboo-bank/pkg/environment"
+	"frisboo-bank/pkg/database/database_client/config"
 )
 
-var Module = module.NewModule(
-	"database_client",
+func ModuleFunc() module.Module {
+	return module.ModuleFunc(
+		"database_client",
 
-	provider.Provide(
-		func(loader configContracts.ConfigLoader, env environment.Environment) (*options.DatabaseClientOptions, error) {
-			return options.ProvideDatabaseClientOptions(loader, env)
-		},
-	),
-)
+		provider.ProvideFunc(config.LoadEnvConfig),
+	)
+}

@@ -4,17 +4,20 @@ import (
 	"context"
 	"sync"
 
-	"frisboo-bank/pkg/customerrors"
 	"frisboo-bank/pkg/health/config"
 	"frisboo-bank/pkg/health/contracts"
+	"frisboo-bank/pkg/syserrors"
+
 	loggerContracts "frisboo-bank/pkg/logger/contracts"
-	"frisboo-bank/pkg/options"
-	"frisboo-bank/pkg/utils"
 )
 
 var _ contracts.HealthService = (*healthService)(nil)
 
-var pHSError = customerrors.PrefixedError("health service")
+type HealthServiceParams struct {
+	Cfg      *config.Config
+	Logger   loggerContracts.Logger
+	Services []contracts.HealthServiceCheck
+}
 
 type healthService struct {
 	cfg      *config.Config
@@ -22,18 +25,15 @@ type healthService struct {
 	services []contracts.HealthServiceCheck
 }
 
-func NewHealthService(
-	logger loggerContracts.Logger,
-	opts *options.OptionBuilder[config.Config],
-) contracts.HealthService {
-	utils.Assert(logger != nil, pHSError.New("logger can't be nil"))
-	utils.Assert(opts != nil, pHSError.New("opts can't be nil"))
-
-	cfg := opts.Build()
+func NewHealthService(params HealthServiceParams) contracts.HealthService {
+	syserrors.AssertNotNil("Cfg", params.Cfg)
+	syserrors.AssertNotNil("Logger", params.Logger)
+	syserrors.AssertNotNil("Services", params.Services)
 
 	return &healthService{
-		cfg:    cfg,
-		logger: logger,
+		cfg:      params.Cfg,
+		logger:   params.Logger,
+		services: params.Services,
 	}
 }
 
@@ -55,4 +55,8 @@ func (s *healthService) CheckHealth(ctx context.Context) contracts.CheckAllStatu
 	})
 
 	return servicesCheck
+}
+
+func (s *healthService) Logger() loggerContracts.Logger {
+	return s.logger
 }

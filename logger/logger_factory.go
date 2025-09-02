@@ -1,35 +1,32 @@
 package logger
 
 import (
-	"fmt"
-
+	"frisboo-bank/pkg/logger/adapters/logrus"
+	"frisboo-bank/pkg/logger/adapters/noop"
+	"frisboo-bank/pkg/logger/adapters/zerolog"
 	"frisboo-bank/pkg/logger/config"
 	"frisboo-bank/pkg/logger/contracts"
+	"frisboo-bank/pkg/syserrors"
+
 	loggertype "frisboo-bank/pkg/logger/contracts/enums/logger_type"
-	"frisboo-bank/pkg/logger/logrus"
-	"frisboo-bank/pkg/logger/noop"
-	"frisboo-bank/pkg/logger/zerolog"
-	"frisboo-bank/pkg/options"
 )
 
-func GetInstance(lType loggertype.LoggerType, opt *options.OptionBuilder[config.Config]) (contracts.Logger, error) {
+func NoContainerOfTypeError(sType loggertype.LoggerType) error {
+	return syserrors.Newf("no container of type %q exists", sType)
+}
+
+func GetInstance(cfg *config.Config) (contracts.Logger, error) {
 	var adapter contracts.LoggerAdapter
-
-	switch lType {
+	switch cfg.Type {
 	case loggertype.LoggerTypes.LOGRUS:
-		adapter = logrus.New()
+		adapter = logrus.New(cfg)
 	case loggertype.LoggerTypes.NOOP:
-		adapter = noop.New()
+		adapter = noop.New(cfg)
 	case loggertype.LoggerTypes.ZEROLOG:
-		adapter = zerolog.New()
+		adapter = zerolog.New(cfg)
 	default:
-		return nil, fmt.Errorf("logger-factory: type %q not supported", lType)
+		return nil, NoContainerOfTypeError(cfg.Type)
 	}
 
-	log, err := New(adapter, opt)
-	if err != nil {
-		return nil, err
-	}
-
-	return log, nil
+	return New(adapter), nil
 }

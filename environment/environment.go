@@ -5,6 +5,7 @@ import (
 	"strings"
 
 	"frisboo-bank/pkg/constants"
+	"frisboo-bank/pkg/syserrors"
 
 	"github.com/joho/godotenv"
 	"github.com/spf13/viper"
@@ -30,7 +31,7 @@ func NewEnvironment(env string) Environment {
 	case constants.PRODUCTION:
 		return Production
 	default:
-		panic(fmt.Errorf("environment: env `%s` is not a valid", env))
+		panic(syserrors.Newf("environment: env `%s` is not a valid", env))
 	}
 }
 
@@ -54,7 +55,7 @@ func (e Environment) IsProduction() bool {
 	return e.IsEnvironment(Production)
 }
 
-func GetEnvFromConfig(fallback ...Environment) Environment {
+func Load(fallback ...Environment) Environment {
 	environment := Development
 	if len(fallback) > 0 {
 		environment = fallback[0]

@@ -3,7 +3,6 @@ package contracts
 import (
 	"context"
 
-	"frisboo-bank/pkg/http/http_server/config"
 	httpservertype "frisboo-bank/pkg/http/http_server/contracts/enums/http_server_type"
 	loggerContracts "frisboo-bank/pkg/logger/contracts"
 )
@@ -20,18 +19,6 @@ type (
 	}
 
 	HTTPServerAdapter interface {
-		Setup(cfg *config.Config) error
-		SetupDefaultMiddlewares()
-		AddMiddlewares(middlewares ...any)
-		Start(ctx context.Context) error
-		Shutdown(ctx context.Context) error
-		RouteBuilder() RouteBuilder
-		Type() httpservertype.HttpServerType
-	}
-)
-
-type (
-	httpServerCore interface {
-		SetupDefaultMiddlewares()
+		HTTPServer
 	}
 )

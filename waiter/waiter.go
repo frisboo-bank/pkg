@@ -9,41 +9,47 @@ import (
 	"sync"
 	"syscall"
 
-	"frisboo-bank/pkg/customerrors"
-	loggerContracts "frisboo-bank/pkg/logger/contracts"
-	"frisboo-bank/pkg/options"
-	"frisboo-bank/pkg/utils"
+	"frisboo-bank/pkg/syserrors"
 	"frisboo-bank/pkg/waiter/config"
 	"frisboo-bank/pkg/waiter/contracts"
+
+	loggerContracts "frisboo-bank/pkg/logger/contracts"
 
 	"golang.org/x/sync/errgroup"
 )
 
 var _ contracts.Waiter = (*waiter)(nil)
 
-var pError = customerrors.PrefixedError("waiter")
+type WaiterConfig struct {
+	Cfg    *config.Config
+	Logger loggerContracts.Logger
+}
 
 type waiter struct {
+	cfg    *config.Config
+	logger loggerContracts.Logger
+
 	cancel     context.CancelFunc
 	cancelOnce sync.Once
-	cfg        *config.Config
 	ctx        context.Context
 	hooks      []contracts.WaiterHook
 	isWaiting  bool
-	logger     loggerContracts.Logger
 	mu         sync.Mutex
 	waitOnce   sync.Once
 }
 
-func New(logger loggerContracts.Logger, opts *options.OptionBuilder[config.Config]) (contracts.Waiter, error) {
-	utils.Assert(logger != nil, pError.New("logger can't be nil"))
-	utils.Assert(opts != nil, pError.New("opts can't be nil"))
+func New(cfg WaiterConfig) contracts.Waiter {
+	syserrors.Assert(cfg.Cfg != nil, "cfg can't be nil")
+	syserrors.Assert(cfg.Logger != nil, "logger can't be nil")
 
-	cfg := opts.Build()
+	parentCtx := cfg.Cfg.ParentContext
+	if parentCtx == nil {
+		parentCtx = context.Background()
+	}
 
-	ctx, cancel := context.WithCancel(cfg.ParentContext)
+	ctx, cancel := context.WithCancel(parentCtx)
 
-	if cfg.CancelOnShutdownSignal {
+	if cfg.Cfg.CancelOnShutdownSignal {
 		signalCtx, signalCancel := signal.NotifyContext(
 			ctx,
 			os.Interrupt,
@@ -63,10 +69,10 @@ func New(logger loggerContracts.Logger, opts *options.OptionBuilder[config.Confi
 
 	return &waiter{
 		cancel: cancel,
-		cfg:    cfg,
+		cfg:    cfg.Cfg,
 		ctx:    ctx,
-		logger: logger,
-	}, nil
+		logger: cfg.Logger,
+	}
 }
 
 func (w *waiter) Wait() error {
@@ -122,7 +128,7 @@ func (w *waiter) Add(hooks ...contracts.WaiterHook) {
 	defer w.mu.Unlock()
 
 	if w.isWaiting {
-		panic(fmt.Errorf("waiter: can't call Add() after Wait() was called"))
+		panic(syserrors.Newf("waiter: can't call Add() after Wait() was called"))
 	}
 
 	w.hooks = append(w.hooks, hooks...)

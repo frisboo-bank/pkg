@@ -1,7 +1,6 @@
 package contracts
 
 import (
-	"frisboo-bank/pkg/logger/config"
 	loglevel "frisboo-bank/pkg/logger/contracts/enums/log_level"
 	loggertype "frisboo-bank/pkg/logger/contracts/enums/logger_type"
 )
@@ -38,7 +37,6 @@ type (
 		Log(level loglevel.LogLevel, v ...any)
 		Logf(level loglevel.LogLevel, format string, v ...any)
 		Logw(level loglevel.LogLevel, message string, fields Fields)
-		Setup(cfg *config.Config) error
 		Type() loggertype.LoggerType
 	}
 )

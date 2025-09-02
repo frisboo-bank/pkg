@@ -17,6 +17,6 @@ type PostgresSqlx struct{}
 //
 // func createDB(cfg *postgres.PgConfig) error {
 // 	if err != nil {
-// 		return fmt.Errorf("postgres: failed to connect to the database with error: %v", err)
+// 		return syserrors.Newf("postgres: failed to connect to the database with error: %v", err)
 // 	}
 // }

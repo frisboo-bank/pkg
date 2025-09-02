@@ -1,17 +1,15 @@
 package utils
 
 import (
-	"errors"
+	"frisboo-bank/pkg/syserrors"
 	"os"
 	"path/filepath"
 	"strings"
-
-	"frisboo-bank/pkg/customerrors"
 )
 
 var (
-	ErrReadingDirectory = errors.New("error reading directory")
-	ErrNoProjectFound   = errors.New("error failed to find any go.mod file")
+	ErrReadingDirectory = syserrors.New("error reading directory")
+	ErrNoProjectFound   = syserrors.New("error failed to find any go.mod file")
 )
 
 func GetProjectRootWorkingDirectory() (string, error) {
@@ -32,7 +30,7 @@ func GetProjectRootWorkingDirectory() (string, error) {
 func searchRootDirectory(baseDir string) (string, error) {
 	files, err := os.ReadDir(baseDir)
 	if err != nil {
-		return "", customerrors.WrapWith(ErrReadingDirectory, err)
+		return "", syserrors.WrapWith(ErrReadingDirectory, err)
 	}
 
 	for _, file := range files {
@@ -48,7 +46,7 @@ func searchRootDirectory(baseDir string) (string, error) {
 
 	parentDir := filepath.Dir(baseDir)
 	if parentDir == baseDir {
-		return "", customerrors.WrapWith(ErrNoProjectFound, err)
+		return "", syserrors.WrapWith(ErrNoProjectFound, err)
 	}
 
 	return searchRootDirectory(parentDir)

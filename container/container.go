@@ -2,50 +2,29 @@ package container
 
 import (
 	"context"
-	"fmt"
 	"sync"
 
-	"frisboo-bank/pkg/container/config"
 	"frisboo-bank/pkg/container/contracts"
-	containertype "frisboo-bank/pkg/container/contracts/enums/container_type"
 	"frisboo-bank/pkg/container/dependencies/module"
-	loggerContracts "frisboo-bank/pkg/logger/contracts"
-	"frisboo-bank/pkg/options"
-	"frisboo-bank/pkg/utils"
+	"frisboo-bank/pkg/syserrors"
+
+	containertype "frisboo-bank/pkg/container/contracts/enums/container_type"
 )
 
 var _ contracts.Container = (*container)(nil)
 
 type container struct {
-	cfg     *config.Config
 	adapter contracts.ContainerAdapter
-	logger  loggerContracts.Logger
 	started bool
 	mu      sync.Mutex
 }
 
-func New(
-	adapter contracts.ContainerAdapter,
-	logger loggerContracts.Logger,
-	opts *options.OptionBuilder[config.Config],
-) (contracts.Container, error) {
-	utils.Assert(adapter != nil, "container: your must set the adapter")
-	utils.Assert(logger != nil, "container: your must set the logger")
-	utils.Assert(opts != nil, "container: your must set the opts")
+func New(adapter contracts.ContainerAdapter) contracts.Container {
+	syserrors.Assert(adapter != nil, "container: your must set the adapter")
 
-	cfg := opts.Build()
-
-	container := &container{
-		cfg:     cfg,
+	return &container{
 		adapter: adapter,
-		logger:  logger,
 	}
-
-	if err := adapter.Setup(cfg); err != nil {
-		return nil, err
-	}
-
-	return container, nil
 }
 
 func (c *container) RegisterModule(modules ...module.Module) error {
@@ -56,25 +35,25 @@ func (c *container) RegisterModule(modules ...module.Module) error {
 
 	for _, module := range modules {
 		if err := c.adapter.RegisterProvider(module.Providers()...); err != nil {
-			return fmt.Errorf("provider registration failed for module %q with error: %w", module.Name(), err)
+			return syserrors.Newf("provider registration failed for module %q with error: %w", module.Name(), err)
 		}
 	}
 
 	for _, module := range modules {
 		if err := c.adapter.RegisterHook(module.Hooks()...); err != nil {
-			return fmt.Errorf("hook registration failed for module %q with error: %w", module.Name(), err)
+			return syserrors.Newf("hook registration failed for module %q with error: %w", module.Name(), err)
 		}
 	}
 
 	for _, module := range modules {
 		if err := c.adapter.RegisterDecorator(module.Decorators()...); err != nil {
-			return fmt.Errorf("decorator registration failed for module %q with error: %w", module.Name(), err)
+			return syserrors.Newf("decorator registration failed for module %q with error: %w", module.Name(), err)
 		}
 	}
 
 	for _, module := range modules {
 		if err := c.adapter.RegisterInvoker(module.Invokers()...); err != nil {
-			return fmt.Errorf("invoker registration failed for module %q with error: %w", module.Name(), err)
+			return syserrors.Newf("invoker registration failed for module %q with error: %w", module.Name(), err)
 		}
 	}
 
@@ -82,13 +61,13 @@ func (c *container) RegisterModule(modules ...module.Module) error {
 }
 
 func (c *container) Start(ctx context.Context) (err error) {
-	utils.Assert(ctx != nil, "container: your must set the context")
+	syserrors.Assert(ctx != nil, "container: your must set the context")
 
 	c.mu.Lock()
 	defer c.mu.Unlock()
 
 	if c.started {
-		return fmt.Errorf("container: already running")
+		return syserrors.Newf("container: already running")
 	}
 
 	if err := c.adapter.Start(ctx); err != nil {
@@ -101,13 +80,13 @@ func (c *container) Start(ctx context.Context) (err error) {
 }
 
 func (c *container) Stop(ctx context.Context) error {
-	utils.Assert(ctx != nil, "container: your must set the context")
+	syserrors.Assert(ctx != nil, "container: your must set the context")
 
 	c.mu.Lock()
 	defer c.mu.Unlock()
 
 	if !c.started {
-		return fmt.Errorf("container: not running; call Start first")
+		return syserrors.Newf("container: not running; call Start first")
 	}
 
 	err := c.adapter.Stop(ctx)
@@ -140,7 +119,7 @@ func (c *container) collectAllModules(modules ...module.Module) ([]module.Module
 		for _, child := range module.Modules() {
 			// Defensive: avoid self-cycle.
 			if child == module {
-				return nil, fmt.Errorf("module %q references itself; skipping to avoid cycle", module.Name())
+				return nil, syserrors.Newf("module %q references itself; skipping to avoid cycle", module.Name())
 			}
 			queue = append(queue, child)
 		}
