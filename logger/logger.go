@@ -1,40 +1,21 @@
 package logger
 
 import (
-	"frisboo-bank/pkg/customerrors"
-	"frisboo-bank/pkg/logger/config"
 	"frisboo-bank/pkg/logger/contracts"
 	loglevel "frisboo-bank/pkg/logger/contracts/enums/log_level"
 	loggertype "frisboo-bank/pkg/logger/contracts/enums/logger_type"
-	"frisboo-bank/pkg/options"
-	"frisboo-bank/pkg/utils"
+	"frisboo-bank/pkg/syserrors"
 )
 
 var _ contracts.Logger = (*logger)(nil)
 
-var pError = customerrors.PrefixedError("logger")
-
 type logger struct {
-	cfg     *config.Config
 	adapter contracts.LoggerAdapter
 }
 
-func New(adapter contracts.LoggerAdapter, opts *options.OptionBuilder[config.Config]) (contracts.Logger, error) {
-	utils.Assert(adapter != nil, pError.New("logger can't be nil"))
-	utils.Assert(opts != nil, pError.New("opts can't be nil"))
-
-	cfg := opts.Build()
-
-	log := &logger{
-		cfg:     cfg,
-		adapter: adapter,
-	}
-
-	if err := adapter.Setup(cfg); err != nil {
-		return nil, err
-	}
-
-	return log, nil
+func New(adapter contracts.LoggerAdapter) contracts.Logger {
+	syserrors.Assert(adapter != nil, "adapter can't be nil")
+	return &logger{adapter}
 }
 
 func (l *logger) Debug(v ...any)            { l.log(loglevel.LogLevels.DEBUGLEVEL, v...) }

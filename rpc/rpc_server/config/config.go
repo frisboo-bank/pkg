@@ -2,102 +2,63 @@ package config
 
 import (
 	"net"
-	"strings"
 	"time"
 
 	"frisboo-bank/pkg/config"
-	configContracts "frisboo-bank/pkg/config/contracts"
-	"frisboo-bank/pkg/constants"
-	"frisboo-bank/pkg/customerrors"
 	"frisboo-bank/pkg/environment"
 	"frisboo-bank/pkg/options"
+
+	loggerConfig "frisboo-bank/pkg/logger/config"
+
+	configloaderContracts "frisboo-bank/pkg/config/config_loader/contracts"
+
+	grpcConfig "frisboo-bank/pkg/rpc/rpc_server/adapters/grpc/config"
 	rpcservertype "frisboo-bank/pkg/rpc/rpc_server/contracts/enums/rpc_server_type"
+
+	"github.com/hashicorp/go-multierror"
 )
 
-var pError = customerrors.PrefixedError("rpc-server config")
+var _ config.Validatable = (*Config)(nil)
 
-type EnvConfig struct {
+type Config struct {
+	Type                  rpcservertype.RpcServerType `mapstructure:"type"`
 	Host                  string                      `mapstructure:"host"`
 	Port                  string                      `mapstructure:"port"`
 	ServerShutdownTimeout time.Duration               `mapstructure:"serverShutdownTimeout"`
-	Type                  rpcservertype.RpcServerType `mapstructure:"type"`
-}
 
-func LoadEnvConfig(loader configContracts.ConfigLoader, env environment.Environment) (*EnvConfig, error) {
-	return config.LoadConfig[EnvConfig](loader, env, "rpcServer")
-}
+	// adapters
+	GRPC *grpcConfig.Config `mapstructure:"grpc"`
 
-type Config struct {
-	Host                  string
-	Port                  string
-	ServerShutdownTimeout time.Duration
+	// dependency
+	Logger *loggerConfig.Config `mapstructure:"logger"`
 }
 
 func (c *Config) Address() string {
 	return net.JoinHostPort(c.Host, c.Port)
 }
 
-var defaultConfig = &Config{
-	Host:                  "0.0.0.0",
-	Port:                  "9000",
-	ServerShutdownTimeout: constants.SERVER_SHUTDOWN_TIMEOUT,
-}
-
-func Apply() *options.OptionBuilder[Config] {
-	return options.Apply(&Config{})
-}
-
-func FromEnvConfig(cfg *EnvConfig) *options.OptionBuilder[Config] {
-	opts := Apply()
-
-	if cfg.Host != "" {
-		opts.With(Host(cfg.Host))
+func Default() *Config {
+	return &Config{
+		Host:                  "0.0.0.0",
+		Port:                  "9000",
+		ServerShutdownTimeout: 30 * time.Second,
 	}
+}
 
-	if cfg.Port != "" {
-		opts.With(Port(cfg.Port))
+func (c *Config) Validate() error {
+	var errs *multierror.Error
+
+	return errs.ErrorOrNil()
+}
+
+func New(opts ...Option) (*Config, error) {
+	return options.New(Default, opts...)
+}
+
+func Load(loader configloaderContracts.ConfigLoader, env environment.Environment, opts ...Option) (*Config, error) {
+	cfg := Default()
+	if err := loader.LoadByKey("rpc-server", env, cfg); err != nil {
+		return nil, err
 	}
-
-	if cfg.ServerShutdownTimeout != 0 {
-		opts.With(ServerShutdownTimeout(cfg.ServerShutdownTimeout))
-	}
-
-	return opts
-}
-
-func Host(host string) options.Option[Config] {
-	return options.OptionFunc[Config](func(cfg *Config) error {
-		host = strings.TrimSpace(host)
-
-		if host == "" {
-			return pError.New("host can't be empty")
-		}
-
-		cfg.Host = host
-		return nil
-	})
-}
-
-func Port(port string) options.Option[Config] {
-	return options.OptionFunc[Config](func(cfg *Config) error {
-		port = strings.TrimSpace(port)
-
-		if port == "" {
-			return pError.New("port can't be empty")
-		}
-
-		cfg.Port = port
-		return nil
-	})
-}
-
-func ServerShutdownTimeout(serverShutdownTimeout time.Duration) options.Option[Config] {
-	return options.OptionFunc[Config](func(cfg *Config) error {
-		if serverShutdownTimeout <= 0 {
-			return pError.New("serverShutdownTimeout must be positive")
-		}
-
-		cfg.ServerShutdownTimeout = serverShutdownTimeout
-		return nil
-	})
+	return options.New(func() *Config { return cfg }, opts...)
 }

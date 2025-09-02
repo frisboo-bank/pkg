@@ -2,27 +2,33 @@ package application
 
 import (
 	"fmt"
-	"os"
-
 	"frisboo-bank/pkg/application/contracts"
 	"frisboo-bank/pkg/application/infrastructure"
-	"frisboo-bank/pkg/config"
-	configContracts "frisboo-bank/pkg/config/contracts"
 	"frisboo-bank/pkg/container"
-	containerConfig "frisboo-bank/pkg/container/config"
-	containerContracts "frisboo-bank/pkg/container/contracts"
-	containerEnums "frisboo-bank/pkg/container/contracts/enums"
-	containertype "frisboo-bank/pkg/container/contracts/enums/container_type"
 	"frisboo-bank/pkg/container/dependencies/decorator"
 	"frisboo-bank/pkg/container/dependencies/module"
 	"frisboo-bank/pkg/container/dependencies/provider"
 	"frisboo-bank/pkg/environment"
-	httpServerEnums "frisboo-bank/pkg/http/http_server/contracts/enums"
 	"frisboo-bank/pkg/logger"
-	loggerConfig "frisboo-bank/pkg/logger/config"
+	"frisboo-bank/pkg/syserrors"
+	"os"
+
+	configloader "frisboo-bank/pkg/config/config_loader"
+	configloaderConfig "frisboo-bank/pkg/config/config_loader/config"
+	configloaderContracts "frisboo-bank/pkg/config/config_loader/contracts"
+
+	containerConfig "frisboo-bank/pkg/container/config"
+	containerContracts "frisboo-bank/pkg/container/contracts"
+	containerEnums "frisboo-bank/pkg/container/contracts/enums"
+
+	httpServerEnums "frisboo-bank/pkg/http/http_server/contracts/enums"
+
+	appConfig "frisboo-bank/pkg/application/config"
 	loggerContracts "frisboo-bank/pkg/logger/contracts"
 	loggerEnums "frisboo-bank/pkg/logger/contracts/enums"
 	rpcServerEnums "frisboo-bank/pkg/rpc/rpc_server/contracts/enums"
+
+	"github.com/hashicorp/go-multierror"
 )
 
 var _ contracts.ApplicationBuilder = (*applicationBuilder)(nil)
@@ -37,50 +43,51 @@ type applicationBuilder struct {
 }
 
 func NewApplicationBuilder(environments ...environment.Environment) contracts.ApplicationBuilder {
-	env := environment.GetEnvFromConfig(environments...)
+	env := environment.Load(environments...)
 
-	configLoader := config.NewConfigLoader().
-		WithDecodeHooks(
-			containerEnums.ContainerEnumsDecodeHook(),
-			rpcServerEnums.RPCServerEnumsDecodeHook(),
-			loggerEnums.LoggerEnumsDecodeHook(),
-			httpServerEnums.HTTPServerEnumsDecodeHook(),
-		)
-
-	loggerEnvCfg, err := loggerConfig.LoadEnvConfig(configLoader, env)
+	configLoader, err := getConfigLoader()
 	if err != nil {
-		fmt.Printf("application-builder: failed to load Logger options with error: %v\n", err)
+		fmt.Println(syserrors.Message(syserrors.Newf("failed to instantiate the config loader: got %w", err), []string{"application-builder"}))
 		os.Exit(1)
 	}
 
-	logger, err := logger.GetInstance(loggerEnvCfg.Type, loggerConfig.FromEnvConfig(loggerEnvCfg))
+	appCfg, containerCfg, err := loadConfigs(configLoader, env)
 	if err != nil {
-		fmt.Printf("application-builder: failed to create Logger with error: %v\n", err)
+		fmt.Println(syserrors.Message(syserrors.Newf("failed to load options: got %w", err), []string{"application-builder"}))
 		os.Exit(1)
 	}
 
-	diContainer, err := container.GetInstance(
-		containertype.ContainerTypes.DIG,
-		logger,
-		containerConfig.Apply(),
-	)
+	appLogger, err := logger.GetInstance(&appCfg.Logger)
 	if err != nil {
-		return nil
+		fmt.Println(syserrors.Message(syserrors.Newf("failed to instantiate the app logger: got %w", err), []string{"application-builder"}))
+		os.Exit(1)
+	}
+
+	containerLogger, err := logger.GetInstance(containerCfg.Logger)
+	if err != nil {
+		fmt.Println(syserrors.Message(syserrors.Newf("failed to instantiate the container logger: got %w", err), []string{"application-builder"}))
+		os.Exit(1)
+	}
+
+	diContainer, err := container.GetInstance(containerCfg, containerLogger)
+	if err != nil {
+		fmt.Println(syserrors.Message(syserrors.Newf("failed to instantiate the container: got %w", err), []string{"application-builder"}))
+		os.Exit(1)
 	}
 
 	return &applicationBuilder{
 		modules: []module.Module{
-			infrastructure.Module,
+			environment.ModuleFunc(env),
+			// logger.ModuleFunc(loggerOpts),
+			infrastructure.ModuleFunc(appCfg),
 		},
-		providers: []provider.Provider{
-			provider.Provide(func() environment.Environment { return env }),
-			provider.Provide(func() configContracts.ConfigLoader { return configLoader }),
-			provider.Provide(func() *loggerConfig.EnvConfig { return loggerEnvCfg }),
-			provider.Provide(func() loggerContracts.Logger { return logger }),
-		},
+		// providers: []provider.Provider{
+		// 	provider.ProvideFunc(func() *appConfig.EnvConfig { return appOpts }),
+		// 	provider.ProvideFunc(func() configloaderContracts.ConfigLoader { return configLoader }),
+		// },
 		decorators:  []decorator.Decorator{},
 		container:   diContainer,
-		logger:      logger,
+		logger:      appLogger,
 		environment: env,
 	}
 }
@@ -122,4 +129,37 @@ func (b *applicationBuilder) Logger() loggerContracts.Logger {
 
 func (b *applicationBuilder) Environment() environment.Environment {
 	return b.environment
+}
+
+func getConfigLoader() (configloaderContracts.ConfigLoader, error) {
+	cfg, err := configloaderConfig.New(
+		configloaderConfig.Debug(false),
+
+		configloaderConfig.DecodeHookFuncs(
+			containerEnums.ContainerEnumsDecodeHook(),
+			loggerEnums.LoggerEnumsDecodeHook(),
+			httpServerEnums.HTTPServerEnumsDecodeHook(),
+			rpcServerEnums.RPCServerEnumsDecodeHook(),
+		),
+	)
+	if err != nil {
+		return nil, err
+	}
+
+	return configloader.New(cfg), nil
+}
+
+func loadConfigs(
+	configLoader configloaderContracts.ConfigLoader,
+	env environment.Environment,
+) (*appConfig.Config, *containerConfig.Config, error) {
+	var errs *multierror.Error
+
+	appOpts, err := appConfig.Load(configLoader, env)
+	errs = multierror.Append(errs, syserrors.Message(err, []string{"app-config"}))
+
+	containerOpts, err := containerConfig.Load(configLoader, env)
+	errs = multierror.Append(errs, syserrors.Message(err, []string{"container-config"}))
+
+	return appOpts, containerOpts, errs.ErrorOrNil()
 }

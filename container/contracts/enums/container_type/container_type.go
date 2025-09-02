@@ -8,5 +8,5 @@ type (
 
 const (
 	unknown containerType = iota // invalid unknown
-	dig                          // gin
+	dig
 )

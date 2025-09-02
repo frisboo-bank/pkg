@@ -3,47 +3,24 @@ package rpcserver
 import (
 	"context"
 
-	"frisboo-bank/pkg/customerrors"
-	loggerContracts "frisboo-bank/pkg/logger/contracts"
-	"frisboo-bank/pkg/options"
-	"frisboo-bank/pkg/rpc/rpc_server/config"
 	"frisboo-bank/pkg/rpc/rpc_server/contracts"
+	"frisboo-bank/pkg/syserrors"
+
+	loggerContracts "frisboo-bank/pkg/logger/contracts"
+
 	rpcservertype "frisboo-bank/pkg/rpc/rpc_server/contracts/enums/rpc_server_type"
-	"frisboo-bank/pkg/utils"
 )
 
 var _ contracts.RPCServer = (*rpcServer)(nil)
 
-var pError = customerrors.PrefixedError("rpc server")
-
 type rpcServer struct {
-	cfg     *config.Config
 	adapter contracts.RPCServerAdapter
-	logger  loggerContracts.Logger
 }
 
-func New(
-	adapter contracts.RPCServerAdapter,
-	logger loggerContracts.Logger,
-	opts *options.OptionBuilder[config.Config],
-) (contracts.RPCServer, error) {
-	utils.Assert(adapter != nil, pError.New("adapter can't be nil"))
-	utils.Assert(logger != nil, pError.New("logger can't be nil"))
-	utils.Assert(opts != nil, pError.New("opts can't be nil"))
+func New(adapter contracts.RPCServerAdapter) contracts.RPCServer {
+	syserrors.Assert(adapter != nil, "adapter can't be nil")
 
-	cfg := opts.Build()
-
-	server := &rpcServer{
-		cfg:     cfg,
-		adapter: adapter,
-		logger:  logger,
-	}
-
-	if err := adapter.Setup(cfg); err != nil {
-		return nil, err
-	}
-
-	return server, nil
+	return &rpcServer{adapter}
 }
 
 func (r *rpcServer) Shutdown(ctx context.Context) error {
@@ -59,5 +36,5 @@ func (r *rpcServer) Type() rpcservertype.RpcServerType {
 }
 
 func (r *rpcServer) Logger() loggerContracts.Logger {
-	return r.logger
+	return r.adapter.Logger()
 }

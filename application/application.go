@@ -2,11 +2,7 @@ package application
 
 import (
 	"context"
-	"fmt"
-	"os"
-
 	"frisboo-bank/pkg/application/contracts"
-	containerContracts "frisboo-bank/pkg/container/contracts"
 	"frisboo-bank/pkg/container/dependencies"
 	"frisboo-bank/pkg/container/dependencies/decorator"
 	"frisboo-bank/pkg/container/dependencies/hook"
@@ -14,8 +10,14 @@ import (
 	"frisboo-bank/pkg/container/dependencies/module"
 	"frisboo-bank/pkg/container/dependencies/provider"
 	"frisboo-bank/pkg/environment"
+	"frisboo-bank/pkg/syserrors"
+
+	containerContracts "frisboo-bank/pkg/container/contracts"
+
 	loggerContracts "frisboo-bank/pkg/logger/contracts"
 )
+
+var _ contracts.Application = (*application)(nil)
 
 type application struct {
 	container   containerContracts.Container
@@ -28,8 +30,6 @@ type application struct {
 	providers   []provider.Provider
 }
 
-var _ contracts.Application = (*application)(nil)
-
 func NewApplication(
 	modules []module.Module,
 	providers []provider.Provider,
@@ -38,13 +38,16 @@ func NewApplication(
 	logger loggerContracts.Logger,
 	environment environment.Environment,
 ) contracts.Application {
+	syserrors.Assert(container != nil, "the container can't be nil", "application")
+	syserrors.Assert(logger != nil, "the logger can't be nil", "application")
+
 	return &application{
-		modules:     modules,
-		providers:   providers,
+		container:   container,
 		decorators:  decorators,
 		environment: environment,
-		container:   container,
 		logger:      logger,
+		modules:     modules,
+		providers:   providers,
 	}
 }
 
@@ -66,8 +69,7 @@ func (a *application) Start(ctx context.Context) error {
 
 func (a *application) Stop(ctx context.Context) error {
 	if a.container == nil {
-		fmt.Println("application: Failed to stop because application not started.")
-		os.Exit(1)
+		a.logger.Fatal("failed to stop because application not started")
 	}
 	return a.container.Stop(ctx)
 }
@@ -96,7 +98,11 @@ func (a *application) registerDependencies() error {
 		deps = append(deps, dep)
 	}
 
-	return a.container.RegisterModule(module.NewModule("app",
+	return a.container.RegisterModule(module.ModuleFunc("app",
 		deps...,
 	))
+}
+
+func (a *application) Logger() loggerContracts.Logger {
+	return a.logger
 }

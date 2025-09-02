@@ -1,7 +1,6 @@
 package contracts
 
 import (
-	"frisboo-bank/pkg/logger/config"
 	loglevel "frisboo-bank/pkg/logger/contracts/enums/log_level"
 	loggertype "frisboo-bank/pkg/logger/contracts/enums/logger_type"
 )
@@ -9,7 +8,12 @@ import (
 type (
 	Fields map[string]any
 
+	loggerCommon interface {
+		Type() loggertype.LoggerType
+	}
+
 	Logger interface {
+		loggerCommon
 		Debug(v ...any)
 		Debugf(format string, v ...any)
 		Debugw(message string, fields Fields)
@@ -28,17 +32,15 @@ type (
 		Print(v ...any)
 		Printf(format string, v ...any)
 		Printw(message string, fields Fields)
-		Type() loggertype.LoggerType
 		Warn(v ...any)
 		Warnf(format string, v ...any)
 		Warnw(message string, fields Fields)
 	}
 
 	LoggerAdapter interface {
+		loggerCommon
 		Log(level loglevel.LogLevel, v ...any)
 		Logf(level loglevel.LogLevel, format string, v ...any)
 		Logw(level loglevel.LogLevel, message string, fields Fields)
-		Setup(cfg *config.Config) error
-		Type() loggertype.LoggerType
 	}
 )

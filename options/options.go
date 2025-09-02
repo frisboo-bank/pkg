@@ -1,45 +1,108 @@
 package options
 
 import (
-	"errors"
-	"fmt"
+	"frisboo-bank/pkg/config"
+	"frisboo-bank/pkg/syserrors"
+
+	"github.com/hashicorp/go-multierror"
 )
 
-type Option[T any] interface {
-	apply(cfg *T) error
-}
+type (
+	DefaultFn[T any] func() *T
+	OptionFn[T any]  func(*T) error
+)
 
-type OptionFunc[T any] func(*T) error
-
-func (o OptionFunc[T]) apply(cfg *T) error {
-	return o(cfg)
-}
-
-type OptionBuilder[T any] struct {
-	cfg *T
-	err error
-}
-
-func NewBuilder[T any](base *T) *OptionBuilder[T] {
-	return &OptionBuilder[T]{
-		cfg: base,
+// -----------------------------------------------------------------------------
+// Option factories
+// -----------------------------------------------------------------------------
+func buildOption[T any, A any](fn func(*T, A) error) func(A) OptionFn[T] {
+	return func(a A) OptionFn[T] {
+		if fn == nil {
+			return noopOption[T]()
+		}
+		return func(c *T) error { return fn(c, a) }
 	}
 }
 
-func (b *OptionBuilder[T]) With(opts ...Option[T]) *OptionBuilder[T] {
-	for _, opt := range opts {
-		b.err = errors.Join(b.err, opt.apply(b.cfg))
-	}
-	return b
+func Option[T any, A any](fn func(*T, A)) func(A) OptionFn[T] {
+	return buildOption(func(c *T, a A) error {
+		fn(c, a)
+		return nil
+	})
 }
 
-func (b *OptionBuilder[T]) Build() *T {
-	if b.err != nil {
-		panic(fmt.Sprintf("invalid configuration: %v", b.err))
-	}
-	return b.cfg
+func OptionErr[T any, A any](fn func(*T, A) error) func(A) OptionFn[T] {
+	return buildOption(fn)
 }
 
-func Apply[T any](base *T) *OptionBuilder[T] {
-	return NewBuilder(base)
+func buildVarOption[T any, A any](fn func(*T, ...A) error) func(...A) OptionFn[T] {
+	return func(a ...A) OptionFn[T] {
+		if fn == nil {
+			return noopOption[T]()
+		}
+		return func(c *T) error { return fn(c, a...) }
+	}
+}
+
+func VarOption[T any, A any](fn func(*T, ...A)) func(...A) OptionFn[T] {
+	return buildVarOption(func(c *T, a ...A) error {
+		fn(c, a...)
+		return nil
+	})
+}
+
+func VarOptionErr[T any, A any](fn func(*T, ...A) error) func(...A) OptionFn[T] {
+	return buildVarOption(fn)
+}
+
+func noopOption[T any]() OptionFn[T] { return func(t *T) error { return nil } }
+
+// -----------------------------------------------------------------------------
+// Composition
+// -----------------------------------------------------------------------------
+
+func Apply[T any](target *T, opts ...OptionFn[T]) error {
+	if target == nil {
+		return syserrors.CantBeNilError("target")
+	}
+	var errs *multierror.Error
+	for _, o := range opts {
+		if err := o(target); err != nil {
+			errs = multierror.Append(errs, err)
+		}
+	}
+	return errs.ErrorOrNil()
+}
+
+func Compose[T any](opts ...OptionFn[T]) OptionFn[T] {
+	if len(opts) == 0 {
+		return noopOption[T]()
+	}
+	return func(t *T) error { return Apply(t, opts...) }
+}
+
+// -----------------------------------------------------------------------------
+// Construction
+// -----------------------------------------------------------------------------
+
+func New[T any](defaultFn DefaultFn[T], opts ...OptionFn[T]) (*T, error) {
+	if defaultFn == nil {
+		return nil, syserrors.CantBeNilError("defaultFn")
+	}
+	t := defaultFn()
+	if t == nil {
+		return nil, syserrors.New("defaultFn returned nil")
+	}
+
+	if err := Apply(t, opts...); err != nil {
+		return nil, err
+	}
+
+	if v, ok := any(t).(config.Validatable); ok {
+		if err := v.Validate(); err != nil {
+			return nil, err
+		}
+	}
+
+	return t, nil
 }

@@ -1,34 +1,27 @@
 package rpcserver
 
 import (
-	"fmt"
-
-	loggerContracts "frisboo-bank/pkg/logger/contracts"
-	"frisboo-bank/pkg/options"
+	"frisboo-bank/pkg/rpc/rpc_server/adapters/grpc"
 	"frisboo-bank/pkg/rpc/rpc_server/config"
 	"frisboo-bank/pkg/rpc/rpc_server/contracts"
+	"frisboo-bank/pkg/syserrors"
+
 	rpcservertype "frisboo-bank/pkg/rpc/rpc_server/contracts/enums/rpc_server_type"
-	"frisboo-bank/pkg/rpc/rpc_server/grpc"
 )
 
-func GetInstance(
-	sType rpcservertype.RpcServerType,
-	logger loggerContracts.Logger,
-	opt *options.OptionBuilder[config.Config],
-) (contracts.RPCServer, error) {
+func NoServerOfTypeError(sType rpcservertype.RpcServerType) error {
+	return syserrors.Newf("no server of type `%q` exists", sType)
+}
+
+func GetInstance(cfg *config.Config) (contracts.RPCServer, error) {
 	var adapter contracts.RPCServerAdapter
 
-	switch sType {
+	switch cfg.Type {
 	case rpcservertype.RpcServerTypes.GRPC:
-		adapter = grpc.New(logger)
+		adapter = grpc.New(cfg, nil)
 	default:
-		return nil, fmt.Errorf("(rpc-server-factory) no server of type `%q` exists", sType)
+		return nil, NoServerOfTypeError(cfg.Type)
 	}
 
-	server, err := New(adapter, logger, opt)
-	if err != nil {
-		return nil, err
-	}
-
-	return server, nil
+	return New(adapter), nil
 }

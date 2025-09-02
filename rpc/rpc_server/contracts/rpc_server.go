@@ -4,7 +4,6 @@ import (
 	"context"
 
 	loggerContracts "frisboo-bank/pkg/logger/contracts"
-	"frisboo-bank/pkg/rpc/rpc_server/config"
 	rpcservertype "frisboo-bank/pkg/rpc/rpc_server/contracts/enums/rpc_server_type"
 )
 
@@ -17,9 +16,6 @@ type (
 	}
 
 	RPCServerAdapter interface {
-		Setup(cfg *config.Config) error
-		Start(ctx context.Context) error
-		Shutdown(ctx context.Context) error
-		Type() rpcservertype.RpcServerType
+		RPCServer
 	}
 )

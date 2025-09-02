@@ -3,13 +3,13 @@ package contracts
 import (
 	"context"
 
-	"frisboo-bank/pkg/container/config"
-	containertype "frisboo-bank/pkg/container/contracts/enums/container_type"
 	"frisboo-bank/pkg/container/dependencies/decorator"
 	"frisboo-bank/pkg/container/dependencies/hook"
 	"frisboo-bank/pkg/container/dependencies/invoker"
 	"frisboo-bank/pkg/container/dependencies/module"
 	"frisboo-bank/pkg/container/dependencies/provider"
+
+	containertype "frisboo-bank/pkg/container/contracts/enums/container_type"
 )
 
 type Container interface {
@@ -24,7 +24,6 @@ type ContainerAdapter interface {
 	RegisterHook(hooks ...hook.Hooks) error
 	RegisterInvoker(invokers ...invoker.Invoker) error
 	RegisterProvider(providers ...provider.Provider) error
-	Setup(cfg *config.Config) error
 	Start(ctx context.Context) error
 	Stop(ctx context.Context) error
 	Type() containertype.ContainerType

@@ -4,119 +4,81 @@ import (
 	"io"
 	"os"
 
-	"frisboo-bank/pkg/config"
-	configContracts "frisboo-bank/pkg/config/contracts"
 	"frisboo-bank/pkg/environment"
+	"frisboo-bank/pkg/options"
+	"frisboo-bank/pkg/syserrors"
+
+	configloaderContracts "frisboo-bank/pkg/config/config_loader/contracts"
+
+	logrusConfig "frisboo-bank/pkg/logger/adapters/logrus/Config"
+	zerologConfig "frisboo-bank/pkg/logger/adapters/zerolog/Config"
 	encodingtype "frisboo-bank/pkg/logger/contracts/enums/encoding_type"
 	loglevel "frisboo-bank/pkg/logger/contracts/enums/log_level"
 	loggertype "frisboo-bank/pkg/logger/contracts/enums/logger_type"
-	"frisboo-bank/pkg/options"
+
+	"github.com/hashicorp/go-multierror"
 )
 
-type EnvConfig struct {
+type Config struct {
+	Type          loggertype.LoggerType     `mapstructure:"type"`
 	CallDepth     int                       `mapstructure:"callDepth"`
 	CallerEnabled bool                      `mapstructure:"callerEnabled"`
 	Encoding      encodingtype.EncodingType `mapstructure:"encoding"`
 	Level         loglevel.LogLevel         `mapstructure:"level"`
+	Prefix        string                    `mapstructure:"prefix"`
 	TracerEnabled bool                      `mapstructure:"tracerEnabled"`
-	Type          loggertype.LoggerType     `mapstructure:"type"`
+
+	// adapters
+	Logrus  *logrusConfig.Config  `mapstructure:"logrus"`
+	Zerolog *zerologConfig.Config `mapstructure:"zerolog"`
+
+	// dependency
+	Output io.Writer `mapstructure:"-"`
 }
 
-func LoadEnvConfig(loader configContracts.ConfigLoader, env environment.Environment) (*EnvConfig, error) {
-	return config.LoadConfig[EnvConfig](loader, env, "logger")
+func Default() *Config {
+	return &Config{
+		Type:          loggertype.LoggerTypes.LOGRUS,
+		CallDepth:     0,
+		CallerEnabled: false,
+		Encoding:      encodingtype.EncodingTypes.TEXT,
+		Level:         loglevel.LogLevels.ERRORLEVEL,
+		Prefix:        "core",
+		TracerEnabled: false,
+		Output:        os.Stdout,
+	}
 }
 
-type Config struct {
-	CallDepth     int
-	CallerEnabled bool
-	Encoding      encodingtype.EncodingType
-	Level         loglevel.LogLevel
-	Name          string
-	Output        io.Writer
-	Prefix        string
-	TracerEnabled bool
-}
+func (c *Config) Validate() error {
+	var errs *multierror.Error
 
-var defaultConfig = &Config{
-	CallDepth:     4,
-	CallerEnabled: true,
-	Encoding:      encodingtype.EncodingTypes.TEXT,
-	Level:         loglevel.LogLevels.ERRORLEVEL,
-	Output:        os.Stdout,
-	TracerEnabled: true,
-}
-
-func Apply() *options.OptionBuilder[Config] {
-	return options.Apply(defaultConfig)
-}
-
-func FromEnvConfig(cfg *EnvConfig) *options.OptionBuilder[Config] {
-	opts := Apply()
-
-	if cfg.CallDepth != 0 {
-		opts.With(CallDepth(cfg.CallDepth))
+	if c.Type == loggertype.LoggerTypes.UNKNOWN {
+		errs = multierror.Append(errs, syserrors.UnknownEnumError("Type", loggertype.LoggerTypes.All()))
+	}
+	if c.CallDepth < 0 {
+		errs = multierror.Append(errs, syserrors.CantBeNegativeError("CallDepth", c.CallDepth))
+	}
+	if c.Encoding == encodingtype.EncodingTypes.UNKNOWN {
+		errs = multierror.Append(errs, syserrors.UnknownEnumError("Encoding", encodingtype.EncodingTypes.All()))
+	}
+	if c.Level == loglevel.LogLevels.UNKNOWNLEVEL {
+		errs = multierror.Append(errs, syserrors.UnknownEnumError("Level", loglevel.LogLevels.All()))
+	}
+	if c.Output == nil {
+		errs = multierror.Append(errs, syserrors.CantBeNilError("Output"))
 	}
 
-	opts.With(CallerEnabled(cfg.CallerEnabled))
+	return errs.ErrorOrNil()
+}
 
-	if cfg.Encoding != encodingtype.EncodingTypes.UNKNOWN {
-		opts.With(Encoding(cfg.Encoding))
+func New(opts ...Option) (*Config, error) {
+	return options.New(Default, opts...)
+}
+
+func Load(loader configloaderContracts.ConfigLoader, env environment.Environment, opts ...Option) (*Config, error) {
+	cfg := Default()
+	if err := loader.LoadByKey("logger", env, cfg); err != nil {
+		return nil, err
 	}
-
-	if cfg.Level != loglevel.LogLevels.UNKNOWNLEVEL {
-		opts.With(Level(cfg.Level))
-	}
-
-	opts.With(TracerEnabled(cfg.TracerEnabled))
-
-	return opts
-}
-
-func CallDepth(callDepth int) options.Option[Config] {
-	return options.OptionFunc[Config](func(cfg *Config) error {
-		cfg.CallDepth = callDepth
-		return nil
-	})
-}
-
-func CallerEnabled(CallerEnabled bool) options.Option[Config] {
-	return options.OptionFunc[Config](func(cfg *Config) error {
-		cfg.CallerEnabled = CallerEnabled
-		return nil
-	})
-}
-
-func Encoding(encoding encodingtype.EncodingType) options.Option[Config] {
-	return options.OptionFunc[Config](func(cfg *Config) error {
-		cfg.Encoding = encoding
-		return nil
-	})
-}
-
-func Level(level loglevel.LogLevel) options.Option[Config] {
-	return options.OptionFunc[Config](func(cfg *Config) error {
-		cfg.Level = level
-		return nil
-	})
-}
-
-func Output(output io.Writer) options.Option[Config] {
-	return options.OptionFunc[Config](func(cfg *Config) error {
-		cfg.Output = output
-		return nil
-	})
-}
-
-func Prefix(prefix string) options.Option[Config] {
-	return options.OptionFunc[Config](func(cfg *Config) error {
-		cfg.Prefix = prefix
-		return nil
-	})
-}
-
-func TracerEnabled(TracerEnabled bool) options.Option[Config] {
-	return options.OptionFunc[Config](func(cfg *Config) error {
-		cfg.TracerEnabled = TracerEnabled
-		return nil
-	})
+	return options.New(func() *Config { return cfg }, opts...)
 }

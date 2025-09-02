@@ -8,5 +8,5 @@ type (
 
 const (
 	unknown httpServerType = iota // invalid unknown
-	gin                           // gin
+	gin
 )
