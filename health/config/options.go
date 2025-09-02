@@ -51,7 +51,7 @@ var StatusCodeUp = options.OptionErr(func(c *Config, statusCodeUp int) error {
 var StatusDown = options.OptionErr(func(c *Config, statusDown string) error {
 	statusDown = strings.TrimSpace(statusDown)
 	if statusDown == "" {
-		return syserrors.New("statusDown can't be empty")
+		return syserrors.CantBeEmptyError("StatusDown")
 	}
 	c.StatusDown = statusDown
 	return nil
