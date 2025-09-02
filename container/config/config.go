@@ -16,23 +16,22 @@ import (
 var _ config.Validatable = (*Config)(nil)
 
 type Config struct {
-	Debug   bool                        `mapstructure:"debug"`
-	Logger  loggerConfig.Config         `mapstructure:"logger"`
-	Tracing bool                        `mapstructure:"tracing"`
 	Type    containertype.ContainerType `mapstructure:"type"`
-	Dig     digConfig.Config            `mapstructure:"dig"`
+	Debug   bool                        `mapstructure:"debug"`
+	Tracing bool                        `mapstructure:"tracing"`
+
+	// adapters
+	Dig *digConfig.Config `mapstructure:"dig"`
+
+	// dependency
+	Logger *loggerConfig.Config `mapstructure:"logger"`
 }
 
 func Default() *Config {
-	loggerCfg := loggerConfig.Default()
-	loggerCfg.Prefix = "container"
-
 	return &Config{
-		Debug:   false,
-		Dig:     *digConfig.Default(),
-		Logger:  *loggerCfg,
-		Tracing: false,
 		Type:    containertype.ContainerTypes.DIG,
+		Debug:   false,
+		Tracing: false,
 	}
 }
 

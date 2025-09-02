@@ -1,26 +1,33 @@
 package config
 
 import (
-	"net"
-	"time"
-
-	"frisboo-bank/pkg/constants"
+	"frisboo-bank/pkg/config"
 	"frisboo-bank/pkg/environment"
 	"frisboo-bank/pkg/options"
+	"net"
+	"time"
 
 	loggerConfig "frisboo-bank/pkg/logger/config"
 
 	configloaderContracts "frisboo-bank/pkg/config/config_loader/contracts"
 
+	grpcConfig "frisboo-bank/pkg/rpc/rpc_server/adapters/grpc/config"
 	rpcservertype "frisboo-bank/pkg/rpc/rpc_server/contracts/enums/rpc_server_type"
 )
 
+var _ config.Validatable = (*Config)(nil)
+
 type Config struct {
+	Type                  rpcservertype.RpcServerType `mapstructure:"type"`
 	Host                  string                      `mapstructure:"host"`
 	Port                  string                      `mapstructure:"port"`
 	ServerShutdownTimeout time.Duration               `mapstructure:"serverShutdownTimeout"`
-	Type                  rpcservertype.RpcServerType `mapstructure:"type"`
-	Logger                loggerConfig.Config         `mapstructure:"logger"`
+
+	// adapters
+	GRPC *grpcConfig.Config `mapstructure:"grpc"`
+
+	// dependency
+	Logger *loggerConfig.Config `mapstructure:"logger"`
 }
 
 func (c *Config) Address() string {
@@ -28,21 +35,15 @@ func (c *Config) Address() string {
 }
 
 func Default() *Config {
-	loggerCfg := loggerConfig.Default()
-	loggerCfg.Prefix = "rpc-server"
-
 	return &Config{
 		Host:                  "0.0.0.0",
 		Port:                  "9000",
 		ServerShutdownTimeout: 30 * time.Second,
-		Logger:                *loggerCfg,
 	}
 }
 
-var defaultConfig = &Config{
-	Host:                  "0.0.0.0",
-	Port:                  "9000",
-	ServerShutdownTimeout: constants.SERVER_SHUTDOWN_TIMEOUT,
+func (c *Config) Validate() error {
+	panic("unimplemented")
 }
 
 func New(opts ...Option) (*Config, error) {

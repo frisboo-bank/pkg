@@ -1,14 +1,13 @@
 package config
 
 import (
-	"net/http"
-	"strings"
-	"time"
-
 	"frisboo-bank/pkg/config"
 	"frisboo-bank/pkg/environment"
 	"frisboo-bank/pkg/options"
 	"frisboo-bank/pkg/syserrors"
+	"net/http"
+	"strings"
+	"time"
 
 	loggerConfig "frisboo-bank/pkg/logger/config"
 
@@ -39,13 +38,11 @@ type Config struct {
 	ShutdownDrainPeriod time.Duration `mapstructure:"shutdownDrainPeriod"` // Time to keep reporting not-ready so traffic drains.
 	GlobalCheckTimeout  time.Duration `mapstructure:"globalCheckTimeout"`  // Upper bound across all dependency checks (0 = disabled).
 
-	Logger loggerConfig.Config `mapstructure:"logger"`
+	// dependency
+	Logger *loggerConfig.Config `mapstructure:"logger"`
 }
 
 func Default() *Config {
-	loggerCfg := loggerConfig.Default()
-	loggerCfg.Prefix = "health"
-
 	return &Config{
 		Enabled:             true,
 		LivenessPath:        "/healthz",
@@ -59,7 +56,6 @@ func Default() *Config {
 		StartupGracePeriod:  15 * time.Second,
 		ShutdownDrainPeriod: 5 * time.Second,
 		GlobalCheckTimeout:  5 * time.Second,
-		Logger:              *loggerCfg,
 	}
 }
 
@@ -73,14 +69,8 @@ func (c *Config) Validate() error {
 	if strings.TrimSpace(c.LivenessPath) == "" {
 		errs = multierror.Append(errs, syserrors.CantBeEmptyError("LivenessPath"))
 	}
-	if strings.HasPrefix(c.LivenessPath, "/") {
-		errs = multierror.Append(errs, syserrors.New("LivenessPath must start with /: got %q", c.LivenessPath))
-	}
 	if strings.TrimSpace(c.ReadinessPath) == "" {
 		errs = multierror.Append(errs, syserrors.CantBeEmptyError("ReadinessPath"))
-	}
-	if strings.HasPrefix(c.ReadinessPath, "/") {
-		errs = multierror.Append(errs, syserrors.New("ReadinessPath must start with /: got %q", c.ReadinessPath))
 	}
 
 	return errs.ErrorOrNil()

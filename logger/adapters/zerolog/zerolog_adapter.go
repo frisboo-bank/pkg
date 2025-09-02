@@ -2,7 +2,6 @@ package zerolog
 
 import (
 	"fmt"
-
 	"frisboo-bank/pkg/logger/config"
 	"frisboo-bank/pkg/logger/contracts"
 
