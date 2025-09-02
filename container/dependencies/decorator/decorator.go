@@ -24,8 +24,8 @@ func DecoratorFunc(constructor any, opts ...Option) Decorator {
 	}
 }
 
-func (d decorator) Constructor() any { return d.constructor }
+func (d *decorator) Constructor() any { return d.constructor }
 
-func (d decorator) Options() []Option { return d.options }
+func (d *decorator) Options() []Option { return d.options }
 
-func (d decorator) IsDependency() {}
+func (d *decorator) IsDependency() {}
