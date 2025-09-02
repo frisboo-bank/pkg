@@ -3,7 +3,6 @@ package dig
 import (
 	"context"
 	"fmt"
-	"os"
 	"reflect"
 
 	"frisboo-bank/pkg/container/config"
@@ -72,9 +71,6 @@ func (d *digAdapter) RegisterProvider(providers ...provider.Provider) error {
 		opts := toDigProvideOptions(cfg)
 
 		if err := d.dig.Provide(i.Constructor(), opts...); err != nil {
-			if verr := dig.Visualize(d.dig, os.Stdout, dig.VisualizeError(err)); verr != nil {
-				return err
-			}
 			return syserrors.Newf("failed to register provider with error: %w", err)
 		}
 	}

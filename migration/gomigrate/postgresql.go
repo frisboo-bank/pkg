@@ -65,7 +65,7 @@ type goMigratePostgresqlMigrator struct {
 // 		err = g.migrate.Down()
 // 	}
 //
-// 	if syserrors.Is(err, migrate.ErrNoChange) {
+// 	if errors.Is(err, migrate.ErrNoChange) {
 // 		return nil
 // 	}
 //

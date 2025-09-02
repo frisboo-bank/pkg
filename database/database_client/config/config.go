@@ -2,13 +2,20 @@ package config
 
 import (
 	"frisboo-bank/pkg/config"
-	configContracts "frisboo-bank/pkg/config/contracts"
+	configloaderContracts "frisboo-bank/pkg/config/config_loader/contracts"
 	databaseclienttype "frisboo-bank/pkg/database/database_client/contracts/enums/database_client_type"
 	"frisboo-bank/pkg/environment"
+	loggerConfig "frisboo-bank/pkg/logger/config"
+	"frisboo-bank/pkg/options"
+
+	"github.com/hashicorp/go-multierror"
 )
 
-type dbEnvConfig struct {
+var _ config.Validatable = (*Config)(nil)
+
+type DBClientConfig struct {
 	Type     databaseclienttype.DatabaseClientType `mapstructure:"type"`
+	Enabled  bool                                  `mapstructure:"enabled"`
 	Host     string                                `mapstructure:"host"`
 	Port     string                                `mapstructure:"port"`
 	User     string                                `mapstructure:"user"`
@@ -16,52 +23,31 @@ type dbEnvConfig struct {
 	SSLMode  bool                                  `mapstructure:"sslMode"`
 }
 
-type EnvConfig struct {
-	DB map[string]dbEnvConfig `mapstructure:"db"`
+type Config struct {
+	Instances []DBClientConfig `mapstructure:"instances"`
+
+	// dependency
+	Logger *loggerConfig.Config `mapstructure:"logger"`
 }
 
-func LoadEnvConfig(loader configloaderContracts.ConfigLoader, env environment.Environment) (*EnvConfig, error) {
-	return config.Load[EnvConfig](loader, env, "db")
+func Default() *Config {
+	return &Config{}
 }
 
-// type DatabaseClientOption = func(options *DatabaseClientOptions)
-//
-// var DefaultDatabaseClientOptions = DatabaseClientOptions{
-// 	Host:    "127.0.0.1",
-// 	SSLMode: false,
-// 	Logger:  noop.NewNoopLogger(),
-// }
-//
-// func WithOptions(partialOptions *DatabaseClientOptions) DatabaseClientOption {
-// 	return func(options *DatabaseClientOptions) {
-// 		if partialOptions.Type != "" {
-// 			options.Type = partialOptions.Type
-// 		}
-//
-// 		if partialOptions.Host != "" {
-// 			options.Host = partialOptions.Host
-// 		}
-//
-// 		if partialOptions.Port != "" {
-// 			options.Port = partialOptions.Port
-// 		}
-//
-// 		if partialOptions.User != "" {
-// 			options.User = partialOptions.User
-// 		}
-//
-// 		if partialOptions.Password != "" {
-// 			options.Password = partialOptions.Password
-// 		}
-//
-// 		if partialOptions.SSLMode {
-// 			options.SSLMode = partialOptions.SSLMode
-// 		}
-// 	}
-// }
-//
-// func WithLogger(logger loggerContracts.Logger) DatabaseClientOption {
-// 	return func(options *DatabaseClientOptions) {
-// 		options.Logger = logger
-// 	}
-// }
+func (c *Config) Validate() error {
+	var errs *multierror.Error
+
+	return errs.ErrorOrNil()
+}
+
+func New(opts ...Option) (*Config, error) {
+	return options.New(Default, opts...)
+}
+
+func Load(loader configloaderContracts.ConfigLoader, env environment.Environment, opts ...Option) (*Config, error) {
+	cfg := Default()
+	if err := loader.LoadByKey("database", env, cfg); err != nil {
+		return nil, err
+	}
+	return options.New(func() *Config { return cfg }, opts...)
+}
