@@ -18,7 +18,7 @@ func ServerFailedToStartError(err error) error {
 }
 
 func ServerFailedToStopError(err error) error {
-	return syserrors.Wrap(err, "server failed to stop with error", "HTTPServer", "Hooks", "Stop")
+	return syserrors.Wrap(err, "server failed to stop", "HTTPServer", "Hooks", "Stop")
 }
 
 func ModuleFunc() module.Module {
