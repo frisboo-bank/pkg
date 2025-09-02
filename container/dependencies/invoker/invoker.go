@@ -24,8 +24,8 @@ func InvokerFunc(constructor any, opts ...Option) Invoker {
 	}
 }
 
-func (i invoker) Constructor() any { return i.constructor }
+func (i *invoker) Constructor() any { return i.constructor }
 
-func (i invoker) Options() []Option { return i.options }
+func (i *invoker) Options() []Option { return i.options }
 
-func (i invoker) IsDependency() {}
+func (i *invoker) IsDependency() {}

@@ -24,8 +24,8 @@ func ProvideFunc(constructor any, opts ...Option) Provider {
 	}
 }
 
-func (i provider) Constructor() any { return i.constructor }
+func (i *provider) Constructor() any { return i.constructor }
 
-func (i provider) Options() []Option { return i.options }
+func (i *provider) Options() []Option { return i.options }
 
-func (i provider) IsDependency() {}
+func (i *provider) IsDependency() {}
