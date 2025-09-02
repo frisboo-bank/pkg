@@ -1,14 +1,24 @@
 package config
 
 import (
+	loggerConfig "frisboo-bank/pkg/logger/config"
+	"frisboo-bank/pkg/options"
+	grpcConfig "frisboo-bank/pkg/rpc/rpc_server/adapters/grpc/config"
+	rpcservertype "frisboo-bank/pkg/rpc/rpc_server/contracts/enums/rpc_server_type"
+	"frisboo-bank/pkg/syserrors"
 	"strings"
 	"time"
-
-	"frisboo-bank/pkg/options"
-	"frisboo-bank/pkg/syserrors"
 )
 
-type Option options.OptionFn[Config]
+type Option = options.OptionFn[Config]
+
+var Type = options.OptionErr(func(c *Config, sType rpcservertype.RpcServerType) error {
+	if sType == rpcservertype.RpcServerTypes.UNKNOWN {
+		return syserrors.UnknownEnumError("Type", rpcservertype.RpcServerTypes.All())
+	}
+	c.Type = sType
+	return nil
+})
 
 var Host = options.OptionErr(func(c *Config, host string) error {
 	host = strings.TrimSpace(host)
@@ -33,5 +43,21 @@ var ServerShutdownTimeout = options.OptionErr(func(c *Config, serverShutdownTime
 		return syserrors.MustBePositiveError("ServerShutdownTimeout", serverShutdownTimeout)
 	}
 	c.ServerShutdownTimeout = serverShutdownTimeout
+	return nil
+})
+
+var GRPC = options.OptionErr(func(c *Config, grpc *grpcConfig.Config) error {
+	if grpc == nil {
+		return syserrors.CantBeNilError("GRPC")
+	}
+	c.GRPC = grpc
+	return nil
+})
+
+var Logger = options.OptionErr(func(c *Config, logger *loggerConfig.Config) error {
+	if logger == nil {
+		return syserrors.CantBeNilError("Logger")
+	}
+	c.Logger = logger
 	return nil
 })

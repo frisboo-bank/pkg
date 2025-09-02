@@ -2,7 +2,6 @@ package logger
 
 import (
 	"frisboo-bank/pkg/logger/adapters/logrus"
-	"frisboo-bank/pkg/logger/adapters/noop"
 	"frisboo-bank/pkg/logger/adapters/zerolog"
 	"frisboo-bank/pkg/logger/config"
 	"frisboo-bank/pkg/logger/contracts"
@@ -20,8 +19,6 @@ func GetInstance(cfg *config.Config) (contracts.Logger, error) {
 	switch cfg.Type {
 	case loggertype.LoggerTypes.LOGRUS:
 		adapter = logrus.New(cfg)
-	case loggertype.LoggerTypes.NOOP:
-		adapter = noop.New(cfg)
 	case loggertype.LoggerTypes.ZEROLOG:
 		adapter = zerolog.New(cfg)
 	default:

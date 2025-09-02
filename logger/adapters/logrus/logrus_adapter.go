@@ -1,11 +1,10 @@
 package logrus
 
 import (
-	"maps"
-	"time"
-
 	"frisboo-bank/pkg/logger/config"
 	"frisboo-bank/pkg/logger/contracts"
+	"maps"
+	"time"
 
 	encodingtype "frisboo-bank/pkg/logger/contracts/enums/encoding_type"
 	loglevel "frisboo-bank/pkg/logger/contracts/enums/log_level"

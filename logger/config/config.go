@@ -1,15 +1,16 @@
 package config
 
 import (
-	"io"
-	"os"
-
 	"frisboo-bank/pkg/environment"
 	"frisboo-bank/pkg/options"
 	"frisboo-bank/pkg/syserrors"
+	"io"
+	"os"
 
 	configloaderContracts "frisboo-bank/pkg/config/config_loader/contracts"
 
+	logrusConfig "frisboo-bank/pkg/logger/adapters/logrus/Config"
+	zerologConfig "frisboo-bank/pkg/logger/adapters/zerolog/Config"
 	encodingtype "frisboo-bank/pkg/logger/contracts/enums/encoding_type"
 	loglevel "frisboo-bank/pkg/logger/contracts/enums/log_level"
 	loggertype "frisboo-bank/pkg/logger/contracts/enums/logger_type"
@@ -18,46 +19,52 @@ import (
 )
 
 type Config struct {
+	Type          loggertype.LoggerType     `mapstructure:"type"`
 	CallDepth     int                       `mapstructure:"callDepth"`
 	CallerEnabled bool                      `mapstructure:"callerEnabled"`
 	Encoding      encodingtype.EncodingType `mapstructure:"encoding"`
 	Level         loglevel.LogLevel         `mapstructure:"level"`
-	Output        io.Writer                 `mapstructure:"-"`
 	Prefix        string                    `mapstructure:"prefix"`
 	TracerEnabled bool                      `mapstructure:"tracerEnabled"`
-	Type          loggertype.LoggerType     `mapstructure:"type"`
+
+	// adapters
+	Logrus  *logrusConfig.Config  `mapstructure:"logrus"`
+	Zerolog *zerologConfig.Config `mapstructure:"zerolog"`
+
+	// dependency
+	Output io.Writer `mapstructure:"-"`
 }
 
 func Default() *Config {
 	return &Config{
+		Type:          loggertype.LoggerTypes.LOGRUS,
 		CallDepth:     0,
 		CallerEnabled: false,
 		Encoding:      encodingtype.EncodingTypes.TEXT,
 		Level:         loglevel.LogLevels.ERRORLEVEL,
-		Output:        os.Stdout,
 		Prefix:        "core",
 		TracerEnabled: false,
-		Type:          loggertype.LoggerTypes.LOGRUS,
+		Output:        os.Stdout,
 	}
 }
 
 func (c *Config) Validate() error {
 	var errs *multierror.Error
 
+	if c.Type == loggertype.LoggerTypes.UNKNOWN {
+		errs = multierror.Append(errs, syserrors.UnknownEnumError("Type", loggertype.LoggerTypes.All()))
+	}
 	if c.CallDepth < 0 {
-		errs = multierror.Append(errs, syserrors.New("CallDepth must be a positive number: get %q", c.CallDepth))
+		errs = multierror.Append(errs, syserrors.MustBePositiveError("CallDepth", c.CallDepth))
 	}
 	if c.Encoding == encodingtype.EncodingTypes.UNKNOWN {
-		errs = multierror.Append(errs, syserrors.New("Encoding is invalid"))
+		errs = multierror.Append(errs, syserrors.UnknownEnumError("Encoding", encodingtype.EncodingTypes.All()))
 	}
 	if c.Level == loglevel.LogLevels.UNKNOWNLEVEL {
-		errs = multierror.Append(errs, syserrors.New("Level is invalid"))
+		errs = multierror.Append(errs, syserrors.UnknownEnumError("Level", loglevel.LogLevels.All()))
 	}
 	if c.Output == nil {
-		errs = multierror.Append(errs, syserrors.New("Output is invalid"))
-	}
-	if c.Type == loggertype.LoggerTypes.UNKNOWN {
-		errs = multierror.Append(errs, syserrors.New("Type is invalid"))
+		errs = multierror.Append(errs, syserrors.CantBeNilError("Output"))
 	}
 
 	return errs.ErrorOrNil()

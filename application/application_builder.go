@@ -2,8 +2,6 @@ package application
 
 import (
 	"fmt"
-	"os"
-
 	"frisboo-bank/pkg/application/contracts"
 	"frisboo-bank/pkg/application/infrastructure"
 	"frisboo-bank/pkg/container"
@@ -13,6 +11,7 @@ import (
 	"frisboo-bank/pkg/environment"
 	"frisboo-bank/pkg/logger"
 	"frisboo-bank/pkg/syserrors"
+	"os"
 
 	configloader "frisboo-bank/pkg/config/config_loader"
 	configloaderConfig "frisboo-bank/pkg/config/config_loader/config"
@@ -64,7 +63,7 @@ func NewApplicationBuilder(environments ...environment.Environment) contracts.Ap
 		os.Exit(1)
 	}
 
-	containerLogger, err := logger.GetInstance(&containerCfg.Logger)
+	containerLogger, err := logger.GetInstance(containerCfg.Logger)
 	if err != nil {
 		fmt.Println(syserrors.Message(syserrors.Newf("failed to instantiate the container logger: got %w", err), []string{"application-builder"}))
 		os.Exit(1)
