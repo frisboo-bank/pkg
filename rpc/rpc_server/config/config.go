@@ -1,11 +1,12 @@
 package config
 
 import (
+	"net"
+	"time"
+
 	"frisboo-bank/pkg/config"
 	"frisboo-bank/pkg/environment"
 	"frisboo-bank/pkg/options"
-	"net"
-	"time"
 
 	loggerConfig "frisboo-bank/pkg/logger/config"
 
@@ -13,6 +14,8 @@ import (
 
 	grpcConfig "frisboo-bank/pkg/rpc/rpc_server/adapters/grpc/config"
 	rpcservertype "frisboo-bank/pkg/rpc/rpc_server/contracts/enums/rpc_server_type"
+
+	"github.com/hashicorp/go-multierror"
 )
 
 var _ config.Validatable = (*Config)(nil)
@@ -43,7 +46,9 @@ func Default() *Config {
 }
 
 func (c *Config) Validate() error {
-	panic("unimplemented")
+	var errs *multierror.Error
+
+	return errs.ErrorOrNil()
 }
 
 func New(opts ...Option) (*Config, error) {

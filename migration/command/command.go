@@ -2,13 +2,14 @@ package migration
 
 import (
 	"fmt"
-	"frisboo-bank/pkg/container/dependencies/module"
-	"frisboo-bank/pkg/database/database_client"
-	"frisboo-bank/pkg/database/migration"
-	"frisboo-bank/pkg/environment"
 	"os"
 
-	migrationcommandtype "frisboo-bank/pkg/database/migration/contracts/enums/migration_command_type"
+	"frisboo-bank/pkg/container/dependencies/module"
+	"frisboo-bank/pkg/database/database_client"
+	"frisboo-bank/pkg/environment"
+	"frisboo-bank/pkg/migration"
+
+	migrationcommandtype "frisboo-bank/pkg/migration/contracts/enums/migration_command_type"
 
 	"github.com/spf13/cobra"
 )
@@ -65,11 +66,12 @@ func (c *MigrationCommand) Execute() error {
 func executeMigration(cmd *cobra.Command, commandType migrationcommandtype.MigrationCommandType) error {
 	fmt.Println("Migration process started...")
 
-	app := module.ModuleFunc(
+	module.ModuleFunc(
 		"migration-app",
 		environment.ModuleFunc(environment.Development),
-		database_client.Module,
-		migration.Module,
+		database_client.ModuleFunc(),
+		migration.ModuleFunc(),
 	)
 
+	return nil
 }
