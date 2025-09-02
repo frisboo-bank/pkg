@@ -17,26 +17,7 @@ var Module = module.ModuleFunc(
 
 	provider.ProvideFunc(config.Load),
 
-	// provider.ProvideFunc(
-	// 	func(loggerEnvCfg *loggerConfig.EnvConfig, envCfg *config.EnvConfig) (contracts.RPCServer, error) {
-	// 		loggerOpts := loggerConfig.FromEnvConfig(loggerEnvCfg).
-	// 			With(loggerConfig.Prefix("rpc-server"))
-	//
-	// 		logger, err := logger.GetInstance(loggerEnvCfg.Type, loggerOpts)
-	// 		if err != nil {
-	// 			return nil, err
-	// 		}
-	//
-	// 		opts := config.FromEnvConfig(envCfg)
-	//
-	// 		rpcServer, err := GetInstance(envCfg.Type, logger, opts)
-	// 		if err != nil {
-	// 			return nil, err
-	// 		}
-	//
-	// 		return rpcServer, nil
-	// 	},
-	// ),
+
 	//
 	hook.HooksFunc(func(rpcServer contracts.RPCServer) waiterContracts.WaitFunc {
 		return func(ctx context.Context) error {
