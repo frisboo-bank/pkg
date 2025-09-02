@@ -17,7 +17,7 @@ func Assert(condition bool, err any, prefix ...string) {
 	case string:
 		nerr = New(err)
 	default:
-		fmt.Printf("assert err can only be an error or a string: get %q\n", err)
+		fmt.Printf("assert err can only be an error or a string: get %v\n", err)
 		os.Exit(1)
 	}
 
