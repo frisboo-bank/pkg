@@ -34,7 +34,7 @@ var ReadinessPath = options.OptionErr(func(c *Config, readinessPath string) erro
 var StatusUp = options.OptionErr(func(c *Config, statusUp string) error {
 	statusUp = strings.TrimSpace(statusUp)
 	if statusUp == "" {
-		return syserrors.New("statusUp can't be empty")
+		return syserrors.CantBeEmptyError("StatusUp")
 	}
 	c.StatusUp = statusUp
 	return nil
