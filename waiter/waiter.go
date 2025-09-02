@@ -20,8 +20,6 @@ import (
 
 var _ contracts.Waiter = (*waiter)(nil)
 
-type WaiterConfig struct{}
-
 type waiter struct {
 	cfg    *config.Config
 	logger loggerContracts.Logger
