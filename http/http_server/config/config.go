@@ -63,7 +63,7 @@ func Default() *Config {
 		BodyLimit:             "2M",
 		Debug:                 false,
 		Enabled:               true,
-		Host:                  "0.0.0.",
+		Host:                  "0.0.0.0",
 		IdleTimeout:           120 * time.Second,
 		Logger:                *loggerCfg,
 		MaxHeaderBytes:        8 * 1024,

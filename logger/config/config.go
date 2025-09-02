@@ -1,11 +1,12 @@
 package config
 
 import (
+	"io"
+	"os"
+
 	"frisboo-bank/pkg/environment"
 	"frisboo-bank/pkg/options"
 	"frisboo-bank/pkg/syserrors"
-	"io"
-	"os"
 
 	configloaderContracts "frisboo-bank/pkg/config/config_loader/contracts"
 
@@ -55,7 +56,7 @@ func (c *Config) Validate() error {
 		errs = multierror.Append(errs, syserrors.UnknownEnumError("Type", loggertype.LoggerTypes.All()))
 	}
 	if c.CallDepth < 0 {
-		errs = multierror.Append(errs, syserrors.MustBePositiveError("CallDepth", c.CallDepth))
+		errs = multierror.Append(errs, syserrors.CantBeNegativeError("CallDepth", c.CallDepth))
 	}
 	if c.Encoding == encodingtype.EncodingTypes.UNKNOWN {
 		errs = multierror.Append(errs, syserrors.UnknownEnumError("Encoding", encodingtype.EncodingTypes.All()))

@@ -33,8 +33,9 @@ type grpcRPCServerAdapter struct {
 	server   *googlerpc.Server
 }
 
-func New(cfg config.Config, logger loggerContracts.Logger) contracts.RPCServerAdapter {
-	syserrors.Assert(logger != nil, "logger can't be nil")
+func New(cfg *config.Config, logger loggerContracts.Logger) contracts.RPCServerAdapter {
+	syserrors.AssertNotNil("cfg", cfg)
+	syserrors.AssertNotNil("logger", logger)
 
 	server := googlerpc.NewServer(
 		googlerpc.StatsHandler(otelgrpc.NewServerHandler()),
