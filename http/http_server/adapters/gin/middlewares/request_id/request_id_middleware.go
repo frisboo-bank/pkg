@@ -43,7 +43,7 @@ func newRequestIDMiddleware(options *Options) gin.HandlerFunc {
 func DefaultRequestIDGenerator() string {
 	id, err := uuid.NewRandom()
 	if err != nil {
-		panic(syserrors.Newf("request-id: failed to generate id with error: %v", err))
+		panic(syserrors.Newf("request-id: failed to generate id with error: %w", err))
 	}
 
 	return id.String()
