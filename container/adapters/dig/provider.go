@@ -17,10 +17,7 @@ func ProviderFunc(cfg *containerConfig.Config, logger loggerContracts.Logger) (c
 
 	return New(
 		cfg,
-		waiter.New(waiter.WaiterConfig{
-			Cfg:    waiterCfg,
-			Logger: logger,
-		}),
+		waiter.New(waiterCfg, logger),
 		logger,
 	), nil
 }

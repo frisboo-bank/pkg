@@ -20,10 +20,7 @@ import (
 
 var _ contracts.Waiter = (*waiter)(nil)
 
-type WaiterConfig struct {
-	Cfg    *config.Config
-	Logger loggerContracts.Logger
-}
+type WaiterConfig struct{}
 
 type waiter struct {
 	cfg    *config.Config
@@ -38,18 +35,21 @@ type waiter struct {
 	waitOnce   sync.Once
 }
 
-func New(cfg WaiterConfig) contracts.Waiter {
-	syserrors.Assert(cfg.Cfg != nil, "cfg can't be nil")
-	syserrors.Assert(cfg.Logger != nil, "logger can't be nil")
+func New(
+	cfg *config.Config,
+	logger loggerContracts.Logger,
+) contracts.Waiter {
+	syserrors.AssertNotNil("cfg", cfg)
+	syserrors.AssertNotNil("logger", logger)
 
-	parentCtx := cfg.Cfg.ParentContext
+	parentCtx := cfg.ParentContext
 	if parentCtx == nil {
 		parentCtx = context.Background()
 	}
 
 	ctx, cancel := context.WithCancel(parentCtx)
 
-	if cfg.Cfg.CancelOnShutdownSignal {
+	if cfg.CancelOnShutdownSignal {
 		signalCtx, signalCancel := signal.NotifyContext(
 			ctx,
 			os.Interrupt,
@@ -69,9 +69,9 @@ func New(cfg WaiterConfig) contracts.Waiter {
 
 	return &waiter{
 		cancel: cancel,
-		cfg:    cfg.Cfg,
+		cfg:    cfg,
 		ctx:    ctx,
-		logger: cfg.Logger,
+		logger: logger,
 	}
 }
 
