@@ -35,5 +35,5 @@ func GenerateWithLength(length int) (string, error) {
 		code[i] = Charset[index.Int64()]
 	}
 
-	return fmt.Sprintf("%0*s", length, code), nil
+	return fmt.Sprintf("%0*s", length, string(code)), nil
 }
