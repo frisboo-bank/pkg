@@ -7,7 +7,7 @@ import (
 	"frisboo-bank/pkg/syserrors"
 )
 
-type Option options.OptionFn[Config]
+type Option = options.OptionFn[Config]
 
 var DB = options.OptionErr(func(c *Config, db string) error {
 	db = strings.TrimSpace(db)

@@ -1,41 +1,36 @@
 package cache
 
 import (
+	inmemory "frisboo-bank/pkg/cache/adapters/in_memory"
+	"frisboo-bank/pkg/cache/adapters/redis"
+	"frisboo-bank/pkg/cache/config"
 	"frisboo-bank/pkg/cache/contracts"
-	"frisboo-bank/pkg/cache/redis"
-	"frisboo-bank/pkg/http/http_server/config"
-	"frisboo-bank/pkg/options"
-
-	inmemory "frisboo-bank/pkg/cache/in_memory"
+	"frisboo-bank/pkg/syserrors"
 
 	cachetype "frisboo-bank/pkg/cache/contracts/enums/cache_type"
 
 	loggerContracts "frisboo-bank/pkg/logger/contracts"
 )
 
-var cError = contracts.ModuleError.WithPrefix("Factory")
+func NoCacheOfTypeError(sType cachetype.CacheType) error {
+	return syserrors.Newf("no cache of type %q exists", sType)
+}
 
 func GetInstance(
-	cType cachetype.CacheType,
+	cfg *config.Config,
 	codec contracts.DataSerializer,
 	logger loggerContracts.Logger,
-	opt *options.OptionBuilder[config.Config],
 ) (contracts.Cache, error) {
 	var adapter contracts.CacheAdapter
 
-	switch cType {
+	switch cfg.Type {
 	case cachetype.CacheTypes.IN_MEMORY:
 		adapter = inmemory.New(logger)
 	case cachetype.CacheTypes.REDIS:
-		adapter = redis.New(logger)
+		adapter = redis.New(cfg, logger)
 	default:
-		return nil, cError.Errorf("no cache of type `%q` exists", cType)
+		return nil, NoCacheOfTypeError(cfg.Type)
 	}
 
-	cache, err := New(adapter, logger, opt)
-	if err != nil {
-		return nil, err
-	}
-
-	return cache, nil
+	return New(adapter), nil
 }

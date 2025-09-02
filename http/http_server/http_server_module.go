@@ -41,7 +41,11 @@ func httpServerHookStart(httpServer contracts.HTTPServer) waiterContracts.WaitFu
 			err = httpServer.Start(ctx)
 		}()
 
-		return ServerFailedToStartError(err)
+		if err != nil {
+			return ServerFailedToStartError(err)
+		}
+
+		return nil
 	}
 }
 
