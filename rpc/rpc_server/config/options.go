@@ -15,8 +15,7 @@ import (
 type Option = options.OptionFn[Config]
 
 var Type = options.OptionErr(func(c *Config, sType rpcservertype.RpcServerType) error {
-	if err := validation.EnumOneOf("Type", sType, rpcservertype.RpcServerTypes); err != nil {
-		return nil
+		return err
 	}
 	c.Type = sType
 	return nil
