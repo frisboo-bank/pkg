@@ -4,7 +4,7 @@ import (
 	"context"
 
 	loggerContracts "frisboo-bank/pkg/logger/contracts"
-	rpcservertype "frisboo-bank/pkg/rpc/rpc_server/contracts/enums/rpc_server_type"
+	rpcservertype "frisboo-bank/pkg/rpc/rpc_server/enums/rpc_server_type"
 )
 
 type (

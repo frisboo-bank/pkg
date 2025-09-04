@@ -4,17 +4,15 @@ import (
 	"io"
 	"os"
 
-	"frisboo-bank/pkg/environment"
-	"frisboo-bank/pkg/options"
-	"frisboo-bank/pkg/syserrors"
-
 	configloaderContracts "frisboo-bank/pkg/config/config_loader/contracts"
-
-	logrusConfig "frisboo-bank/pkg/logger/adapters/logrus/Config"
-	zerologConfig "frisboo-bank/pkg/logger/adapters/zerolog/Config"
-	encodingtype "frisboo-bank/pkg/logger/contracts/enums/encoding_type"
-	loglevel "frisboo-bank/pkg/logger/contracts/enums/log_level"
-	loggertype "frisboo-bank/pkg/logger/contracts/enums/logger_type"
+	"frisboo-bank/pkg/environment"
+	logrusConfig "frisboo-bank/pkg/logger/adapters/logrus/config"
+	zerologConfig "frisboo-bank/pkg/logger/adapters/zerolog/config"
+	encodingtype "frisboo-bank/pkg/logger/enums/encoding_type"
+	loglevel "frisboo-bank/pkg/logger/enums/log_level"
+	loggertype "frisboo-bank/pkg/logger/enums/logger_type"
+	"frisboo-bank/pkg/options"
+	"frisboo-bank/pkg/validation"
 
 	"github.com/hashicorp/go-multierror"
 )
@@ -28,7 +26,7 @@ type Config struct {
 	Prefix        string                    `mapstructure:"prefix"`
 	TracerEnabled bool                      `mapstructure:"tracerEnabled"`
 
-	// adapters
+	// adapter
 	Logrus  *logrusConfig.Config  `mapstructure:"logrus"`
 	Zerolog *zerologConfig.Config `mapstructure:"zerolog"`
 
@@ -52,21 +50,13 @@ func Default() *Config {
 func (c *Config) Validate() error {
 	var errs *multierror.Error
 
-	if c.Type == loggertype.LoggerTypes.UNKNOWN {
-		errs = multierror.Append(errs, syserrors.UnknownEnumError("Type", loggertype.LoggerTypes.All()))
-	}
-	if c.CallDepth < 0 {
-		errs = multierror.Append(errs, syserrors.CantBeNegativeError("CallDepth", c.CallDepth))
-	}
-	if c.Encoding == encodingtype.EncodingTypes.UNKNOWN {
-		errs = multierror.Append(errs, syserrors.UnknownEnumError("Encoding", encodingtype.EncodingTypes.All()))
-	}
-	if c.Level == loglevel.LogLevels.UNKNOWNLEVEL {
-		errs = multierror.Append(errs, syserrors.UnknownEnumError("Level", loglevel.LogLevels.All()))
-	}
-	if c.Output == nil {
-		errs = multierror.Append(errs, syserrors.CantBeNilError("Output"))
-	}
+	errs = multierror.Append(errs,
+		validation.EnumOneOf("Type", c.Type, loggertype.LoggerTypes),
+		validation.EnumOneOf("Encoding", c.Encoding, encodingtype.EncodingTypes),
+		validation.EnumOneOf("Level", c.Level, loglevel.LogLevels),
+		validation.NonNegative("CallDepth", c.CallDepth),
+		validation.NotNil("Output", c.Output),
+	)
 
 	return errs.ErrorOrNil()
 }

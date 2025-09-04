@@ -5,9 +5,8 @@ import (
 	"frisboo-bank/pkg/logger/adapters/zerolog"
 	"frisboo-bank/pkg/logger/config"
 	"frisboo-bank/pkg/logger/contracts"
+	loggertype "frisboo-bank/pkg/logger/enums/logger_type"
 	"frisboo-bank/pkg/syserrors"
-
-	loggertype "frisboo-bank/pkg/logger/contracts/enums/logger_type"
 )
 
 func NoContainerOfTypeError(sType loggertype.LoggerType) error {
@@ -16,6 +15,7 @@ func NoContainerOfTypeError(sType loggertype.LoggerType) error {
 
 func GetInstance(cfg *config.Config) (contracts.Logger, error) {
 	var adapter contracts.LoggerAdapter
+
 	switch cfg.Type {
 	case loggertype.LoggerTypes.LOGRUS:
 		adapter = logrus.New(cfg)

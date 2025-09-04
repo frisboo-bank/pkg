@@ -4,13 +4,11 @@ import (
 	"strings"
 
 	"frisboo-bank/pkg/config"
+	configloaderContracts "frisboo-bank/pkg/config/config_loader/contracts"
 	"frisboo-bank/pkg/environment"
+	loggerConfig "frisboo-bank/pkg/logger/config"
 	"frisboo-bank/pkg/options"
 	"frisboo-bank/pkg/syserrors"
-
-	configloaderContracts "frisboo-bank/pkg/config/config_loader/contracts"
-
-	loggerConfig "frisboo-bank/pkg/logger/config"
 
 	"github.com/hashicorp/go-multierror"
 )

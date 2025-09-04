@@ -32,7 +32,10 @@ func (r *routeBuilder) RegisterGroup(groupName string) contracts.RouteBuilder {
 	return r
 }
 
-func (r *routeBuilder) RegisterGroupFunc(groupName string, builder func(group contracts.RouteGroup)) contracts.RouteBuilder {
+func (r *routeBuilder) RegisterGroupFunc(
+	groupName string,
+	builder func(group contracts.RouteGroup),
+) contracts.RouteBuilder {
 	r.RegisterGroup(groupName)
 	builder(r.groups[groupName])
 

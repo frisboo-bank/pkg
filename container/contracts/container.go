@@ -8,8 +8,7 @@ import (
 	"frisboo-bank/pkg/container/dependencies/invoker"
 	"frisboo-bank/pkg/container/dependencies/module"
 	"frisboo-bank/pkg/container/dependencies/provider"
-
-	containertype "frisboo-bank/pkg/container/contracts/enums/container_type"
+	containertype "frisboo-bank/pkg/container/enums/container_type"
 )
 
 type Container interface {

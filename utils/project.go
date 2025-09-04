@@ -1,10 +1,11 @@
 package utils
 
 import (
-	"frisboo-bank/pkg/syserrors"
 	"os"
 	"path/filepath"
 	"strings"
+
+	"frisboo-bank/pkg/syserrors"
 )
 
 var (

@@ -1,20 +1,22 @@
 package config
 
 import (
+	"strings"
+	"time"
+
 	loggerConfig "frisboo-bank/pkg/logger/config"
 	"frisboo-bank/pkg/options"
 	grpcConfig "frisboo-bank/pkg/rpc/rpc_server/adapters/grpc/config"
-	rpcservertype "frisboo-bank/pkg/rpc/rpc_server/contracts/enums/rpc_server_type"
+	rpcservertype "frisboo-bank/pkg/rpc/rpc_server/enums/rpc_server_type"
 	"frisboo-bank/pkg/syserrors"
-	"strings"
-	"time"
+	"frisboo-bank/pkg/validation"
 )
 
 type Option = options.OptionFn[Config]
 
 var Type = options.OptionErr(func(c *Config, sType rpcservertype.RpcServerType) error {
-	if sType == rpcservertype.RpcServerTypes.UNKNOWN {
-		return syserrors.UnknownEnumError("Type", rpcservertype.RpcServerTypes.All())
+	if err := validation.EnumOneOf("Type", sType, rpcservertype.RpcServerTypes); err != nil {
+		return err
 	}
 	c.Type = sType
 	return nil

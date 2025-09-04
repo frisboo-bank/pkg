@@ -1,9 +1,10 @@
 package httperrorresponse
 
 import (
-	"frisboo-bank/pkg/syserrors"
 	"maps"
 	"net/http"
+
+	"frisboo-bank/pkg/syserrors"
 )
 
 const (

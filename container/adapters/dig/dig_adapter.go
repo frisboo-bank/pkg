@@ -11,13 +11,11 @@ import (
 	"frisboo-bank/pkg/container/dependencies/hook"
 	"frisboo-bank/pkg/container/dependencies/invoker"
 	"frisboo-bank/pkg/container/dependencies/provider"
+	containertype "frisboo-bank/pkg/container/enums/container_type"
+	loggerContracts "frisboo-bank/pkg/logger/contracts"
 	"frisboo-bank/pkg/options"
 	"frisboo-bank/pkg/syserrors"
-
-	containertype "frisboo-bank/pkg/container/contracts/enums/container_type"
-
-	loggerContracts "frisboo-bank/pkg/logger/contracts"
-
+	"frisboo-bank/pkg/validation"
 	waiterContracts "frisboo-bank/pkg/waiter/contracts"
 
 	"go.uber.org/dig"
@@ -50,9 +48,9 @@ func New(
 	waiter waiterContracts.Waiter,
 	logger loggerContracts.Logger,
 ) contracts.ContainerAdapter {
-	syserrors.AssertNotNil("cfg", cfg)
-	syserrors.AssertNotNil("waiter", waiter)
-	syserrors.AssertNotNil("logger", logger)
+	validation.AssertNotNil("cfg", cfg)
+	validation.AssertNotNil("waiter", waiter)
+	validation.AssertNotNil("logger", logger)
 
 	return &digAdapter{
 		cfg:    cfg,

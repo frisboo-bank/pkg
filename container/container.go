@@ -6,9 +6,9 @@ import (
 
 	"frisboo-bank/pkg/container/contracts"
 	"frisboo-bank/pkg/container/dependencies/module"
+	containertype "frisboo-bank/pkg/container/enums/container_type"
 	"frisboo-bank/pkg/syserrors"
-
-	containertype "frisboo-bank/pkg/container/contracts/enums/container_type"
+	"frisboo-bank/pkg/validation"
 )
 
 var _ contracts.Container = (*container)(nil)
@@ -20,7 +20,7 @@ type container struct {
 }
 
 func New(adapter contracts.ContainerAdapter) contracts.Container {
-	syserrors.Assert(adapter != nil, "container: your must set the adapter")
+	validation.Assert(adapter != nil, "container: your must set the adapter")
 
 	return &container{
 		adapter: adapter,
@@ -61,7 +61,7 @@ func (c *container) RegisterModule(modules ...module.Module) error {
 }
 
 func (c *container) Start(ctx context.Context) (err error) {
-	syserrors.Assert(ctx != nil, "container: your must set the context")
+	validation.Assert(ctx != nil, "container: your must set the context")
 
 	c.mu.Lock()
 	defer c.mu.Unlock()
@@ -80,7 +80,7 @@ func (c *container) Start(ctx context.Context) (err error) {
 }
 
 func (c *container) Stop(ctx context.Context) error {
-	syserrors.Assert(ctx != nil, "container: your must set the context")
+	validation.Assert(ctx != nil, "container: your must set the context")
 
 	c.mu.Lock()
 	defer c.mu.Unlock()

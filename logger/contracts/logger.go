@@ -1,8 +1,8 @@
 package contracts
 
 import (
-	loglevel "frisboo-bank/pkg/logger/contracts/enums/log_level"
-	loggertype "frisboo-bank/pkg/logger/contracts/enums/logger_type"
+	loglevel "frisboo-bank/pkg/logger/enums/log_level"
+	loggertype "frisboo-bank/pkg/logger/enums/logger_type"
 )
 
 type (

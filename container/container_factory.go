@@ -4,7 +4,7 @@ import (
 	"frisboo-bank/pkg/container/adapters/dig"
 	"frisboo-bank/pkg/container/config"
 	"frisboo-bank/pkg/container/contracts"
-	containertype "frisboo-bank/pkg/container/contracts/enums/container_type"
+	containertype "frisboo-bank/pkg/container/enums/container_type"
 	loggerContracts "frisboo-bank/pkg/logger/contracts"
 	"frisboo-bank/pkg/syserrors"
 )

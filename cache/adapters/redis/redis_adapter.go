@@ -6,10 +6,9 @@ import (
 
 	"frisboo-bank/pkg/cache/config"
 	"frisboo-bank/pkg/cache/contracts"
-	"frisboo-bank/pkg/syserrors"
-
-	cachetype "frisboo-bank/pkg/cache/contracts/enums/cache_type"
+	cachetype "frisboo-bank/pkg/cache/enums/cache_type"
 	loggerContracts "frisboo-bank/pkg/logger/contracts"
+	"frisboo-bank/pkg/validation"
 
 	"github.com/redis/go-redis/v9"
 )
@@ -24,8 +23,8 @@ type redisClientAdapter struct {
 }
 
 func New(cfg *config.Config, logger loggerContracts.Logger) contracts.CacheAdapter {
-	syserrors.AssertNotNil("cfg", cfg)
-	syserrors.AssertNotNil("logger", logger)
+	validation.AssertNotNil("cfg", cfg)
+	validation.AssertNotNil("logger", logger)
 
 	return &redisClientAdapter{
 		logger: logger,

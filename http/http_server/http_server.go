@@ -4,10 +4,9 @@ import (
 	"context"
 
 	"frisboo-bank/pkg/http/http_server/contracts"
-	"frisboo-bank/pkg/syserrors"
-
-	httpservertype "frisboo-bank/pkg/http/http_server/contracts/enums/http_server_type"
+	httpservertype "frisboo-bank/pkg/http/http_server/enums/http_server_type"
 	loggerContracts "frisboo-bank/pkg/logger/contracts"
+	"frisboo-bank/pkg/validation"
 )
 
 var _ contracts.HTTPServer = (*httpServer)(nil)
@@ -17,7 +16,8 @@ type httpServer struct {
 }
 
 func New(adapter contracts.HTTPServerAdapter) contracts.HTTPServer {
-	syserrors.Assert(adapter != nil, "adapter can't be nil")
+	validation.AssertNotNil("adapter", adapter)
+
 	return &httpServer{adapter}
 }
 
@@ -33,8 +33,12 @@ func (h *httpServer) Start(ctx context.Context) error {
 	return h.adapter.Start(ctx)
 }
 
-func (h *httpServer) Shutdown(ctx context.Context) error {
-	return h.adapter.Shutdown(ctx)
+func (h *httpServer) Stop(ctx context.Context) error {
+	return h.adapter.Stop(ctx)
+}
+
+func (h *httpServer) ListRoutes() []any {
+	return h.adapter.ListRoutes()
 }
 
 func (h *httpServer) Type() httpservertype.HttpServerType {

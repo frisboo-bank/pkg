@@ -1,10 +1,9 @@
 package config
 
 import (
+	configloaderContracts "frisboo-bank/pkg/config/config_loader/contracts"
 	"frisboo-bank/pkg/environment"
 	"frisboo-bank/pkg/options"
-
-	configloaderContracts "frisboo-bank/pkg/config/config_loader/contracts"
 )
 
 type Config struct {

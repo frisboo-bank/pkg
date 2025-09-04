@@ -1,9 +1,10 @@
 package httperrorresponse
 
 import (
-	"frisboo-bank/pkg/syserrors"
 	"net/http"
 	"testing"
+
+	"frisboo-bank/pkg/syserrors"
 
 	"github.com/stretchr/testify/assert"
 )

@@ -5,7 +5,6 @@ import (
 
 	"frisboo-bank/pkg/container/dependencies/hook"
 	"frisboo-bank/pkg/container/dependencies/invoker"
-
 	loggerContracts "frisboo-bank/pkg/logger/contracts"
 )
 

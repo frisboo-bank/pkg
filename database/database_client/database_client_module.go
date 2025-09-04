@@ -1,4 +1,4 @@
-package database_client
+package databaseclient
 
 import (
 	"frisboo-bank/pkg/container/dependencies/module"

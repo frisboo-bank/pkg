@@ -1,19 +1,17 @@
 package config
 
 import (
-	"frisboo-bank/pkg/config"
-	"frisboo-bank/pkg/environment"
-	"frisboo-bank/pkg/options"
-	"frisboo-bank/pkg/syserrors"
 	"net/http"
 	"strings"
 	"time"
 
-	loggerConfig "frisboo-bank/pkg/logger/config"
-
+	"frisboo-bank/pkg/config"
 	configloaderContracts "frisboo-bank/pkg/config/config_loader/contracts"
-
-	responseformat "frisboo-bank/pkg/health/contracts/enums/response_format"
+	"frisboo-bank/pkg/environment"
+	responseformat "frisboo-bank/pkg/health/enums/response_format"
+	loggerConfig "frisboo-bank/pkg/logger/config"
+	"frisboo-bank/pkg/options"
+	"frisboo-bank/pkg/syserrors"
 
 	"github.com/hashicorp/go-multierror"
 )

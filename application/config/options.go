@@ -3,10 +3,9 @@ package config
 import (
 	"strings"
 
+	loggerConfig "frisboo-bank/pkg/logger/config"
 	"frisboo-bank/pkg/options"
 	"frisboo-bank/pkg/syserrors"
-
-	loggerConfig "frisboo-bank/pkg/logger/config"
 )
 
 type Option = options.OptionFn[Config]
