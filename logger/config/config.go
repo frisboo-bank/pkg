@@ -4,17 +4,15 @@ import (
 	"io"
 	"os"
 
-	"frisboo-bank/pkg/environment"
-	"frisboo-bank/pkg/options"
-	"frisboo-bank/pkg/validation"
-
 	configloaderContracts "frisboo-bank/pkg/config/config_loader/contracts"
-
+	"frisboo-bank/pkg/environment"
 	logrusConfig "frisboo-bank/pkg/logger/adapters/logrus/config"
 	zerologConfig "frisboo-bank/pkg/logger/adapters/zerolog/config"
 	encodingtype "frisboo-bank/pkg/logger/enums/encoding_type"
 	loglevel "frisboo-bank/pkg/logger/enums/log_level"
 	loggertype "frisboo-bank/pkg/logger/enums/logger_type"
+	"frisboo-bank/pkg/options"
+	"frisboo-bank/pkg/validation"
 
 	"github.com/hashicorp/go-multierror"
 )

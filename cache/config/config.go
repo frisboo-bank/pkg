@@ -1,7 +1,6 @@
 package config
 
 import (
-	inMemoryConfig "frisboo-bank/pkg/cache/adapters/in_memory/config"
 	redisConfig "frisboo-bank/pkg/cache/adapters/redis/config"
 	cachetype "frisboo-bank/pkg/cache/enums/cache_type"
 	"frisboo-bank/pkg/config"
@@ -9,7 +8,7 @@ import (
 	"frisboo-bank/pkg/environment"
 	loggerConfig "frisboo-bank/pkg/logger/config"
 	"frisboo-bank/pkg/options"
-	"frisboo-bank/pkg/syserrors"
+	"frisboo-bank/pkg/validation"
 
 	"github.com/hashicorp/go-multierror"
 )
@@ -17,40 +16,34 @@ import (
 var _ config.Validatable = (*Config)(nil)
 
 type Config struct {
-	Debug    bool                  `mapstructure:"debug"`
-	InMemory inMemoryConfig.Config `mapstructure:"inMemory"`
-	Logger   loggerConfig.Config   `mapstructure:"logger"`
-	Redis    redisConfig.Config    `mapstructure:"redis"`
-	Type     cachetype.CacheType   `mapstructure:"type"`
+	Type  cachetype.CacheType `mapstructure:"type"`
+	Debug bool                `mapstructure:"debug"`
+
+	// adapter
+	Redis redisConfig.Config `mapstructure:"redis"`
+
+	// dependency
+	Logger loggerConfig.Config `mapstructure:"logger"`
 }
 
 func Default() *Config {
-	loggerCfg := loggerConfig.Default()
-	loggerCfg.Prefix = "container"
-
 	return &Config{
-		Debug:    false,
-		InMemory: *inMemoryConfig.Default(),
-		Logger:   *loggerCfg,
-		Redis:    *redisConfig.Default(),
+		Debug: false,
 	}
 }
 
 func (c *Config) Validate() error {
 	var errs *multierror.Error
 
-	if c.Type == cachetype.CacheTypes.UNKNOWN {
-		errs = multierror.Append(errs, syserrors.UnknownEnumError("Type", cachetype.CacheTypes.All()))
-	}
-
 	switch c.Type {
-	case cachetype.CacheTypes.IN_MEMORY:
-		errs = multierror.Append(errs, c.InMemory.Validate())
 	case cachetype.CacheTypes.REDIS:
 		errs = multierror.Append(errs, c.Redis.Validate())
 	}
 
-	errs = multierror.Append(errs, c.Logger.Validate())
+	errs = multierror.Append(errs,
+		validation.NotNil("Logger", c.Logger),
+		c.Logger.Validate(),
+	)
 
 	return errs.ErrorOrNil()
 }

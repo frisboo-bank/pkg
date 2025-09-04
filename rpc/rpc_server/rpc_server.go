@@ -2,12 +2,11 @@ package rpcserver
 
 import (
 	"context"
-	"frisboo-bank/pkg/rpc/rpc_server/contracts"
-	"frisboo-bank/pkg/validation"
 
 	loggerContracts "frisboo-bank/pkg/logger/contracts"
-
+	"frisboo-bank/pkg/rpc/rpc_server/contracts"
 	rpcservertype "frisboo-bank/pkg/rpc/rpc_server/enums/rpc_server_type"
+	"frisboo-bank/pkg/validation"
 )
 
 var _ contracts.RPCServer = (*rpcServer)(nil)

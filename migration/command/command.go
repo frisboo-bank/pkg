@@ -5,7 +5,7 @@ import (
 	"os"
 
 	"frisboo-bank/pkg/container/dependencies/module"
-	"frisboo-bank/pkg/database/database_client"
+	databaseclient "frisboo-bank/pkg/database/database_client"
 	"frisboo-bank/pkg/environment"
 	"frisboo-bank/pkg/migration"
 	migrationcommandtype "frisboo-bank/pkg/migration/enums/migration_command_type"
@@ -68,7 +68,7 @@ func executeMigration(cmd *cobra.Command, commandType migrationcommandtype.Migra
 	module.ModuleFunc(
 		"migration-app",
 		environment.ModuleFunc(environment.Development),
-		database_client.ModuleFunc(),
+		databaseclient.ModuleFunc(),
 		migration.ModuleFunc(),
 	)
 

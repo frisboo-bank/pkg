@@ -2,33 +2,28 @@ package application
 
 import (
 	"fmt"
-	"frisboo-bank/pkg/application/contracts"
-	"frisboo-bank/pkg/application/infrastructure"
-	"frisboo-bank/pkg/container"
-	"frisboo-bank/pkg/container/dependencies/decorator"
-	"frisboo-bank/pkg/container/dependencies/module"
-	"frisboo-bank/pkg/container/dependencies/provider"
-	"frisboo-bank/pkg/environment"
-	"frisboo-bank/pkg/logger"
-	"frisboo-bank/pkg/syserrors"
 	"os"
 
 	appConfig "frisboo-bank/pkg/application/config"
-
+	"frisboo-bank/pkg/application/contracts"
+	"frisboo-bank/pkg/application/infrastructure"
 	configloader "frisboo-bank/pkg/config/config_loader"
 	configloaderConfig "frisboo-bank/pkg/config/config_loader/config"
 	configloaderContracts "frisboo-bank/pkg/config/config_loader/contracts"
-
+	"frisboo-bank/pkg/container"
 	containerConfig "frisboo-bank/pkg/container/config"
 	containerContracts "frisboo-bank/pkg/container/contracts"
-
+	"frisboo-bank/pkg/container/dependencies/decorator"
+	"frisboo-bank/pkg/container/dependencies/module"
+	"frisboo-bank/pkg/container/dependencies/provider"
 	containerEnums "frisboo-bank/pkg/container/enums"
-
+	"frisboo-bank/pkg/environment"
 	httpServerEnums "frisboo-bank/pkg/http/http_server/enums"
-
+	"frisboo-bank/pkg/logger"
 	loggerContracts "frisboo-bank/pkg/logger/contracts"
 	loggerEnums "frisboo-bank/pkg/logger/enums"
 	rpcServerEnums "frisboo-bank/pkg/rpc/rpc_server/enums"
+	"frisboo-bank/pkg/syserrors"
 
 	"github.com/hashicorp/go-multierror"
 )
