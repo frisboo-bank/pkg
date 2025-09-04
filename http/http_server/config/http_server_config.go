@@ -76,9 +76,10 @@ func (c *HTTPServerConfig) Validate() error {
 	}
 	if c.Logger == nil {
 		errs = multierror.Append(errs, syserrors.CantBeNilError("Logger"))
-	}
-	if err := c.Logger.Validate(); err != nil {
-		errs = multierror.Append(errs, syserrors.Wrap(err, "logger"))
+	} else {
+		if err := c.Logger.Validate(); err != nil {
+		  errs = multierror.Append(errs, syserrors.Wrap(err, "logger"))
+		}
 	}
 
 	return errs.ErrorOrNil()
