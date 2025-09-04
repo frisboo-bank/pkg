@@ -2,9 +2,10 @@ package environment
 
 import (
 	"fmt"
+	"strings"
+
 	"frisboo-bank/pkg/constants"
 	"frisboo-bank/pkg/syserrors"
-	"strings"
 
 	"github.com/joho/godotenv"
 	"github.com/spf13/viper"

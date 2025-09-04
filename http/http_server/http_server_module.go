@@ -51,7 +51,7 @@ func httpServerHookStart(httpServer contracts.HTTPServer) waiterContracts.WaitFu
 
 func httpServerHookStop(httpServer contracts.HTTPServer) waiterContracts.CleanupFunc {
 	return func(ctx context.Context) error {
-		if err := httpServer.Shutdown(ctx); err != nil {
+		if err := httpServer.Stop(ctx); err != nil {
 			return ServerFailedToStopError(err)
 		}
 

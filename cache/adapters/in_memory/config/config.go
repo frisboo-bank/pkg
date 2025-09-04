@@ -1,11 +1,11 @@
 package config
 
 import (
-	"frisboo-bank/pkg/config"
-	"frisboo-bank/pkg/syserrors"
 	"time"
 
-	cleanuppolicy "frisboo-bank/pkg/cache/contracts/enums/cleanup_policy"
+	cleanuppolicy "frisboo-bank/pkg/cache/enums/cleanup_policy"
+	"frisboo-bank/pkg/config"
+	"frisboo-bank/pkg/syserrors"
 
 	"github.com/hashicorp/go-multierror"
 )
@@ -57,7 +57,10 @@ func (c *Config) Validate() error {
 		errs = multierror.Append(errs, syserrors.CantBeNegativeError("MaxMemoryBytes", c.MaxMemoryBytes))
 	}
 	if c.MaxMemoryBytesPerValue < 0 {
-		errs = multierror.Append(errs, syserrors.CantBeNegativeError("MaxMemoryBytesPerValue", c.MaxMemoryBytesPerValue))
+		errs = multierror.Append(
+			errs,
+			syserrors.CantBeNegativeError("MaxMemoryBytesPerValue", c.MaxMemoryBytesPerValue),
+		)
 	}
 	if c.SoftTTL < 0 {
 		errs = multierror.Append(errs, syserrors.CantBeNegativeError("SoftTTL", c.SoftTTL))

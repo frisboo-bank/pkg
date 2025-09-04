@@ -13,20 +13,22 @@ import (
 	"frisboo-bank/pkg/syserrors"
 	"os"
 
+	appConfig "frisboo-bank/pkg/application/config"
+
 	configloader "frisboo-bank/pkg/config/config_loader"
 	configloaderConfig "frisboo-bank/pkg/config/config_loader/config"
 	configloaderContracts "frisboo-bank/pkg/config/config_loader/contracts"
 
 	containerConfig "frisboo-bank/pkg/container/config"
 	containerContracts "frisboo-bank/pkg/container/contracts"
-	containerEnums "frisboo-bank/pkg/container/contracts/enums"
 
-	httpServerEnums "frisboo-bank/pkg/http/http_server/contracts/enums"
+	containerEnums "frisboo-bank/pkg/container/enums"
 
-	appConfig "frisboo-bank/pkg/application/config"
+	httpServerEnums "frisboo-bank/pkg/http/http_server/enums"
+
 	loggerContracts "frisboo-bank/pkg/logger/contracts"
-	loggerEnums "frisboo-bank/pkg/logger/contracts/enums"
-	rpcServerEnums "frisboo-bank/pkg/rpc/rpc_server/contracts/enums"
+	loggerEnums "frisboo-bank/pkg/logger/enums"
+	rpcServerEnums "frisboo-bank/pkg/rpc/rpc_server/enums"
 
 	"github.com/hashicorp/go-multierror"
 )
@@ -47,31 +49,53 @@ func NewApplicationBuilder(environments ...environment.Environment) contracts.Ap
 
 	configLoader, err := getConfigLoader()
 	if err != nil {
-		fmt.Println(syserrors.Message(syserrors.Newf("failed to instantiate the config loader: got %w", err), []string{"application-builder"}))
+		fmt.Println(
+			syserrors.Message(
+				syserrors.Newf("failed to instantiate the config loader: got %w", err),
+				[]string{"application-builder"},
+			),
+		)
 		os.Exit(1)
 	}
 
 	appCfg, containerCfg, err := loadConfigs(configLoader, env)
 	if err != nil {
-		fmt.Println(syserrors.Message(syserrors.Newf("failed to load options: got %w", err), []string{"application-builder"}))
+		fmt.Println(
+			syserrors.Message(syserrors.Newf("failed to load options: got %w", err), []string{"application-builder"}),
+		)
 		os.Exit(1)
 	}
 
 	appLogger, err := logger.GetInstance(&appCfg.Logger)
 	if err != nil {
-		fmt.Println(syserrors.Message(syserrors.Newf("failed to instantiate the app logger: got %w", err), []string{"application-builder"}))
+		fmt.Println(
+			syserrors.Message(
+				syserrors.Newf("failed to instantiate the app logger: got %w", err),
+				[]string{"application-builder"},
+			),
+		)
 		os.Exit(1)
 	}
 
 	containerLogger, err := logger.GetInstance(containerCfg.Logger)
 	if err != nil {
-		fmt.Println(syserrors.Message(syserrors.Newf("failed to instantiate the container logger: got %w", err), []string{"application-builder"}))
+		fmt.Println(
+			syserrors.Message(
+				syserrors.Newf("failed to instantiate the container logger: got %w", err),
+				[]string{"application-builder"},
+			),
+		)
 		os.Exit(1)
 	}
 
 	diContainer, err := container.GetInstance(containerCfg, containerLogger)
 	if err != nil {
-		fmt.Println(syserrors.Message(syserrors.Newf("failed to instantiate the container: got %w", err), []string{"application-builder"}))
+		fmt.Println(
+			syserrors.Message(
+				syserrors.Newf("failed to instantiate the container: got %w", err),
+				[]string{"application-builder"},
+			),
+		)
 		os.Exit(1)
 	}
 

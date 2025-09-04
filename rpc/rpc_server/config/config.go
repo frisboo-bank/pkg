@@ -5,15 +5,12 @@ import (
 	"time"
 
 	"frisboo-bank/pkg/config"
-	"frisboo-bank/pkg/environment"
-	"frisboo-bank/pkg/options"
-
-	loggerConfig "frisboo-bank/pkg/logger/config"
-
 	configloaderContracts "frisboo-bank/pkg/config/config_loader/contracts"
-
+	"frisboo-bank/pkg/environment"
+	loggerConfig "frisboo-bank/pkg/logger/config"
+	"frisboo-bank/pkg/options"
 	grpcConfig "frisboo-bank/pkg/rpc/rpc_server/adapters/grpc/config"
-	rpcservertype "frisboo-bank/pkg/rpc/rpc_server/contracts/enums/rpc_server_type"
+	rpcservertype "frisboo-bank/pkg/rpc/rpc_server/enums/rpc_server_type"
 
 	"github.com/hashicorp/go-multierror"
 )

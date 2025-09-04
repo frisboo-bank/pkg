@@ -12,6 +12,7 @@ import (
 	"frisboo-bank/pkg/environment"
 	"frisboo-bank/pkg/syserrors"
 	"frisboo-bank/pkg/utils"
+	"frisboo-bank/pkg/validation"
 
 	"github.com/go-viper/mapstructure/v2"
 	"github.com/spf13/viper"
@@ -23,7 +24,7 @@ type configLoader struct {
 }
 
 func New(cfg *config.Config) contracts.ConfigLoader {
-	syserrors.Assert(cfg != nil, syserrors.CantBeNilError("cfg"))
+	validation.Assert(cfg != nil, syserrors.CantBeNilError("cfg"))
 
 	vi := cfg.Viper
 	if vi == nil {

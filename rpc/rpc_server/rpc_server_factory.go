@@ -4,9 +4,8 @@ import (
 	"frisboo-bank/pkg/rpc/rpc_server/adapters/grpc"
 	"frisboo-bank/pkg/rpc/rpc_server/config"
 	"frisboo-bank/pkg/rpc/rpc_server/contracts"
+	rpcservertype "frisboo-bank/pkg/rpc/rpc_server/enums/rpc_server_type"
 	"frisboo-bank/pkg/syserrors"
-
-	rpcservertype "frisboo-bank/pkg/rpc/rpc_server/contracts/enums/rpc_server_type"
 )
 
 func NoServerOfTypeError(sType rpcservertype.RpcServerType) error {

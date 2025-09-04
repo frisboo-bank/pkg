@@ -9,11 +9,11 @@ import (
 	"sync"
 	"syscall"
 
+	loggerContracts "frisboo-bank/pkg/logger/contracts"
 	"frisboo-bank/pkg/syserrors"
+	"frisboo-bank/pkg/validation"
 	"frisboo-bank/pkg/waiter/config"
 	"frisboo-bank/pkg/waiter/contracts"
-
-	loggerContracts "frisboo-bank/pkg/logger/contracts"
 
 	"golang.org/x/sync/errgroup"
 )
@@ -37,8 +37,8 @@ func New(
 	cfg *config.Config,
 	logger loggerContracts.Logger,
 ) contracts.Waiter {
-	syserrors.AssertNotNil("cfg", cfg)
-	syserrors.AssertNotNil("logger", logger)
+	validation.AssertNotNil("cfg", cfg)
+	validation.AssertNotNil("logger", logger)
 
 	parentCtx := cfg.ParentContext
 	if parentCtx == nil {

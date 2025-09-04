@@ -2,13 +2,12 @@ package rpcserver
 
 import (
 	"context"
-
 	"frisboo-bank/pkg/rpc/rpc_server/contracts"
-	"frisboo-bank/pkg/syserrors"
+	"frisboo-bank/pkg/validation"
 
 	loggerContracts "frisboo-bank/pkg/logger/contracts"
 
-	rpcservertype "frisboo-bank/pkg/rpc/rpc_server/contracts/enums/rpc_server_type"
+	rpcservertype "frisboo-bank/pkg/rpc/rpc_server/enums/rpc_server_type"
 )
 
 var _ contracts.RPCServer = (*rpcServer)(nil)
@@ -18,7 +17,7 @@ type rpcServer struct {
 }
 
 func New(adapter contracts.RPCServerAdapter) contracts.RPCServer {
-	syserrors.Assert(adapter != nil, "adapter can't be nil")
+	validation.Assert(adapter != nil, "adapter can't be nil")
 
 	return &rpcServer{adapter}
 }

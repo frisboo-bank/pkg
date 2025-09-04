@@ -3,7 +3,7 @@ package config
 import (
 	inMemoryConfig "frisboo-bank/pkg/cache/adapters/in_memory/config"
 	redisConfig "frisboo-bank/pkg/cache/adapters/redis/config"
-	cachetype "frisboo-bank/pkg/cache/contracts/enums/cache_type"
+	cachetype "frisboo-bank/pkg/cache/enums/cache_type"
 	loggerConfig "frisboo-bank/pkg/logger/config"
 	"frisboo-bank/pkg/options"
 	"frisboo-bank/pkg/syserrors"

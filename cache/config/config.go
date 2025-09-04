@@ -1,17 +1,15 @@
 package config
 
 import (
+	inMemoryConfig "frisboo-bank/pkg/cache/adapters/in_memory/config"
+	redisConfig "frisboo-bank/pkg/cache/adapters/redis/config"
+	cachetype "frisboo-bank/pkg/cache/enums/cache_type"
 	"frisboo-bank/pkg/config"
 	configloaderContracts "frisboo-bank/pkg/config/config_loader/contracts"
 	"frisboo-bank/pkg/environment"
+	loggerConfig "frisboo-bank/pkg/logger/config"
 	"frisboo-bank/pkg/options"
 	"frisboo-bank/pkg/syserrors"
-
-	inMemoryConfig "frisboo-bank/pkg/cache/adapters/in_memory/config"
-	redisConfig "frisboo-bank/pkg/cache/adapters/redis/config"
-	loggerConfig "frisboo-bank/pkg/logger/config"
-
-	cachetype "frisboo-bank/pkg/cache/contracts/enums/cache_type"
 
 	"github.com/hashicorp/go-multierror"
 )

@@ -3,7 +3,7 @@ package config
 import (
 	"frisboo-bank/pkg/config"
 	configloaderContracts "frisboo-bank/pkg/config/config_loader/contracts"
-	databaseclienttype "frisboo-bank/pkg/database/database_client/contracts/enums/database_client_type"
+	databaseclienttype "frisboo-bank/pkg/database/database_client/enums/database_client_type"
 	"frisboo-bank/pkg/environment"
 	loggerConfig "frisboo-bank/pkg/logger/config"
 	"frisboo-bank/pkg/options"

@@ -5,10 +5,9 @@ import (
 	"time"
 
 	"frisboo-bank/pkg/cache/contracts"
-	"frisboo-bank/pkg/syserrors"
-
-	cachetype "frisboo-bank/pkg/cache/contracts/enums/cache_type"
+	cachetype "frisboo-bank/pkg/cache/enums/cache_type"
 	loggerContracts "frisboo-bank/pkg/logger/contracts"
+	"frisboo-bank/pkg/validation"
 )
 
 var _ contracts.Cache = (*cache)(nil)
@@ -19,7 +18,7 @@ type cache struct {
 }
 
 func New(adapter contracts.CacheAdapter) contracts.Cache {
-	syserrors.Assert(adapter != nil, "adapter can't be nil")
+	validation.Assert(adapter != nil, "adapter can't be nil")
 
 	return cache{
 		adapter: adapter,

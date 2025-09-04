@@ -4,8 +4,7 @@ import (
 	"context"
 	"time"
 
-	cachetype "frisboo-bank/pkg/cache/contracts/enums/cache_type"
-
+	cachetype "frisboo-bank/pkg/cache/enums/cache_type"
 	loggerContracts "frisboo-bank/pkg/logger/contracts"
 )
 

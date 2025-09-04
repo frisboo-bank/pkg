@@ -2,7 +2,9 @@ package application
 
 import (
 	"context"
+
 	"frisboo-bank/pkg/application/contracts"
+	containerContracts "frisboo-bank/pkg/container/contracts"
 	"frisboo-bank/pkg/container/dependencies"
 	"frisboo-bank/pkg/container/dependencies/decorator"
 	"frisboo-bank/pkg/container/dependencies/hook"
@@ -10,11 +12,8 @@ import (
 	"frisboo-bank/pkg/container/dependencies/module"
 	"frisboo-bank/pkg/container/dependencies/provider"
 	"frisboo-bank/pkg/environment"
-	"frisboo-bank/pkg/syserrors"
-
-	containerContracts "frisboo-bank/pkg/container/contracts"
-
 	loggerContracts "frisboo-bank/pkg/logger/contracts"
+	"frisboo-bank/pkg/validation"
 )
 
 var _ contracts.Application = (*application)(nil)
@@ -38,8 +37,8 @@ func NewApplication(
 	logger loggerContracts.Logger,
 	environment environment.Environment,
 ) contracts.Application {
-	syserrors.Assert(container != nil, "the container can't be nil", "application")
-	syserrors.Assert(logger != nil, "the logger can't be nil", "application")
+	validation.Assert(container != nil, "the container can't be nil", "application")
+	validation.Assert(logger != nil, "the logger can't be nil", "application")
 
 	return &application{
 		container:   container,

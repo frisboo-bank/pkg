@@ -2,8 +2,9 @@ package config
 
 import (
 	"context"
-	"frisboo-bank/pkg/options"
 	"time"
+
+	"frisboo-bank/pkg/options"
 )
 
 type Config struct {

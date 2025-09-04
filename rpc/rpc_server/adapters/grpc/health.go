@@ -3,11 +3,9 @@ package grpc
 import (
 	"context"
 
-	"frisboo-bank/pkg/rpc/rpc_server/contracts"
-
-	loggerContracts "frisboo-bank/pkg/logger/contracts"
-
 	healthContracts "frisboo-bank/pkg/health/contracts"
+	loggerContracts "frisboo-bank/pkg/logger/contracts"
+	"frisboo-bank/pkg/rpc/rpc_server/contracts"
 )
 
 var _ healthContracts.HealthServiceCheck = (*GRPCHealthService)(nil)

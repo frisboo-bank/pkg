@@ -5,7 +5,7 @@ import (
 	"frisboo-bank/pkg/health/contracts"
 	httpServerContracts "frisboo-bank/pkg/http/http_server/contracts"
 	loggerContracts "frisboo-bank/pkg/logger/contracts"
-	"frisboo-bank/pkg/syserrors"
+	"frisboo-bank/pkg/validation"
 
 	"github.com/gin-gonic/gin"
 )
@@ -25,10 +25,10 @@ func NewHealthEndpoint(
 	httpServer httpServerContracts.HTTPServer,
 	healthService contracts.HealthService,
 ) contracts.HealthEndpoint {
-	syserrors.AssertNotNil("cfg", cfg)
-	syserrors.AssertNotNil("logger", logger)
-	syserrors.AssertNotNil("httpServer", httpServer)
-	syserrors.AssertNotNil("healthService", healthService)
+	validation.AssertNotNil("cfg", cfg)
+	validation.AssertNotNil("logger", logger)
+	validation.AssertNotNil("httpServer", httpServer)
+	validation.AssertNotNil("healthService", healthService)
 
 	return &healthEndpoint{
 		cfg:           cfg,

@@ -2,9 +2,9 @@ package logger
 
 import (
 	"frisboo-bank/pkg/logger/contracts"
-	loglevel "frisboo-bank/pkg/logger/contracts/enums/log_level"
-	loggertype "frisboo-bank/pkg/logger/contracts/enums/logger_type"
-	"frisboo-bank/pkg/syserrors"
+	loglevel "frisboo-bank/pkg/logger/enums/log_level"
+	loggertype "frisboo-bank/pkg/logger/enums/logger_type"
+	"frisboo-bank/pkg/validation"
 )
 
 var _ contracts.Logger = (*logger)(nil)
@@ -14,7 +14,7 @@ type logger struct {
 }
 
 func New(adapter contracts.LoggerAdapter) contracts.Logger {
-	syserrors.Assert(adapter != nil, "adapter can't be nil")
+	validation.Assert(adapter != nil, "adapter can't be nil")
 	return &logger{adapter}
 }
 

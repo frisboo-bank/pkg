@@ -2,11 +2,11 @@ package zerolog
 
 import (
 	"fmt"
+
 	"frisboo-bank/pkg/logger/config"
 	"frisboo-bank/pkg/logger/contracts"
-
-	loglevel "frisboo-bank/pkg/logger/contracts/enums/log_level"
-	loggertype "frisboo-bank/pkg/logger/contracts/enums/logger_type"
+	loglevel "frisboo-bank/pkg/logger/enums/log_level"
+	loggertype "frisboo-bank/pkg/logger/enums/logger_type"
 
 	"github.com/rs/zerolog"
 )

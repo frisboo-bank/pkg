@@ -6,9 +6,8 @@ import (
 
 	"frisboo-bank/pkg/health/config"
 	"frisboo-bank/pkg/health/contracts"
-	"frisboo-bank/pkg/syserrors"
-
 	loggerContracts "frisboo-bank/pkg/logger/contracts"
+	"frisboo-bank/pkg/validation"
 )
 
 var _ contracts.HealthService = (*healthService)(nil)
@@ -26,9 +25,9 @@ type healthService struct {
 }
 
 func NewHealthService(params HealthServiceParams) contracts.HealthService {
-	syserrors.AssertNotNil("Cfg", params.Cfg)
-	syserrors.AssertNotNil("Logger", params.Logger)
-	syserrors.AssertNotNil("Services", params.Services)
+	validation.AssertNotNil("Cfg", params.Cfg)
+	validation.AssertNotNil("Logger", params.Logger)
+	validation.AssertNotNil("Services", params.Services)
 
 	return &healthService{
 		cfg:      params.Cfg,

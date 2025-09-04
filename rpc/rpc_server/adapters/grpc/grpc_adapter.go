@@ -5,13 +5,11 @@ import (
 	"errors"
 	"net"
 
+	loggerContracts "frisboo-bank/pkg/logger/contracts"
 	"frisboo-bank/pkg/rpc/rpc_server/config"
 	"frisboo-bank/pkg/rpc/rpc_server/contracts"
-	"frisboo-bank/pkg/syserrors"
-
-	loggerContracts "frisboo-bank/pkg/logger/contracts"
-
-	rpcservertype "frisboo-bank/pkg/rpc/rpc_server/contracts/enums/rpc_server_type"
+	rpcservertype "frisboo-bank/pkg/rpc/rpc_server/enums/rpc_server_type"
+	"frisboo-bank/pkg/validation"
 
 	grpcMiddleware "github.com/grpc-ecosystem/go-grpc-middleware"
 	grpcRecovery "github.com/grpc-ecosystem/go-grpc-middleware/recovery"
@@ -34,8 +32,8 @@ type grpcRPCServerAdapter struct {
 }
 
 func New(cfg *config.Config, logger loggerContracts.Logger) contracts.RPCServerAdapter {
-	syserrors.AssertNotNil("cfg", cfg)
-	syserrors.AssertNotNil("logger", logger)
+	validation.AssertNotNil("cfg", cfg)
+	validation.AssertNotNil("logger", logger)
 
 	server := googlerpc.NewServer(
 		googlerpc.StatsHandler(otelgrpc.NewServerHandler()),

@@ -5,11 +5,9 @@ import (
 	"frisboo-bank/pkg/cache/adapters/redis"
 	"frisboo-bank/pkg/cache/config"
 	"frisboo-bank/pkg/cache/contracts"
-	"frisboo-bank/pkg/syserrors"
-
-	cachetype "frisboo-bank/pkg/cache/contracts/enums/cache_type"
-
+	cachetype "frisboo-bank/pkg/cache/enums/cache_type"
 	loggerContracts "frisboo-bank/pkg/logger/contracts"
+	"frisboo-bank/pkg/syserrors"
 )
 
 func NoCacheOfTypeError(sType cachetype.CacheType) error {
