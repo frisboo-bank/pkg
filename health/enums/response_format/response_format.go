@@ -5,7 +5,7 @@ type (
 )
 
 const (
-	unknown responseFormat = iota // invalid unknown
+	unknown responseFormat = iota // invalid
 	text
 	json
 )

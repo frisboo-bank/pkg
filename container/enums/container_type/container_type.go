@@ -5,6 +5,6 @@ type (
 )
 
 const (
-	unknown containerType = iota // invalid unknown
+	unknown containerType = iota // invalid
 	dig
 )

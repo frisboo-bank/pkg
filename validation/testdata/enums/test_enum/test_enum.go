@@ -5,8 +5,7 @@ type (
 )
 
 const (
-	unknown testEnum = iota // unknown
-	failed                  // invalid
+	unknown testEnum = iota // invalid
 	passed
 	skipped
 	scheduled

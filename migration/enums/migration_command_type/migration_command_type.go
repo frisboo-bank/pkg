@@ -5,7 +5,7 @@ type (
 )
 
 const (
-	unknown migrationCommandType = iota // invalid unknown
+	unknown migrationCommandType = iota // invalid
 	up
 	down
 )

@@ -5,6 +5,6 @@ type (
 )
 
 const (
-	unknown databaseClientType = iota // invalid unknown
+	unknown databaseClientType = iota // invalid
 	postgres
 )

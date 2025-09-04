@@ -5,7 +5,7 @@ type (
 )
 
 const (
-	unknown cleanupPolicy = iota // invalid unknown
+	unknown cleanupPolicy = iota // invalid
 	lru
 	lfu
 	tinyLfu
