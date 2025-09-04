@@ -6,11 +6,10 @@ import (
 	"time"
 
 	"frisboo-bank/pkg/config"
-	"frisboo-bank/pkg/syserrors"
-
 	ginConfig "frisboo-bank/pkg/http/http_server/adapters/gin/config"
 	httpservertype "frisboo-bank/pkg/http/http_server/enums/http_server_type"
 	loggerConfig "frisboo-bank/pkg/logger/config"
+	"frisboo-bank/pkg/syserrors"
 
 	"github.com/hashicorp/go-multierror"
 )

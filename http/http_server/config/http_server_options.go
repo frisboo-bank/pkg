@@ -4,12 +4,11 @@ import (
 	"strings"
 	"time"
 
+	httpservertype "frisboo-bank/pkg/http/http_server/enums/http_server_type"
+	loggerConfig "frisboo-bank/pkg/logger/config"
 	"frisboo-bank/pkg/options"
 	"frisboo-bank/pkg/syserrors"
 	"frisboo-bank/pkg/validation"
-
-	httpservertype "frisboo-bank/pkg/http/http_server/enums/http_server_type"
-	loggerConfig "frisboo-bank/pkg/logger/config"
 )
 
 type HTTPServerOption = options.OptionFn[HTTPServerConfig]
@@ -92,10 +91,10 @@ var Logger = options.OptionErr(func(c *HTTPServerConfig, logger *loggerConfig.Co
 
 var LoggerOptions = options.VarOptionErr(func(c *HTTPServerConfig, opts ...loggerConfig.Option) error {
 	l := c.Logger
-	if err := options.Apply(l, opts...); err != nil {
+	if err := validation.NotNil("Logger", l); err != nil {
 		return err
 	}
-	if err := validation.NotNil("Logger", l); err != nil {
+	if err := options.Apply(l, opts...); err != nil {
 		return err
 	}
 	c.Logger = l

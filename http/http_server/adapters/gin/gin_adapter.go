@@ -20,14 +20,14 @@ import (
 var _ contracts.HTTPServerAdapter = (*ginHTTPServerAdapter)(nil)
 
 type ginHTTPServerAdapter struct {
-	cfg          *config.Config
+	cfg          *config.HTTPServerConfig
 	engine       *ginVendor.Engine
 	logger       loggerContracts.Logger
 	routeBuilder contracts.RouteBuilder
 	server       *http.Server
 }
 
-func New(cfg *config.Config, logger loggerContracts.Logger) contracts.HTTPServerAdapter {
+func New(cfg *config.HTTPServerConfig, logger loggerContracts.Logger) contracts.HTTPServerAdapter {
 	validation.AssertNotNil("cfg", cfg)
 	validation.AssertNotNil("logger", logger)
 
@@ -95,9 +95,13 @@ func (g *ginHTTPServerAdapter) Start(ctx context.Context) error {
 	}
 }
 
-func (g *ginHTTPServerAdapter) Shutdown(ctx context.Context) error {
+func (g *ginHTTPServerAdapter) Stop(ctx context.Context) error {
 	err := g.server.Shutdown(ctx)
 	return err
+}
+
+func (g *ginHTTPServerAdapter) ListRoutes() []any {
+	panic("unimplemented")
 }
 
 func (g *ginHTTPServerAdapter) RouteBuilder() contracts.RouteBuilder {

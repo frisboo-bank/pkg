@@ -9,7 +9,6 @@ import (
 	"frisboo-bank/pkg/http/http_server/config"
 	"frisboo-bank/pkg/http/http_server/contracts"
 	"frisboo-bank/pkg/syserrors"
-
 	waiterContracts "frisboo-bank/pkg/waiter/contracts"
 )
 

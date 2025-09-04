@@ -9,13 +9,13 @@ import (
 	grpcConfig "frisboo-bank/pkg/rpc/rpc_server/adapters/grpc/config"
 	rpcservertype "frisboo-bank/pkg/rpc/rpc_server/enums/rpc_server_type"
 	"frisboo-bank/pkg/syserrors"
+	"frisboo-bank/pkg/validation"
 )
 
 type Option = options.OptionFn[Config]
 
 var Type = options.OptionErr(func(c *Config, sType rpcservertype.RpcServerType) error {
-	if sType == rpcservertype.RpcServerTypes.UNKNOWN {
-		return syserrors.UnknownEnumError("Type", rpcservertype.RpcServerTypes.All())
+		return err
 	}
 	c.Type = sType
 	return nil
