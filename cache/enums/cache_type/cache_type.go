@@ -5,7 +5,7 @@ type (
 )
 
 const (
-	unknown cacheType = iota // invalid unknown
+	unknown cacheType = iota // invalid
 	in_memory
 	redis
 )

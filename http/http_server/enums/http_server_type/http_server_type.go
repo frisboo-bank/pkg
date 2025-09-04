@@ -5,7 +5,6 @@ type (
 )
 
 const (
-	unknown httpServerType = iota // unknown
-	invalid                       // invalid
+	unknown httpServerType = iota // invalid
 	gin
 )

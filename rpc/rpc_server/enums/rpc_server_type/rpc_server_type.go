@@ -5,7 +5,6 @@ type (
 )
 
 const (
-	unknown rpcServerType = iota // unknown
-	invalid rpcServerType = iota // invalid
+	unknown rpcServerType = iota // invalid
 	grpc
 )

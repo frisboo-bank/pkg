@@ -96,6 +96,7 @@ func IsFalse(name string, value bool, errFn ...ErrorFn[bool]) error {
 	)
 }
 
+// OneOf validates that the value is part of the list or options.
 func OneOf[T comparable](name string, value T, options []T, errFn ...ErrorFn[T]) error {
 	return Ensure[T](
 		Field[T]{Name: name, Value: value},
@@ -106,12 +107,17 @@ func OneOf[T comparable](name string, value T, options []T, errFn ...ErrorFn[T])
 	)
 }
 
+// EnumOneOf validates that the value is not invalid or unknown
 func EnumOneOf[T reflection.EnumValue](name string, value T, options reflection.EnumContainer[T], errFn ...ErrorFn[T]) error {
 	return Ensure[T](
 		Field[T]{Name: name, Value: value},
-		func(v T) bool { return value.IsValid() },
+		func(v T) bool { return v.IsValid() },
 		firstErr(errFn, func(f Field[T]) error {
-			return syserrors.MustBeOneOf(f.Name, f.Value, nil)
+			var opts []T
+			for o := range options.All() {
+				opts = append(opts, o)
+			}
+			return syserrors.MustBeOneOf(f.Name, f.Value, opts)
 		}),
 	)
 }

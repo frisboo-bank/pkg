@@ -5,8 +5,7 @@ type (
 )
 
 const (
-	unknown logLevel = iota // unknown
-	invalid                 // invalid
+	unknown logLevel = iota // invalid
 	debugLevel
 	infoLevel
 	warnLevel
