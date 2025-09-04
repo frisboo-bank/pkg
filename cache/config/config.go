@@ -42,7 +42,6 @@ func (c *Config) Validate() error {
 
 	errs = multierror.Append(errs,
 		validation.NotNil("Logger", c.Logger),
-		c.Logger.Validate(),
 	)
 
 	return errs.ErrorOrNil()
