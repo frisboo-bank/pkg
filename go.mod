@@ -74,7 +74,7 @@ require (
 	github.com/rs/zerolog v1.34.0
 	github.com/spf13/viper v1.20.1
 	gitlab.com/tozd/go/errors v0.10.0
-	golang.org/x/sync v0.16.0
+	golang.org/x/sync v0.17.0
 	golang.org/x/sys v0.35.0 // indirect
 	google.golang.org/grpc v1.75.0
 )
