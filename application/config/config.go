@@ -31,15 +31,13 @@ func Default() Config {
 	return Config{}
 }
 
-func Load(
-	loader configloaderContracts.ConfigLoader,
-	env environment.Environment,
-	opts ...Option,
+func Load(loader configloaderContracts.ConfigLoader, env environment.Environment, opts ...Option,
 ) (Config, error) {
 	var zero Config
 
 	cfg := Default()
-	if err := loader.LoadComposableKey(env, &cfg, "app"); err != nil {
+
+	if err := loader.LoadKey(env, &cfg, "app"); err != nil {
 		return zero, syserrors.Message(err, []string{"app config"})
 	}
 

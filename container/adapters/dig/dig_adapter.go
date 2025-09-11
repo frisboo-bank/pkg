@@ -3,6 +3,8 @@ package dig
 import (
 	"context"
 	"fmt"
+	"reflect"
+
 	"frisboo-bank/pkg/container/config"
 	"frisboo-bank/pkg/container/contracts"
 	"frisboo-bank/pkg/container/dependencies/decorator"
@@ -12,15 +14,12 @@ import (
 	"frisboo-bank/pkg/options"
 	"frisboo-bank/pkg/syserrors"
 	"frisboo-bank/pkg/validation"
-	"os"
-	"reflect"
 
 	containertype "frisboo-bank/pkg/container/enums/container_type"
 	loggerContracts "frisboo-bank/pkg/logger/contracts"
 
 	waiterContracts "frisboo-bank/pkg/waiter/contracts"
 
-	"github.com/davecgh/go-spew/spew"
 	"go.uber.org/dig"
 )
 
@@ -72,10 +71,6 @@ func (d *digAdapter) RegisterProvider(providers ...provider.Provider) error {
 		opts := toDigProvideOptions(cfg)
 
 		if err := d.dig.Provide(i.Constructor(), opts...); err != nil {
-			spew.Dump(i.Constructor())
-			spew.Dump(opts)
-			spew.Dump(err)
-			os.Exit(1)
 			return syserrors.Newf("[dig] failed to register provider with error: %w", err)
 		}
 	}

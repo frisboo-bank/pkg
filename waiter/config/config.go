@@ -31,9 +31,9 @@ func Default() Config {
 
 func (c *Config) Validate() error {
 	return validation.ValidateStruct(c,
-		validation.Field(c.ParentContext, validation.Required),
-		validation.Field(c.WaitTimeout, validation.Required, validation.Min(0)),
-		validation.Field(c.CleanupTimeout, validation.Required, validation.Min(0)),
+		validation.Field(&c.ParentContext, validation.Required),
+		validation.Field(&c.WaitTimeout, validation.Required, validation.Min(0)),
+		validation.Field(&c.CleanupTimeout, validation.Required, validation.Min(0)),
 	)
 }
 
