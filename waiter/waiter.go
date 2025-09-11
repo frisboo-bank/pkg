@@ -9,11 +9,12 @@ import (
 	"sync"
 	"syscall"
 
-	loggerContracts "frisboo-bank/pkg/logger/contracts"
 	"frisboo-bank/pkg/syserrors"
 	"frisboo-bank/pkg/validation"
 	"frisboo-bank/pkg/waiter/config"
 	"frisboo-bank/pkg/waiter/contracts"
+
+	loggerContracts "frisboo-bank/pkg/logger/contracts"
 
 	"golang.org/x/sync/errgroup"
 )
@@ -21,8 +22,7 @@ import (
 var _ contracts.Waiter = (*waiter)(nil)
 
 type waiter struct {
-	cfg    *config.Config
-	logger loggerContracts.Logger
+	cfg config.Config
 
 	cancel     context.CancelFunc
 	cancelOnce sync.Once
@@ -31,10 +31,12 @@ type waiter struct {
 	isWaiting  bool
 	mu         sync.Mutex
 	waitOnce   sync.Once
+
+	logger loggerContracts.Logger
 }
 
 func New(
-	cfg *config.Config,
+	cfg config.Config,
 	logger loggerContracts.Logger,
 ) contracts.Waiter {
 	validation.AssertNotNil("cfg", cfg)

@@ -3,21 +3,24 @@ package dig
 import (
 	"context"
 	"fmt"
-	"reflect"
-
 	"frisboo-bank/pkg/container/config"
 	"frisboo-bank/pkg/container/contracts"
 	"frisboo-bank/pkg/container/dependencies/decorator"
 	"frisboo-bank/pkg/container/dependencies/hook"
 	"frisboo-bank/pkg/container/dependencies/invoker"
 	"frisboo-bank/pkg/container/dependencies/provider"
-	containertype "frisboo-bank/pkg/container/enums/container_type"
-	loggerContracts "frisboo-bank/pkg/logger/contracts"
 	"frisboo-bank/pkg/options"
 	"frisboo-bank/pkg/syserrors"
 	"frisboo-bank/pkg/validation"
+	"os"
+	"reflect"
+
+	containertype "frisboo-bank/pkg/container/enums/container_type"
+	loggerContracts "frisboo-bank/pkg/logger/contracts"
+
 	waiterContracts "frisboo-bank/pkg/waiter/contracts"
 
+	"github.com/davecgh/go-spew/spew"
 	"go.uber.org/dig"
 )
 
@@ -64,12 +67,16 @@ func (d *digAdapter) RegisterProvider(providers ...provider.Provider) error {
 	for _, i := range providers {
 		cfg := provider.Config{}
 		if err := options.Apply(&cfg, i.Options()...); err != nil {
-			return err
+			return syserrors.WithStack(err)
 		}
 		opts := toDigProvideOptions(cfg)
 
 		if err := d.dig.Provide(i.Constructor(), opts...); err != nil {
-			return syserrors.Newf("failed to register provider with error: %w", err)
+			spew.Dump(i.Constructor())
+			spew.Dump(opts)
+			spew.Dump(err)
+			os.Exit(1)
+			return syserrors.Newf("[dig] failed to register provider with error: %w", err)
 		}
 	}
 	return nil
@@ -79,7 +86,7 @@ func (d *digAdapter) RegisterDecorator(decorators ...decorator.Decorator) error 
 	for _, i := range decorators {
 		cfg := decorator.Config{}
 		if err := options.Apply(&cfg, i.Options()...); err != nil {
-			return err
+			return syserrors.WithStack(err)
 		}
 		opts := toDigDecoratorOptions(cfg)
 

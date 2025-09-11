@@ -1,4 +1,4 @@
-package config
+package validation
 
 type Validatable interface {
 	Validate() error

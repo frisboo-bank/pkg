@@ -13,7 +13,10 @@ func NoContainerOfTypeError(sType containertype.ContainerType) error {
 	return syserrors.Newf("no container of type %q exists", sType)
 }
 
-func GetInstance(cfg *config.Config, logger loggerContracts.Logger) (contracts.Container, error) {
+func GetInstance(
+	cfg *config.Config,
+	logger loggerContracts.Logger,
+) (contracts.Container, error) {
 	var adapter contracts.ContainerAdapter
 	var err error
 

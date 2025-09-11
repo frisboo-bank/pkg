@@ -30,6 +30,7 @@ require (
 	github.com/gin-contrib/sse v1.1.0 // indirect
 	github.com/go-logr/logr v1.4.3 // indirect
 	github.com/go-logr/stdr v1.2.2 // indirect
+	github.com/go-ozzo/ozzo-validation v3.6.0+incompatible // indirect
 	github.com/go-playground/locales v0.14.1 // indirect
 	github.com/go-playground/universal-translator v0.18.1 // indirect
 	github.com/go-playground/validator/v10 v10.27.0 // indirect
@@ -69,6 +70,8 @@ require (
 )
 
 require (
+	dario.cat/mergo v1.0.2
+	github.com/go-ozzo/ozzo-validation/v4 v4.3.0
 	github.com/grpc-ecosystem/go-grpc-middleware v1.4.0
 	github.com/redis/go-redis/v9 v9.12.1
 	github.com/rs/zerolog v1.34.0

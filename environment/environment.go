@@ -55,6 +55,10 @@ func (e Environment) IsProduction() bool {
 	return e.IsEnvironment(Production)
 }
 
+func (e Environment) String() string {
+	return string(e)
+}
+
 func Load(fallback ...Environment) Environment {
 	environment := Development
 	if len(fallback) > 0 {

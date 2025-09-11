@@ -3,43 +3,45 @@ package config
 import (
 	"time"
 
-	"frisboo-bank/pkg/config"
+	cValidation "frisboo-bank/pkg/validation"
 
-	"github.com/hashicorp/go-multierror"
+	validation "github.com/go-ozzo/ozzo-validation/v4"
+	validationIs "github.com/go-ozzo/ozzo-validation/v4/is"
 )
 
-var _ config.Validatable = (*Config)(nil)
+var _ cValidation.Validatable = (*Config)(nil)
 
 type Config struct {
-	Addr         string        `mapstructure:"addr"`
-	DB           int           `mapstructure:"db"`
-	DialTimeout  time.Duration `mapstructure:"dialTimeout"`
 	Host         string        `mapstructure:"host"`
+	Port         int           `mapstructure:"port"`
+	DB           string        `mapstructure:"db"`
+	Username     string        `mapstructure:"username"`
 	Password     string        `mapstructure:"password"`
 	PoolSize     int           `mapstructure:"poolSize"`
-	Port         int           `mapstructure:"port"`
+	DialTimeout  time.Duration `mapstructure:"dialTimeout"`
 	ReadTimeout  time.Duration `mapstructure:"readTimeout"`
-	Username     string        `mapstructure:"username"`
 	WriteTimeout time.Duration `mapstructure:"writeTimeout"`
 }
 
 func Default() *Config {
 	return &Config{
-		Addr:         "",
-		DB:           0,
 		DialTimeout:  0,
-		Host:         "",
-		Password:     "",
 		PoolSize:     0,
-		Port:         0,
 		ReadTimeout:  0,
-		Username:     "",
 		WriteTimeout: 0,
 	}
 }
 
 func (c *Config) Validate() error {
-	var errs *multierror.Error
-
-	return errs.ErrorOrNil()
+	return validation.ValidateStruct(c,
+		validation.Field(c.Host, validation.Required, validationIs.Host),
+		validation.Field(c.Port, validation.Required, validationIs.Port),
+		validation.Field(c.DB, validation.Required),
+		validation.Field(c.Username, validation.Required),
+		validation.Field(c.Password, validation.Required),
+		validation.Field(c.PoolSize, validation.Required, validation.Min(0)),
+		validation.Field(c.ReadTimeout, validation.Required, validation.Min(0)),
+		validation.Field(c.ReadTimeout, validation.Required, validation.Min(0)),
+		validation.Field(c.WriteTimeout, validation.Required, validation.Min(0)),
+	)
 }

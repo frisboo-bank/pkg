@@ -4,18 +4,23 @@ import (
 	"io"
 	"os"
 
-	configloaderContracts "frisboo-bank/pkg/config/config_loader/contracts"
+	"frisboo-bank/pkg/config/registry"
 	"frisboo-bank/pkg/environment"
+
+	cValidation "frisboo-bank/pkg/validation"
+
+	configloaderContracts "frisboo-bank/pkg/config/config_loader/contracts"
+
 	logrusConfig "frisboo-bank/pkg/logger/adapters/logrus/config"
 	zerologConfig "frisboo-bank/pkg/logger/adapters/zerolog/config"
 	encodingtype "frisboo-bank/pkg/logger/enums/encoding_type"
 	loglevel "frisboo-bank/pkg/logger/enums/log_level"
 	loggertype "frisboo-bank/pkg/logger/enums/logger_type"
-	"frisboo-bank/pkg/options"
-	"frisboo-bank/pkg/validation"
 
-	"github.com/hashicorp/go-multierror"
+	validation "github.com/go-ozzo/ozzo-validation/v4"
 )
+
+var _ cValidation.Validatable = (*Config)(nil)
 
 type Config struct {
 	Type          loggertype.LoggerType     `mapstructure:"type"`
@@ -26,16 +31,16 @@ type Config struct {
 	Prefix        string                    `mapstructure:"prefix"`
 	TracerEnabled bool                      `mapstructure:"tracerEnabled"`
 
-	// adapter
+	// adapters
 	Logrus  *logrusConfig.Config  `mapstructure:"logrus"`
 	Zerolog *zerologConfig.Config `mapstructure:"zerolog"`
 
-	// dependency
+	// dependencies
 	Output io.Writer `mapstructure:"-"`
 }
 
-func Default() *Config {
-	return &Config{
+func Default() Config {
+	return Config{
 		Type:          loggertype.LoggerTypes.LOGRUS,
 		CallDepth:     0,
 		CallerEnabled: false,
@@ -43,32 +48,50 @@ func Default() *Config {
 		Level:         loglevel.LogLevels.ERRORLEVEL,
 		Prefix:        "core",
 		TracerEnabled: false,
-		Output:        os.Stdout,
+
+		Logrus:  logrusConfig.Default(),
+		Zerolog: zerologConfig.Default(),
+
+		Output: os.Stdout,
 	}
 }
 
 func (c *Config) Validate() error {
-	var errs *multierror.Error
-
-	errs = multierror.Append(errs,
-		validation.EnumOneOf("Type", c.Type, loggertype.LoggerTypes),
-		validation.EnumOneOf("Encoding", c.Encoding, encodingtype.EncodingTypes),
-		validation.EnumOneOf("Level", c.Level, loglevel.LogLevels),
-		validation.NonNegative("CallDepth", c.CallDepth),
-		validation.NotNil("Output", c.Output),
-	)
-
-	return errs.ErrorOrNil()
-}
-
-func New(opts ...Option) (*Config, error) {
-	return options.New(Default, opts...)
-}
-
-func Load(loader configloaderContracts.ConfigLoader, env environment.Environment, opts ...Option) (*Config, error) {
-	cfg := Default()
-	if err := loader.LoadByKey("logger", env, cfg); err != nil {
-		return nil, err
+	if err := validation.ValidateStruct(c,
+		validation.Field(c.Type, validation.Required, validation.By(cValidation.EnumOneOf(loggertype.LoggerTypes))),
+		validation.Field(c.CallDepth, validation.Min(0)),
+		validation.Field(c.Encoding, validation.Required, validation.By(cValidation.EnumOneOf(encodingtype.EncodingTypes))),
+		validation.Field(c.Level, validation.Required, validation.By(cValidation.EnumOneOf(loglevel.LogLevels))),
+		validation.Field(c.Prefix, validation.Required),
+		validation.Field(c.Output, validation.Required),
+	); err != nil {
+		return err
 	}
-	return options.New(func() *Config { return cfg }, opts...)
+
+	switch c.Type {
+	case loggertype.LoggerTypes.LOGRUS:
+		if err := validation.Validate(c.Logrus, validation.Required); err != nil {
+			return err
+		}
+		return c.Logrus.Validate()
+	case loggertype.LoggerTypes.ZEROLOG:
+		if err := validation.Validate(c.Zerolog, validation.Required); err != nil {
+			return err
+		}
+		return c.Zerolog.Validate()
+	}
+
+	return nil
+}
+
+type Registry = *registry.Registry[Config]
+
+func LoadRegistry(configLoader configloaderContracts.ConfigLoader, env environment.Environment) (Registry, error) {
+	return registry.Load(
+		configLoader,
+		env,
+		"loggers",
+		"logger",
+		Default,
+	)
 }

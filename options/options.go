@@ -1,14 +1,12 @@
 package options
 
 import (
-	"frisboo-bank/pkg/config"
 	"frisboo-bank/pkg/syserrors"
-
-	"github.com/hashicorp/go-multierror"
+	"frisboo-bank/pkg/validation"
 )
 
 type (
-	DefaultFn[T any] func() *T
+	DefaultFn[T any] func() T
 	OptionFn[T any]  func(*T) error
 )
 
@@ -65,13 +63,20 @@ func Apply[T any](target *T, opts ...OptionFn[T]) error {
 	if target == nil {
 		return syserrors.CantBeNilError("target")
 	}
-	var errs *multierror.Error
+
 	for _, o := range opts {
 		if err := o(target); err != nil {
-			errs = multierror.Append(errs, err)
+			return err
 		}
 	}
-	return errs.ErrorOrNil()
+
+	if v, ok := any(&target).(validation.Validatable); ok {
+		if err := v.Validate(); err != nil {
+			return err
+		}
+	}
+
+	return nil
 }
 
 func Compose[T any](opts ...OptionFn[T]) OptionFn[T] {
@@ -79,30 +84,4 @@ func Compose[T any](opts ...OptionFn[T]) OptionFn[T] {
 		return noopOption[T]()
 	}
 	return func(t *T) error { return Apply(t, opts...) }
-}
-
-// -----------------------------------------------------------------------------
-// Construction
-// -----------------------------------------------------------------------------
-
-func New[T any](defaultFn DefaultFn[T], opts ...OptionFn[T]) (*T, error) {
-	if defaultFn == nil {
-		return nil, syserrors.CantBeNilError("defaultFn")
-	}
-	t := defaultFn()
-	if t == nil {
-		return nil, syserrors.New("defaultFn returned nil")
-	}
-
-	if err := Apply(t, opts...); err != nil {
-		return nil, err
-	}
-
-	if v, ok := any(t).(config.Validatable); ok {
-		if err := v.Validate(); err != nil {
-			return nil, err
-		}
-	}
-
-	return t, nil
 }
