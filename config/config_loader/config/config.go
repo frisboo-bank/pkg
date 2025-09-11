@@ -30,11 +30,11 @@ func Default() Config {
 	}
 }
 
-func (c Config) Validate() error {
-	return validation.ValidateStruct(&c,
-		validation.Field(c.ConfigName, validation.Required),
-		validation.Field(c.ConfigPath, validation.Required),
-		validation.Field(c.EnvPrefix, validation.Required),
+func (c *Config) Validate() error {
+	return validation.ValidateStruct(c,
+		validation.Field(&c.ConfigName, validation.Required),
+		validation.Field(&c.ConfigPath, validation.Required),
+		validation.Field(&c.EnvPrefix, validation.Required),
 	)
 }
 

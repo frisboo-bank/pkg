@@ -41,7 +41,7 @@ func (c *Config) Validate() error {
 
 	switch c.Type {
 	case cachetype.CacheTypes.REDIS:
-		if err := validation.Validate(c.Redis, validation.Required); err != nil {
+		if err := validation.Validate(&c.Redis, validation.Required); err != nil {
 			return err
 		}
 		return c.Redis.Validate()

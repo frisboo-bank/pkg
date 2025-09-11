@@ -91,7 +91,7 @@ func (c *Config) Validate() error {
 
 	switch c.Type {
 	case httpservertype.HttpServerTypes.GIN:
-		if err := validation.Validate(c.Gin, validation.Required); err != nil {
+		if err := validation.Validate(&c.Gin, validation.Required); err != nil {
 			return err
 		}
 		return c.Gin.Validate()

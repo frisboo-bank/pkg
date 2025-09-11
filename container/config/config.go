@@ -44,7 +44,7 @@ func (c *Config) Validate() error {
 
 	switch c.Type {
 	case containertype.ContainerTypes.DIG:
-		if err := validation.Validate(c.Dig, validation.Required); err != nil {
+		if err := validation.Validate(&c.Dig, validation.Required); err != nil {
 			return err
 		}
 		return c.Dig.Validate()

@@ -61,16 +61,16 @@ func Default() Config {
 
 func (c *Config) Validate() error {
 	return validation.ValidateStruct(c,
-		validation.Field(c.LivenessPath, validation.Required, validationIs.URL),
-		validation.Field(c.ReadinessPath, validation.Required, validationIs.URL),
-		validation.Field(c.StatusUp, validation.Required),
-		validation.Field(c.StatusCodeUp, validation.Required),
-		validation.Field(c.StatusDown, validation.Required),
-		validation.Field(c.StatusCodeDown, validation.Required),
-		validation.Field(c.ResponseFormat, validation.Required, validation.By(validation.RuleFunc(cValidation.EnumOneOf(responseformat.ResponseFormats)))),
-		validation.Field(c.StartupGracePeriod, validation.Required, validation.Min(0)),
-		validation.Field(c.ShutdownDrainPeriod, validation.Required, validation.Min(0)),
-		validation.Field(c.GlobalCheckTimeout, validation.Required, validation.Min(0)),
+		validation.Field(&c.LivenessPath, validation.Required, validationIs.URL),
+		validation.Field(&c.ReadinessPath, validation.Required, validationIs.URL),
+		validation.Field(&c.StatusUp, validation.Required),
+		validation.Field(&c.StatusCodeUp, validation.Required),
+		validation.Field(&c.StatusDown, validation.Required),
+		validation.Field(&c.StatusCodeDown, validation.Required),
+		validation.Field(&c.ResponseFormat, validation.Required, validation.By(validation.RuleFunc(cValidation.EnumOneOf(responseformat.ResponseFormats)))),
+		validation.Field(&c.StartupGracePeriod, validation.Required, validation.Min(0)),
+		validation.Field(&c.ShutdownDrainPeriod, validation.Required, validation.Min(0)),
+		validation.Field(&c.GlobalCheckTimeout, validation.Required, validation.Min(0)),
 	)
 }
 

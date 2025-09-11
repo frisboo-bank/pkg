@@ -35,11 +35,7 @@ type waiter struct {
 	logger loggerContracts.Logger
 }
 
-func New(
-	cfg config.Config,
-	logger loggerContracts.Logger,
-) contracts.Waiter {
-	validation.AssertNotNil("cfg", cfg)
+func New(cfg config.Config, logger loggerContracts.Logger) contracts.Waiter {
 	validation.AssertNotNil("logger", logger)
 
 	parentCtx := cfg.ParentContext

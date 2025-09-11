@@ -34,14 +34,14 @@ func Default() *Config {
 
 func (c *Config) Validate() error {
 	return validation.ValidateStruct(c,
-		validation.Field(c.Host, validation.Required, validationIs.Host),
-		validation.Field(c.Port, validation.Required, validationIs.Port),
-		validation.Field(c.DB, validation.Required),
-		validation.Field(c.Username, validation.Required),
-		validation.Field(c.Password, validation.Required),
-		validation.Field(c.PoolSize, validation.Required, validation.Min(0)),
-		validation.Field(c.ReadTimeout, validation.Required, validation.Min(0)),
-		validation.Field(c.ReadTimeout, validation.Required, validation.Min(0)),
-		validation.Field(c.WriteTimeout, validation.Required, validation.Min(0)),
+		validation.Field(&c.Host, validation.Required, validationIs.Host),
+		validation.Field(&c.Port, validation.Required, validationIs.Port),
+		validation.Field(&c.DB, validation.Required),
+		validation.Field(&c.Username, validation.Required),
+		validation.Field(&c.Password, validation.Required),
+		validation.Field(&c.PoolSize, validation.Required, validation.Min(0)),
+		validation.Field(&c.ReadTimeout, validation.Required, validation.Min(0)),
+		validation.Field(&c.ReadTimeout, validation.Required, validation.Min(0)),
+		validation.Field(&c.WriteTimeout, validation.Required, validation.Min(0)),
 	)
 }

@@ -36,18 +36,18 @@ func Default() Config {
 
 func (c *Config) Validate() error {
 	if err := validation.ValidateStruct(c,
-		validation.Field(c.Type, validation.Required, validation.By(validation.RuleFunc(cValidation.EnumOneOf(databaseclienttype.DatabaseClientTypes)))),
-		validation.Field(c.Host, validation.Required, validationIs.Host),
-		validation.Field(c.Port, validation.Required, validationIs.Port),
-		validation.Field(c.User, validation.Required),
-		validation.Field(c.Password, validation.Required),
+		validation.Field(&c.Type, validation.Required, validation.By(validation.RuleFunc(cValidation.EnumOneOf(databaseclienttype.DatabaseClientTypes)))),
+		validation.Field(&c.Host, validation.Required, validationIs.Host),
+		validation.Field(&c.Port, validation.Required, validationIs.Port),
+		validation.Field(&c.User, validation.Required),
+		validation.Field(&c.Password, validation.Required),
 	); err != nil {
 		return err
 	}
 
 	switch c.Type {
 	case databaseclienttype.DatabaseClientTypes.POSTGRES:
-		if err := validation.Validate(c.Postgres, validation.Required); err != nil {
+		if err := validation.Validate(&c.Postgres, validation.Required); err != nil {
 			return err
 		}
 		return c.Postgres.Validate()

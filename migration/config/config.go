@@ -24,8 +24,8 @@ func Default() Config {
 
 func (c *Config) Validate() error {
 	return validation.ValidateStruct(c,
-		validation.Field(c.DBKey, validation.Required),
-		validation.Field(c.MigrationsDir, validation.Required),
+		validation.Field(&c.DBKey, validation.Required),
+		validation.Field(&c.MigrationsDir, validation.Required),
 	)
 }
 

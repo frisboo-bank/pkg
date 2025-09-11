@@ -61,7 +61,7 @@ func (c *Config) Validate() error {
 
 	switch c.Type {
 	case rpcservertype.RpcServerTypes.GRPC:
-		if err := validation.Validate(c.GRPC, validation.Required); err != nil {
+		if err := validation.Validate(&c.GRPC, validation.Required); err != nil {
 			return err
 		}
 		return c.GRPC.Validate()

@@ -58,24 +58,24 @@ func Default() Config {
 
 func (c *Config) Validate() error {
 	if err := validation.ValidateStruct(c,
-		validation.Field(c.Type, validation.Required, validation.By(cValidation.EnumOneOf(loggertype.LoggerTypes))),
-		validation.Field(c.CallDepth, validation.Min(0)),
-		validation.Field(c.Encoding, validation.Required, validation.By(cValidation.EnumOneOf(encodingtype.EncodingTypes))),
-		validation.Field(c.Level, validation.Required, validation.By(cValidation.EnumOneOf(loglevel.LogLevels))),
-		validation.Field(c.Prefix, validation.Required),
-		validation.Field(c.Output, validation.Required),
+		validation.Field(&c.Type, validation.Required, validation.By(cValidation.EnumOneOf(loggertype.LoggerTypes))),
+		validation.Field(&c.CallDepth, validation.Min(0)),
+		validation.Field(&c.Encoding, validation.Required, validation.By(cValidation.EnumOneOf(encodingtype.EncodingTypes))),
+		validation.Field(&c.Level, validation.Required, validation.By(cValidation.EnumOneOf(loglevel.LogLevels))),
+		validation.Field(&c.Prefix, validation.Required),
+		validation.Field(&c.Output, validation.Required),
 	); err != nil {
 		return err
 	}
 
 	switch c.Type {
 	case loggertype.LoggerTypes.LOGRUS:
-		if err := validation.Validate(c.Logrus, validation.Required); err != nil {
+		if err := validation.Validate(&c.Logrus, validation.Required); err != nil {
 			return err
 		}
 		return c.Logrus.Validate()
 	case loggertype.LoggerTypes.ZEROLOG:
-		if err := validation.Validate(c.Zerolog, validation.Required); err != nil {
+		if err := validation.Validate(&c.Zerolog, validation.Required); err != nil {
 			return err
 		}
 		return c.Zerolog.Validate()

@@ -6,13 +6,17 @@ import (
 )
 
 type (
+	// DefaultFn returns a default-initialized T (e.g., with sensible defaults).
 	DefaultFn[T any] func() T
-	OptionFn[T any]  func(*T) error
+	// OptionFn mutates the target in place and can fail.
+	OptionFn[T any] func(*T) error
 )
 
 // -----------------------------------------------------------------------------
 // Option factories
 // -----------------------------------------------------------------------------
+
+// buildOption creates a typed option factory for a single-arg setter.
 func buildOption[T any, A any](fn func(*T, A) error) func(A) OptionFn[T] {
 	return func(a A) OptionFn[T] {
 		if fn == nil {
@@ -22,6 +26,7 @@ func buildOption[T any, A any](fn func(*T, A) error) func(A) OptionFn[T] {
 	}
 }
 
+// Option wraps a setter that cannot fail.
 func Option[T any, A any](fn func(*T, A)) func(A) OptionFn[T] {
 	return buildOption(func(c *T, a A) error {
 		fn(c, a)
@@ -29,10 +34,12 @@ func Option[T any, A any](fn func(*T, A)) func(A) OptionFn[T] {
 	})
 }
 
+// OptionErr wraps a setter that can fail.
 func OptionErr[T any, A any](fn func(*T, A) error) func(A) OptionFn[T] {
 	return buildOption(fn)
 }
 
+// buildVarOption creates a typed option factory for a varargs setter.
 func buildVarOption[T any, A any](fn func(*T, ...A) error) func(...A) OptionFn[T] {
 	return func(a ...A) OptionFn[T] {
 		if fn == nil {
@@ -42,6 +49,7 @@ func buildVarOption[T any, A any](fn func(*T, ...A) error) func(...A) OptionFn[T
 	}
 }
 
+// VarOption wraps a varargs setter that cannot fail.
 func VarOption[T any, A any](fn func(*T, ...A)) func(...A) OptionFn[T] {
 	return buildVarOption(func(c *T, a ...A) error {
 		fn(c, a...)
@@ -49,16 +57,27 @@ func VarOption[T any, A any](fn func(*T, ...A)) func(...A) OptionFn[T] {
 	})
 }
 
+// VarOptionErr wraps a varargs setter that can fail.
 func VarOptionErr[T any, A any](fn func(*T, ...A) error) func(...A) OptionFn[T] {
 	return buildVarOption(fn)
 }
 
-func noopOption[T any]() OptionFn[T] { return func(t *T) error { return nil } }
+// OptionIf applies opt only when cond is true; otherwise it no-ops.
+func OptionIf[T any](cond bool, opt OptionFn[T]) OptionFn[T] {
+	if cond {
+		return opt
+	}
+	return noopOption[T]()
+}
+
+// noopOption returns an option that does nothing and succeeds.
+func noopOption[T any]() OptionFn[T] { return func(*T) error { return nil } }
 
 // -----------------------------------------------------------------------------
 // Composition
 // -----------------------------------------------------------------------------
 
+// Apply applies opts in order and then validates target if it implements
 func Apply[T any](target *T, opts ...OptionFn[T]) error {
 	if target == nil {
 		return syserrors.CantBeNilError("target")
@@ -70,10 +89,8 @@ func Apply[T any](target *T, opts ...OptionFn[T]) error {
 		}
 	}
 
-	if v, ok := any(&target).(validation.Validatable); ok {
-		if err := v.Validate(); err != nil {
-			return err
-		}
+	if v, ok := any(target).(validation.Validatable); ok {
+		return v.Validate()
 	}
 
 	return nil
