@@ -1,19 +1,17 @@
 package invoker
 
 import (
-	"frisboo-bank/pkg/config"
+	cValidation "frisboo-bank/pkg/validation"
 
-	"github.com/hashicorp/go-multierror"
+	validation "github.com/go-ozzo/ozzo-validation/v4"
 )
 
-var _ config.Validatable = (*Config)(nil)
+var _ cValidation.Validatable = (*Config)(nil)
 
 type Config struct {
 	Info any
 }
 
 func (c *Config) Validate() error {
-	var errs *multierror.Error
-
-	return errs.ErrorOrNil()
+	return validation.ValidateStruct(c)
 }

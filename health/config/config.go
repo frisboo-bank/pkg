@@ -2,21 +2,22 @@ package config
 
 import (
 	"net/http"
-	"strings"
 	"time"
 
-	"frisboo-bank/pkg/config"
-	configloaderContracts "frisboo-bank/pkg/config/config_loader/contracts"
+	"frisboo-bank/pkg/config/registry"
 	"frisboo-bank/pkg/environment"
+
+	configloaderContracts "frisboo-bank/pkg/config/config_loader/contracts"
+
 	responseformat "frisboo-bank/pkg/health/enums/response_format"
 	loggerConfig "frisboo-bank/pkg/logger/config"
-	"frisboo-bank/pkg/options"
-	"frisboo-bank/pkg/syserrors"
 
-	"github.com/hashicorp/go-multierror"
+	cValidation "frisboo-bank/pkg/validation"
+
+	validation "github.com/go-ozzo/ozzo-validation/v4"
 )
 
-var _ config.Validatable = (*Config)(nil)
+var _ cValidation.Validatable = (*Config)(nil)
 
 type Config struct {
 	Enabled bool `mapstructure:"enabled"`
@@ -40,8 +41,8 @@ type Config struct {
 	Logger *loggerConfig.Config `mapstructure:"logger"`
 }
 
-func Default() *Config {
-	return &Config{
+func Default() Config {
+	return Config{
 		Enabled:             true,
 		LivenessPath:        "/healthz",
 		ReadinessPath:       "/readyz",
@@ -58,30 +59,28 @@ func Default() *Config {
 }
 
 func (c *Config) Validate() error {
-	var errs *multierror.Error
-
-	if !c.Enabled {
-		return nil
-	}
-
-	if strings.TrimSpace(c.LivenessPath) == "" {
-		errs = multierror.Append(errs, syserrors.CantBeEmptyError("LivenessPath"))
-	}
-	if strings.TrimSpace(c.ReadinessPath) == "" {
-		errs = multierror.Append(errs, syserrors.CantBeEmptyError("ReadinessPath"))
-	}
-
-	return errs.ErrorOrNil()
+	return validation.ValidateStruct(c,
+		validation.Field(&c.LivenessPath, validation.Required),
+		validation.Field(&c.ReadinessPath, validation.Required),
+		validation.Field(&c.StatusUp, validation.Required),
+		validation.Field(&c.StatusCodeUp, validation.Required),
+		validation.Field(&c.StatusDown, validation.Required),
+		validation.Field(&c.StatusCodeDown, validation.Required),
+		validation.Field(&c.ResponseFormat, validation.Required, validation.By(cValidation.EnumOneOf(responseformat.ResponseFormats))),
+		validation.Field(&c.StartupGracePeriod, validation.Required, validation.Min(0)),
+		validation.Field(&c.ShutdownDrainPeriod, validation.Required, validation.Min(0)),
+		validation.Field(&c.GlobalCheckTimeout, validation.Required, validation.Min(0)),
+	)
 }
 
-func New(opts ...Option) (*Config, error) {
-	return options.New(Default, opts...)
-}
+type Registry = registry.Registry[Config]
 
-func Load(loader configloaderContracts.ConfigLoader, env environment.Environment, opts ...Option) (*Config, error) {
-	cfg := Default()
-	if err := loader.LoadByKey("health", env, cfg); err != nil {
-		return nil, err
-	}
-	return options.New(func() *Config { return cfg }, opts...)
+func LoadRegistry(configLoader configloaderContracts.ConfigLoader, env environment.Environment) (*Registry, error) {
+	return registry.Load(
+		configLoader,
+		env,
+		"health",
+		"health",
+		Default,
+	)
 }

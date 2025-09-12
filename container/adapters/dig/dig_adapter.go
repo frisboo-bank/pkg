@@ -11,11 +11,13 @@ import (
 	"frisboo-bank/pkg/container/dependencies/hook"
 	"frisboo-bank/pkg/container/dependencies/invoker"
 	"frisboo-bank/pkg/container/dependencies/provider"
-	containertype "frisboo-bank/pkg/container/enums/container_type"
-	loggerContracts "frisboo-bank/pkg/logger/contracts"
 	"frisboo-bank/pkg/options"
 	"frisboo-bank/pkg/syserrors"
 	"frisboo-bank/pkg/validation"
+
+	containertype "frisboo-bank/pkg/container/enums/container_type"
+	loggerContracts "frisboo-bank/pkg/logger/contracts"
+
 	waiterContracts "frisboo-bank/pkg/waiter/contracts"
 
 	"go.uber.org/dig"
@@ -64,12 +66,12 @@ func (d *digAdapter) RegisterProvider(providers ...provider.Provider) error {
 	for _, i := range providers {
 		cfg := provider.Config{}
 		if err := options.Apply(&cfg, i.Options()...); err != nil {
-			return err
+			return syserrors.Wrap(err, "failed to apply provider options")
 		}
 		opts := toDigProvideOptions(cfg)
 
 		if err := d.dig.Provide(i.Constructor(), opts...); err != nil {
-			return syserrors.Newf("failed to register provider with error: %w", err)
+			return syserrors.Wrap(err, "failed to register provider")
 		}
 	}
 	return nil
@@ -79,12 +81,12 @@ func (d *digAdapter) RegisterDecorator(decorators ...decorator.Decorator) error 
 	for _, i := range decorators {
 		cfg := decorator.Config{}
 		if err := options.Apply(&cfg, i.Options()...); err != nil {
-			return err
+			return syserrors.Wrap(err, "failed to apply decorator options")
 		}
 		opts := toDigDecoratorOptions(cfg)
 
 		if err := d.dig.Decorate(i.Constructor(), opts...); err != nil {
-			return syserrors.Newf("failed to register decorator with error: %w", err)
+			return syserrors.Wrap(err, "failed to register decorator")
 		}
 	}
 	return nil
@@ -98,18 +100,18 @@ func (d *digAdapter) RegisterHook(hooks ...hook.Hooks) error {
 
 		cfg := hook.Config{}
 		if err := options.Apply(&cfg, i.Options()...); err != nil {
-			return err
+			return syserrors.Wrap(err, "failed to apply hook options")
 		}
 		opts := toDigHookOptions(cfg)
 
 		startOpts := append(opts, dig.Group(startGroup))
 		if err := d.dig.Provide(i.StartConstructor(), startOpts...); err != nil {
-			return syserrors.Newf("failed to register hook start with error: %w", err)
+			return syserrors.Wrap(err, "failed to register hook start")
 		}
 
 		stopOpts := append(opts, dig.Group(stopGroup))
 		if err := d.dig.Provide(i.StopConstructor(), stopOpts...); err != nil {
-			return syserrors.Newf("failed to register hook stop with error: %w", err)
+			return syserrors.Wrap(err, "failed to register hook stop")
 		}
 
 		d.hookGroups = append(d.hookGroups, hookGroups{
@@ -124,12 +126,12 @@ func (d *digAdapter) RegisterInvoker(invokers ...invoker.Invoker) error {
 	for _, i := range invokers {
 		cfg := invoker.Config{}
 		if err := options.Apply(&cfg, i.Options()...); err != nil {
-			return err
+			return syserrors.Wrap(err, "failed to apply invoker options")
 		}
 		opts := toDigInvokerOptions(cfg)
 
 		if err := d.dig.Invoke(i.Constructor(), opts...); err != nil {
-			return syserrors.Newf("[dig] failed to register invoker with error: %w", err)
+			return syserrors.Wrap(err, "failed to register invoker")
 		}
 	}
 	return nil
@@ -138,7 +140,7 @@ func (d *digAdapter) RegisterInvoker(invokers ...invoker.Invoker) error {
 func (d *digAdapter) Start(_ context.Context) error {
 	hooks, err := d.resolveHooks()
 	if err != nil {
-		return err
+		return syserrors.Wrap(err, "failed to resolve hook")
 	}
 	d.waiter.Add(hooks...)
 

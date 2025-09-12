@@ -3,17 +3,15 @@ package config
 import (
 	redisConfig "frisboo-bank/pkg/cache/adapters/redis/config"
 	cachetype "frisboo-bank/pkg/cache/enums/cache_type"
-	"frisboo-bank/pkg/config"
 	configloaderContracts "frisboo-bank/pkg/config/config_loader/contracts"
+	"frisboo-bank/pkg/config/registry"
 	"frisboo-bank/pkg/environment"
-	loggerConfig "frisboo-bank/pkg/logger/config"
-	"frisboo-bank/pkg/options"
-	"frisboo-bank/pkg/validation"
+	cValidation "frisboo-bank/pkg/validation"
 
-	"github.com/hashicorp/go-multierror"
+	validation "github.com/go-ozzo/ozzo-validation/v4"
 )
 
-var _ config.Validatable = (*Config)(nil)
+var _ cValidation.Validatable = (*Config)(nil)
 
 type Config struct {
 	Type  cachetype.CacheType `mapstructure:"type"`
@@ -23,38 +21,43 @@ type Config struct {
 	Redis redisConfig.Config `mapstructure:"redis"`
 
 	// dependency
-	Logger loggerConfig.Config `mapstructure:"logger"`
+	Logger string `mapstructure:"logger"`
 }
 
-func Default() *Config {
-	return &Config{
+func Default() Config {
+	return Config{
+		Type:  cachetype.CacheTypes.REDIS,
 		Debug: false,
+		Redis: *redisConfig.Default(),
 	}
 }
 
 func (c *Config) Validate() error {
-	var errs *multierror.Error
+	if err := validation.ValidateStruct(c,
+		validation.Field(&c.Type, validation.Required, validation.By(cValidation.EnumOneOf(cachetype.CacheTypes))),
+	); err != nil {
+		return err
+	}
 
 	switch c.Type {
 	case cachetype.CacheTypes.REDIS:
-		errs = multierror.Append(errs, c.Redis.Validate())
+		if err := validation.Validate(&c.Redis, validation.Required); err != nil {
+			return err
+		}
+		return c.Redis.Validate()
 	}
 
-	errs = multierror.Append(errs,
-		validation.NotNil("Logger", c.Logger),
+	return nil
+}
+
+type Registry = registry.Registry[Config]
+
+func LoadRegistry(configLoader configloaderContracts.ConfigLoader, env environment.Environment) (*Registry, error) {
+	return registry.Load(
+		configLoader,
+		env,
+		"caches",
+		"cache",
+		Default,
 	)
-
-	return errs.ErrorOrNil()
-}
-
-func New(opts ...Option) (*Config, error) {
-	return options.New(Default, opts...)
-}
-
-func Load(loader configloaderContracts.ConfigLoader, env environment.Environment, opts ...Option) (*Config, error) {
-	cfg := Default()
-	if err := loader.LoadByKey("cache", env, cfg); err != nil {
-		return nil, err
-	}
-	return options.New(func() *Config { return cfg }, opts...)
 }

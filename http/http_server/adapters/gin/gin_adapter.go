@@ -3,15 +3,16 @@ package gin
 import (
 	"context"
 	"errors"
+	"frisboo-bank/pkg/http/http_server/config"
+	"frisboo-bank/pkg/http/http_server/contracts"
+	"frisboo-bank/pkg/syserrors"
+	"frisboo-bank/pkg/validation"
 	"net/http"
 
 	requestid "frisboo-bank/pkg/http/http_server/adapters/gin/middlewares/request_id"
-	"frisboo-bank/pkg/http/http_server/config"
-	"frisboo-bank/pkg/http/http_server/contracts"
+
 	httpservertype "frisboo-bank/pkg/http/http_server/enums/http_server_type"
 	loggerContracts "frisboo-bank/pkg/logger/contracts"
-	"frisboo-bank/pkg/syserrors"
-	"frisboo-bank/pkg/validation"
 
 	"github.com/gin-contrib/cors"
 	ginVendor "github.com/gin-gonic/gin"
@@ -20,14 +21,14 @@ import (
 var _ contracts.HTTPServerAdapter = (*ginHTTPServerAdapter)(nil)
 
 type ginHTTPServerAdapter struct {
-	cfg          *config.HTTPServerConfig
+	cfg          *config.Config
 	engine       *ginVendor.Engine
 	logger       loggerContracts.Logger
 	routeBuilder contracts.RouteBuilder
 	server       *http.Server
 }
 
-func New(cfg *config.HTTPServerConfig, logger loggerContracts.Logger) contracts.HTTPServerAdapter {
+func New(cfg *config.Config, logger loggerContracts.Logger) contracts.HTTPServerAdapter {
 	validation.AssertNotNil("cfg", cfg)
 	validation.AssertNotNil("logger", logger)
 

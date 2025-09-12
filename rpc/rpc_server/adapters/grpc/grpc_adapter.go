@@ -5,11 +5,13 @@ import (
 	"errors"
 	"net"
 
-	loggerContracts "frisboo-bank/pkg/logger/contracts"
 	"frisboo-bank/pkg/rpc/rpc_server/config"
 	"frisboo-bank/pkg/rpc/rpc_server/contracts"
-	rpcservertype "frisboo-bank/pkg/rpc/rpc_server/enums/rpc_server_type"
 	"frisboo-bank/pkg/validation"
+
+	loggerContracts "frisboo-bank/pkg/logger/contracts"
+
+	rpcservertype "frisboo-bank/pkg/rpc/rpc_server/enums/rpc_server_type"
 
 	grpcMiddleware "github.com/grpc-ecosystem/go-grpc-middleware"
 	grpcRecovery "github.com/grpc-ecosystem/go-grpc-middleware/recovery"
@@ -25,13 +27,13 @@ import (
 var _ contracts.RPCServerAdapter = (*grpcRPCServerAdapter)(nil)
 
 type grpcRPCServerAdapter struct {
-	cfg      *config.Config
+	cfg      config.Config
 	listener net.Listener
 	logger   loggerContracts.Logger
 	server   *googlerpc.Server
 }
 
-func New(cfg *config.Config, logger loggerContracts.Logger) contracts.RPCServerAdapter {
+func New(cfg config.Config, logger loggerContracts.Logger) contracts.RPCServerAdapter {
 	validation.AssertNotNil("cfg", cfg)
 	validation.AssertNotNil("logger", logger)
 

@@ -10,7 +10,7 @@ import (
 )
 
 func NoContainerOfTypeError(sType loggertype.LoggerType) error {
-	return syserrors.Newf("no container of type %q exists", sType)
+	return syserrors.Newf("no logger of type %q exists", sType)
 }
 
 func GetInstance(cfg *config.Config) (contracts.Logger, error) {
