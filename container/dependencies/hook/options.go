@@ -29,26 +29,14 @@ var Export = options.Option(func(c *Config, export bool) {
 	c.Export = export
 })
 
-var Group = options.OptionErr(func(c *Config, group string) error {
-	group = strings.TrimSpace(group)
-	if group == "" {
-		return syserrors.CantBeEmptyError("Group")
-	}
-
-	c.Group = group
-	return nil
+var Group = options.Option(func(c *Config, group string) {
+	c.Group = strings.TrimSpace(group)
 })
 
 var LocationForPC = options.Option(func(c *Config, pc uintptr) {
 	c.LocationPC = pc
 })
 
-var Name = options.OptionErr(func(c *Config, name string) error {
-	name = strings.TrimSpace(name)
-	if name == "" {
-		return syserrors.CantBeEmptyError("Name")
-	}
-
-	c.Name = name
-	return nil
+var Name = options.Option(func(c *Config, name string) {
+	c.Name = strings.TrimSpace(name)
 })

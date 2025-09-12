@@ -2,31 +2,18 @@ package decorator
 
 import (
 	"frisboo-bank/pkg/options"
-	"frisboo-bank/pkg/syserrors"
 )
 
 type Option = options.OptionFn[Config]
 
-var BeforeCallback = options.OptionErr(func(c *Config, cb CallbackFn) error {
-	if cb == nil {
-		return syserrors.CantBeNilError("Callback")
-	}
+var BeforeCallback = options.Option(func(c *Config, cb CallbackFn) {
 	c.BeforeCallback = cb
-	return nil
 })
 
-var Callback = options.OptionErr(func(c *Config, cb CallbackFn) error {
-	if cb == nil {
-		return syserrors.CantBeNilError("Callback")
-	}
+var Callback = options.Option(func(c *Config, cb CallbackFn) {
 	c.Callback = cb
-	return nil
 })
 
-var Info = options.OptionErr(func(c *Config, info any) error {
-	if info == nil {
-		return syserrors.CantBeNilError("Callback")
-	}
+var Info = options.Option(func(c *Config, info any) {
 	c.Info = info
-	return nil
 })

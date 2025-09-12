@@ -5,17 +5,12 @@ import (
 	"time"
 
 	"frisboo-bank/pkg/options"
-	"frisboo-bank/pkg/syserrors"
 )
 
 type Option = options.OptionFn[Config]
 
-var ParentContext = options.OptionErr(func(c *Config, parentCtx context.Context) error {
-	if parentCtx == nil {
-		return syserrors.CantBeNilError("ParentContext")
-	}
+var ParentContext = options.Option(func(c *Config, parentCtx context.Context) {
 	c.ParentContext = parentCtx
-	return nil
 })
 
 var CancelOnShutdownSignal = options.Option(func(c *Config, cancelOnShutdownSignal bool) {
@@ -23,19 +18,11 @@ var CancelOnShutdownSignal = options.Option(func(c *Config, cancelOnShutdownSign
 })
 
 // WaitTimeout sets the maximum duration for each Wait hook.
-var WaitTimeout = options.OptionErr(func(c *Config, d time.Duration) error {
-	if d < 0 {
-		return syserrors.CantBeNegativeError("WaitTimeout", d)
-	}
-	c.WaitTimeout = d
-	return nil
+var WaitTimeout = options.Option(func(c *Config, waitTimeout time.Duration) {
+	c.WaitTimeout = waitTimeout
 })
 
 // CleanupTimeout sets the maximum duration for each Cleanup hook.
-var CleanupTimeout = options.OptionErr(func(c *Config, d time.Duration) error {
-	if d < 0 {
-		return syserrors.CantBeNegativeError("CleanupTimeout", d)
-	}
-	c.CleanupTimeout = d
-	return nil
+var CleanupTimeout = options.Option(func(c *Config, cleanupTimeout time.Duration) {
+	c.CleanupTimeout = cleanupTimeout
 })
