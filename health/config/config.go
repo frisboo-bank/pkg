@@ -4,14 +4,11 @@ import (
 	"net/http"
 	"time"
 
+	configloaderContracts "frisboo-bank/pkg/config/config_loader/contracts"
 	"frisboo-bank/pkg/config/registry"
 	"frisboo-bank/pkg/environment"
-
-	configloaderContracts "frisboo-bank/pkg/config/config_loader/contracts"
-
 	responseformat "frisboo-bank/pkg/health/enums/response_format"
 	loggerConfig "frisboo-bank/pkg/logger/config"
-
 	cValidation "frisboo-bank/pkg/validation"
 
 	validation "github.com/go-ozzo/ozzo-validation/v4"
@@ -59,14 +56,19 @@ func Default() Config {
 }
 
 func (c *Config) Validate() error {
-	return validation.ValidateStruct(c,
+	return validation.ValidateStruct(
+		c,
 		validation.Field(&c.LivenessPath, validation.Required),
 		validation.Field(&c.ReadinessPath, validation.Required),
 		validation.Field(&c.StatusUp, validation.Required),
 		validation.Field(&c.StatusCodeUp, validation.Required),
 		validation.Field(&c.StatusDown, validation.Required),
 		validation.Field(&c.StatusCodeDown, validation.Required),
-		validation.Field(&c.ResponseFormat, validation.Required, validation.By(cValidation.EnumOneOf(responseformat.ResponseFormats))),
+		validation.Field(
+			&c.ResponseFormat,
+			validation.Required,
+			validation.By(cValidation.EnumOneOf(responseformat.ResponseFormats)),
+		),
 		validation.Field(&c.StartupGracePeriod, validation.Required, validation.Min(0)),
 		validation.Field(&c.ShutdownDrainPeriod, validation.Required, validation.Min(0)),
 		validation.Field(&c.GlobalCheckTimeout, validation.Required, validation.Min(0)),

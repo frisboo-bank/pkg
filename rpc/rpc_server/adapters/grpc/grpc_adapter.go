@@ -5,13 +5,11 @@ import (
 	"errors"
 	"net"
 
+	loggerContracts "frisboo-bank/pkg/logger/contracts"
 	"frisboo-bank/pkg/rpc/rpc_server/config"
 	"frisboo-bank/pkg/rpc/rpc_server/contracts"
-	"frisboo-bank/pkg/validation"
-
-	loggerContracts "frisboo-bank/pkg/logger/contracts"
-
 	rpcservertype "frisboo-bank/pkg/rpc/rpc_server/enums/rpc_server_type"
+	"frisboo-bank/pkg/validation"
 
 	grpcMiddleware "github.com/grpc-ecosystem/go-grpc-middleware"
 	grpcRecovery "github.com/grpc-ecosystem/go-grpc-middleware/recovery"

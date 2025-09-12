@@ -3,16 +3,15 @@ package gin
 import (
 	"context"
 	"errors"
-	"frisboo-bank/pkg/http/http_server/config"
-	"frisboo-bank/pkg/http/http_server/contracts"
-	"frisboo-bank/pkg/syserrors"
-	"frisboo-bank/pkg/validation"
 	"net/http"
 
 	requestid "frisboo-bank/pkg/http/http_server/adapters/gin/middlewares/request_id"
-
+	"frisboo-bank/pkg/http/http_server/config"
+	"frisboo-bank/pkg/http/http_server/contracts"
 	httpservertype "frisboo-bank/pkg/http/http_server/enums/http_server_type"
 	loggerContracts "frisboo-bank/pkg/logger/contracts"
+	"frisboo-bank/pkg/syserrors"
+	"frisboo-bank/pkg/validation"
 
 	"github.com/gin-contrib/cors"
 	ginVendor "github.com/gin-gonic/gin"

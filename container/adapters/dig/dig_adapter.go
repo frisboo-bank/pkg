@@ -11,13 +11,11 @@ import (
 	"frisboo-bank/pkg/container/dependencies/hook"
 	"frisboo-bank/pkg/container/dependencies/invoker"
 	"frisboo-bank/pkg/container/dependencies/provider"
+	containertype "frisboo-bank/pkg/container/enums/container_type"
+	loggerContracts "frisboo-bank/pkg/logger/contracts"
 	"frisboo-bank/pkg/options"
 	"frisboo-bank/pkg/syserrors"
 	"frisboo-bank/pkg/validation"
-
-	containertype "frisboo-bank/pkg/container/enums/container_type"
-	loggerContracts "frisboo-bank/pkg/logger/contracts"
-
 	waiterContracts "frisboo-bank/pkg/waiter/contracts"
 
 	"go.uber.org/dig"
