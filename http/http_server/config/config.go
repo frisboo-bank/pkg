@@ -102,10 +102,7 @@ func (c *Config) Validate() error {
 
 type Registry = registry.Registry[Config]
 
-func LoadRegistry(
-	configLoader configloaderContracts.ConfigLoader,
-	env environment.Environment,
-) (*Registry, error) {
+func LoadRegistry(configLoader configloaderContracts.ConfigLoader, env environment.Environment) (*Registry, error) {
 	return registry.Load(
 		configLoader,
 		env,

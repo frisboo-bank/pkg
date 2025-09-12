@@ -14,7 +14,7 @@ import (
 	"frisboo-bank/pkg/syserrors"
 	"frisboo-bank/pkg/utils"
 
-	validation "github.com/go-ozzo/ozzo-validation"
+	validation "github.com/go-ozzo/ozzo-validation/v4"
 	"github.com/go-viper/mapstructure/v2"
 	"github.com/spf13/viper"
 )

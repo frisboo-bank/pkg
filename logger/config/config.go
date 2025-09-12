@@ -84,9 +84,9 @@ func (c *Config) Validate() error {
 	return nil
 }
 
-type Registry = *registry.Registry[Config]
+type Registry = registry.Registry[Config]
 
-func LoadRegistry(configLoader configloaderContracts.ConfigLoader, env environment.Environment) (Registry, error) {
+func LoadRegistry(configLoader configloaderContracts.ConfigLoader, env environment.Environment) (*Registry, error) {
 	return registry.Load(
 		configLoader,
 		env,

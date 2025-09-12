@@ -8,7 +8,7 @@ import (
 	"frisboo-bank/pkg/environment"
 	cValidation "frisboo-bank/pkg/validation"
 
-	validation "github.com/go-ozzo/ozzo-validation"
+	validation "github.com/go-ozzo/ozzo-validation/v4"
 	validationIs "github.com/go-ozzo/ozzo-validation/v4/is"
 )
 
@@ -36,7 +36,7 @@ func Default() Config {
 
 func (c *Config) Validate() error {
 	if err := validation.ValidateStruct(c,
-		validation.Field(&c.Type, validation.Required, validation.By(validation.RuleFunc(cValidation.EnumOneOf(databaseclienttype.DatabaseClientTypes)))),
+		validation.Field(&c.Type, validation.Required, validation.By(cValidation.EnumOneOf(databaseclienttype.DatabaseClientTypes))),
 		validation.Field(&c.Host, validation.Required, validationIs.Host),
 		validation.Field(&c.Port, validation.Required, validationIs.Port),
 		validation.Field(&c.User, validation.Required),
