@@ -6,18 +6,12 @@ import (
 
 	httpservertype "frisboo-bank/pkg/http/http_server/enums/http_server_type"
 	"frisboo-bank/pkg/options"
-	"frisboo-bank/pkg/syserrors"
-	"frisboo-bank/pkg/validation"
 )
 
 type Option = options.OptionFn[Config]
 
-var Type = options.OptionErr(func(c *Config, sType httpservertype.HttpServerType) error {
-	if err := validation.EnumOneOf("Type", sType, httpservertype.HttpServerTypes); err != nil {
-		return err
-	}
+var Type = options.Option(func(c *Config, sType httpservertype.HttpServerType) {
 	c.Type = sType
-	return nil
 })
 
 var Enabled = options.Option(func(c *Config, enabled bool) {
@@ -28,34 +22,20 @@ var BasePath = options.Option(func(c *Config, basePath string) {
 	c.BasePath = strings.TrimSpace(basePath)
 })
 
-var BodyLimit = options.OptionErr(func(c *Config, bodyLimit string) error {
-	bodyLimit = strings.TrimSpace(bodyLimit)
-	if bodyLimit == "" {
-		return syserrors.CantBeEmptyError("BodyLimit")
-	}
-	c.BodyLimit = bodyLimit
-	return nil
+var BodyLimit = options.Option(func(c *Config, bodyLimit string) {
+	c.BodyLimit = strings.TrimSpace(bodyLimit)
 })
 
 var Debug = options.Option(func(c *Config, debug bool) {
 	c.Debug = debug
 })
 
-var Host = options.OptionErr(func(c *Config, host string) error {
-	host = strings.TrimSpace(host)
-	if host == "" {
-		return syserrors.CantBeEmptyError("Host")
-	}
-	c.Host = host
-	return nil
+var Host = options.Option(func(c *Config, host string) {
+	c.Host = strings.TrimSpace(host)
 })
 
-var IdleTimeout = options.OptionErr(func(c *Config, idleTimeout time.Duration) error {
-	if idleTimeout <= 0 {
-		return syserrors.MustBePositiveError("IdleTimeout", idleTimeout)
-	}
+var IdleTimeout = options.Option(func(c *Config, idleTimeout time.Duration) {
 	c.IdleTimeout = idleTimeout
-	return nil
 })
 
 var IgnoreLogUrls = options.Option(func(c *Config, ignoreLogUrls []string) {
@@ -80,49 +60,28 @@ var AppendIgnoreLogUrls = options.VarOption(func(c *Config, ignoreLogUrls ...str
 	}
 })
 
-var MaxHeaderBytes = options.OptionErr(func(c *Config, maxHeaderBytes int) error {
-	if maxHeaderBytes <= 0 {
-		return syserrors.MustBePositiveError("MaxHeaderBytes", maxHeaderBytes)
-	}
+var MaxHeaderBytes = options.Option(func(c *Config, maxHeaderBytes int) {
 	c.MaxHeaderBytes = maxHeaderBytes
-	return nil
 })
 
 var Mode = options.Option(func(c *Config, mode string) {
 	c.Mode = strings.TrimSpace(mode)
 })
 
-var Port = options.OptionErr(func(c *Config, port string) error {
-	port = strings.TrimSpace(port)
-	if port == "" {
-		return syserrors.CantBeEmptyError("Port")
-	}
-	c.Port = port
-	return nil
+var Port = options.Option(func(c *Config, port string) {
+	c.Port = strings.TrimSpace(port)
 })
 
-var ReadHeaderTimeout = options.OptionErr(func(c *Config, readHeaderTimeout time.Duration) error {
-	if readHeaderTimeout <= 0 {
-		return syserrors.MustBePositiveError("ReadHeaderTimeout", readHeaderTimeout)
-	}
+var ReadHeaderTimeout = options.Option(func(c *Config, readHeaderTimeout time.Duration) {
 	c.ReadHeaderTimeout = readHeaderTimeout
-	return nil
 })
 
-var ReadTimeout = options.OptionErr(func(c *Config, readTimeout time.Duration) error {
-	if readTimeout <= 0 {
-		return syserrors.MustBePositiveError("ReadTimeout", readTimeout)
-	}
+var ReadTimeout = options.Option(func(c *Config, readTimeout time.Duration) {
 	c.ReadTimeout = readTimeout
-	return nil
 })
 
-var ServerShutdownTimeout = options.OptionErr(func(c *Config, serverShutdownTimeout time.Duration) error {
-	if serverShutdownTimeout <= 0 {
-		return syserrors.MustBePositiveError("ServerShutdownTimeout", serverShutdownTimeout)
-	}
+var ServerShutdownTimeout = options.Option(func(c *Config, serverShutdownTimeout time.Duration) {
 	c.ServerShutdownTimeout = serverShutdownTimeout
-	return nil
 })
 
 var TrustedProxies = options.Option(func(c *Config, proxies []string) {
@@ -147,10 +106,6 @@ var AppendTrustedProxies = options.VarOption(func(c *Config, proxies ...string) 
 	}
 })
 
-var WriteTimeout = options.OptionErr(func(c *Config, writeTimeout time.Duration) error {
-	if writeTimeout <= 0 {
-		return syserrors.MustBePositiveError("WriteTimeout", writeTimeout)
-	}
+var WriteTimeout = options.Option(func(c *Config, writeTimeout time.Duration) {
 	c.WriteTimeout = writeTimeout
-	return nil
 })
