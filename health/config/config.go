@@ -15,7 +15,6 @@ import (
 	cValidation "frisboo-bank/pkg/validation"
 
 	validation "github.com/go-ozzo/ozzo-validation/v4"
-	validationIs "github.com/go-ozzo/ozzo-validation/v4/is"
 )
 
 var _ cValidation.Validatable = (*Config)(nil)
@@ -61,8 +60,8 @@ func Default() Config {
 
 func (c *Config) Validate() error {
 	return validation.ValidateStruct(c,
-		validation.Field(&c.LivenessPath, validation.Required, validationIs.URL),
-		validation.Field(&c.ReadinessPath, validation.Required, validationIs.URL),
+		validation.Field(&c.LivenessPath, validation.Required),
+		validation.Field(&c.ReadinessPath, validation.Required),
 		validation.Field(&c.StatusUp, validation.Required),
 		validation.Field(&c.StatusCodeUp, validation.Required),
 		validation.Field(&c.StatusDown, validation.Required),
