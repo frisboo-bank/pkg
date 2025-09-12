@@ -4,16 +4,12 @@ import (
 	"net"
 	"time"
 
+	configloaderContracts "frisboo-bank/pkg/config/config_loader/contracts"
 	"frisboo-bank/pkg/config/registry"
 	"frisboo-bank/pkg/environment"
-
-	cValidation "frisboo-bank/pkg/validation"
-
-	configloaderContracts "frisboo-bank/pkg/config/config_loader/contracts"
-
-	httpservertype "frisboo-bank/pkg/http/http_server/enums/http_server_type"
-
 	ginConfig "frisboo-bank/pkg/http/http_server/adapters/gin/config"
+	httpservertype "frisboo-bank/pkg/http/http_server/enums/http_server_type"
+	cValidation "frisboo-bank/pkg/validation"
 
 	validation "github.com/go-ozzo/ozzo-validation/v4"
 	validationIs "github.com/go-ozzo/ozzo-validation/v4/is"

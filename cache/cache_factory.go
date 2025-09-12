@@ -1,7 +1,6 @@
 package cache
 
 import (
-	inmemory "frisboo-bank/pkg/cache/adapters/in_memory"
 	"frisboo-bank/pkg/cache/adapters/redis"
 	"frisboo-bank/pkg/cache/config"
 	"frisboo-bank/pkg/cache/contracts"
@@ -22,8 +21,6 @@ func GetInstance(
 	var adapter contracts.CacheAdapter
 
 	switch cfg.Type {
-	case cachetype.CacheTypes.IN_MEMORY:
-		adapter = inmemory.New(logger)
 	case cachetype.CacheTypes.REDIS:
 		adapter = redis.New(cfg, logger)
 	default:

@@ -23,3 +23,7 @@ var Tracing = options.Option(func(c *Config, tracing bool) {
 var Dig = options.Option(func(c *Config, dig *digConfig.Config) {
 	c.Dig = dig
 })
+
+var Logger = options.Option(func(c *Config, logger string) {
+	c.Logger = logger
+})

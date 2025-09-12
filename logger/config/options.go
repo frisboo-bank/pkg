@@ -3,12 +3,11 @@ package config
 import (
 	"io"
 
-	"frisboo-bank/pkg/options"
-
 	zerologConfig "frisboo-bank/pkg/logger/adapters/zerolog/config"
 	encodingtype "frisboo-bank/pkg/logger/enums/encoding_type"
 	loglevel "frisboo-bank/pkg/logger/enums/log_level"
 	loggertype "frisboo-bank/pkg/logger/enums/logger_type"
+	"frisboo-bank/pkg/options"
 )
 
 type Option = options.OptionFn[Config]

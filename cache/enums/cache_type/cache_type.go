@@ -6,6 +6,5 @@ type (
 
 const (
 	unknown cacheType = iota // invalid
-	in_memory
 	redis
 )

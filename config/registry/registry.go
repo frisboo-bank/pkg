@@ -1,10 +1,9 @@
 package registry
 
 import (
+	configLoaderContracts "frisboo-bank/pkg/config/config_loader/contracts"
 	"frisboo-bank/pkg/environment"
 	"frisboo-bank/pkg/syserrors"
-
-	configLoaderContracts "frisboo-bank/pkg/config/config_loader/contracts"
 
 	"dario.cat/mergo"
 )

@@ -1,15 +1,13 @@
 package config
 
 import (
+	configloaderContracts "frisboo-bank/pkg/config/config_loader/contracts"
 	"frisboo-bank/pkg/environment"
 	"frisboo-bank/pkg/options"
 	"frisboo-bank/pkg/syserrors"
-
 	cValidation "frisboo-bank/pkg/validation"
 
 	validation "github.com/go-ozzo/ozzo-validation/v4"
-
-	configloaderContracts "frisboo-bank/pkg/config/config_loader/contracts"
 )
 
 var _ cValidation.Validatable = (*Config)(nil)
