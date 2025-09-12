@@ -1,12 +1,12 @@
 package config
 
 import (
-	"frisboo-bank/pkg/config"
+	cValidation "frisboo-bank/pkg/validation"
 
 	"github.com/hashicorp/go-multierror"
 )
 
-var _ config.Validatable = (*Config)(nil)
+var _ cValidation.Validatable = (*Config)(nil)
 
 type Config struct{}
 

@@ -4,15 +4,12 @@ import (
 	"net"
 	"time"
 
+	configloaderContracts "frisboo-bank/pkg/config/config_loader/contracts"
 	"frisboo-bank/pkg/config/registry"
 	"frisboo-bank/pkg/environment"
-
-	cValidation "frisboo-bank/pkg/validation"
-
-	configloaderContracts "frisboo-bank/pkg/config/config_loader/contracts"
-
 	grpcConfig "frisboo-bank/pkg/rpc/rpc_server/adapters/grpc/config"
 	rpcservertype "frisboo-bank/pkg/rpc/rpc_server/enums/rpc_server_type"
+	cValidation "frisboo-bank/pkg/validation"
 
 	validation "github.com/go-ozzo/ozzo-validation/v4"
 	validationIs "github.com/go-ozzo/ozzo-validation/v4/is"

@@ -12,7 +12,7 @@ func NoServerOfTypeError(sType rpcservertype.RpcServerType) error {
 	return syserrors.Newf("no server of type `%q` exists", sType)
 }
 
-func GetInstance(cfg *config.Config) (contracts.RPCServer, error) {
+func GetInstance(cfg config.Config) (contracts.RPCServer, error) {
 	var adapter contracts.RPCServerAdapter
 
 	switch cfg.Type {

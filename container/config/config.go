@@ -3,11 +3,10 @@ package config
 import (
 	configloaderContracts "frisboo-bank/pkg/config/config_loader/contracts"
 	"frisboo-bank/pkg/config/registry"
-	"frisboo-bank/pkg/environment"
-	cValidation "frisboo-bank/pkg/validation"
-
 	digConfig "frisboo-bank/pkg/container/adapters/dig/config"
 	containertype "frisboo-bank/pkg/container/enums/container_type"
+	"frisboo-bank/pkg/environment"
+	cValidation "frisboo-bank/pkg/validation"
 
 	validation "github.com/go-ozzo/ozzo-validation/v4"
 )

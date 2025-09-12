@@ -4,18 +4,15 @@ import (
 	"io"
 	"os"
 
+	configloaderContracts "frisboo-bank/pkg/config/config_loader/contracts"
 	"frisboo-bank/pkg/config/registry"
 	"frisboo-bank/pkg/environment"
-
-	cValidation "frisboo-bank/pkg/validation"
-
-	configloaderContracts "frisboo-bank/pkg/config/config_loader/contracts"
-
 	logrusConfig "frisboo-bank/pkg/logger/adapters/logrus/config"
 	zerologConfig "frisboo-bank/pkg/logger/adapters/zerolog/config"
 	encodingtype "frisboo-bank/pkg/logger/enums/encoding_type"
 	loglevel "frisboo-bank/pkg/logger/enums/log_level"
 	loggertype "frisboo-bank/pkg/logger/enums/logger_type"
+	cValidation "frisboo-bank/pkg/validation"
 
 	validation "github.com/go-ozzo/ozzo-validation/v4"
 )

@@ -1,31 +1,26 @@
 package application
 
 import (
+	appConfig "frisboo-bank/pkg/application/config"
 	"frisboo-bank/pkg/application/contracts"
-	"frisboo-bank/pkg/container"
-	"frisboo-bank/pkg/container/dependencies/decorator"
-	"frisboo-bank/pkg/container/dependencies/module"
-	"frisboo-bank/pkg/container/dependencies/provider"
-	"frisboo-bank/pkg/environment"
-	"frisboo-bank/pkg/logger"
-	"frisboo-bank/pkg/syserrors"
-
 	configloader "frisboo-bank/pkg/config/config_loader"
 	configloaderConfig "frisboo-bank/pkg/config/config_loader/config"
 	configloaderContracts "frisboo-bank/pkg/config/config_loader/contracts"
-
-	containerContracts "frisboo-bank/pkg/container/contracts"
-
+	"frisboo-bank/pkg/container"
 	containerConfig "frisboo-bank/pkg/container/config"
+	containerContracts "frisboo-bank/pkg/container/contracts"
+	"frisboo-bank/pkg/container/dependencies/decorator"
+	"frisboo-bank/pkg/container/dependencies/module"
+	"frisboo-bank/pkg/container/dependencies/provider"
 	containerEnums "frisboo-bank/pkg/container/enums"
-
+	"frisboo-bank/pkg/environment"
 	httpServerEnums "frisboo-bank/pkg/http/http_server/enums"
-
-	appConfig "frisboo-bank/pkg/application/config"
+	"frisboo-bank/pkg/logger"
 	loggerConfig "frisboo-bank/pkg/logger/config"
 	loggerContracts "frisboo-bank/pkg/logger/contracts"
 	loggerEnums "frisboo-bank/pkg/logger/enums"
 	rpcServerEnums "frisboo-bank/pkg/rpc/rpc_server/enums"
+	"frisboo-bank/pkg/syserrors"
 )
 
 var _ contracts.ApplicationBuilder = (*applicationBuilder)(nil)
@@ -89,7 +84,7 @@ func NewApplicationBuilder(environments ...environment.Environment) (contracts.A
 		provider.ProvideFunc(func() environment.Environment { return env }),
 		provider.ProvideFunc(func() loggerContracts.Logger { return appLogger }),
 		provider.ProvideFunc(func() configloaderContracts.ConfigLoader { return configLoader }),
-		provider.ProvideFunc(func() loggerConfig.Registry { return loggerCfgRegistry }),
+		provider.ProvideFunc(func() loggerConfig.Registry { return *loggerCfgRegistry }),
 		provider.ProvideFunc(func() appConfig.Config { return appCfg }),
 	)
 
@@ -98,7 +93,7 @@ func NewApplicationBuilder(environments ...environment.Environment) (contracts.A
 		logger:      appLogger,
 
 		configLoader:         configLoader,
-		loggerConfigRegistry: loggerCfgRegistry,
+		loggerConfigRegistry: *loggerCfgRegistry,
 		appConfig:            appCfg,
 
 		modules:    []module.Module{appModule},
