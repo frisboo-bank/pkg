@@ -51,10 +51,10 @@ func Default() Config {
 
 func (c *Config) Validate() error {
 	if err := validation.ValidateStruct(c,
-		validation.Field(c.Type, validation.Required, validation.By(cValidation.EnumOneOf(rpcservertype.RpcServerTypes))),
-		validation.Field(c.Host, validation.Required, validationIs.Host),
-		validation.Field(c.Port, validation.Required, validationIs.Port),
-		validation.Field(c.ServerShutdownTimeout, validation.Required, validation.Min(0)),
+		validation.Field(&c.Type, validation.Required, validation.By(cValidation.EnumOneOf(rpcservertype.RpcServerTypes))),
+		validation.Field(&c.Host, validation.Required, validationIs.Host),
+		validation.Field(&c.Port, validation.Required, validationIs.Port),
+		validation.Field(&c.ServerShutdownTimeout, validation.Required, validation.Min(0)),
 	); err != nil {
 		return err
 	}
@@ -72,10 +72,7 @@ func (c *Config) Validate() error {
 
 type Registry = registry.Registry[Config]
 
-func LoadRegistry(
-	configLoader configloaderContracts.ConfigLoader,
-	env environment.Environment,
-) (Registry, error) {
+func LoadRegistry(configLoader configloaderContracts.ConfigLoader, env environment.Environment) (*Registry, error) {
 	return registry.Load(
 		configLoader,
 		env,
