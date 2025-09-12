@@ -34,7 +34,7 @@ func Default() Config {
 
 func (c *Config) Validate() error {
 	if err := validation.ValidateStruct(c,
-		validation.Field(c.Type, validation.Required, validation.By(cValidation.EnumOneOf(cachetype.CacheTypes))),
+		validation.Field(&c.Type, validation.Required, validation.By(cValidation.EnumOneOf(cachetype.CacheTypes))),
 	); err != nil {
 		return err
 	}
