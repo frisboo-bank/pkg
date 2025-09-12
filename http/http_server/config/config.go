@@ -73,18 +73,18 @@ func Default() Config {
 
 func (c *Config) Validate() error {
 	if err := validation.ValidateStruct(c,
-		validation.Field(c.Type, validation.Required, validation.By(cValidation.EnumOneOf(httpservertype.HttpServerTypes))),
-		validation.Field(c.Host, validation.Required, validationIs.Host),
-		validation.Field(c.Port, validation.Required, validationIs.Port),
-		validation.Field(c.BasePath, validation.Required),
-		validation.Field(c.IgnoreLogUrls),
-		validation.Field(c.MaxHeaderBytes, validation.Required, validation.Min(0)),
-		validation.Field(c.BodyLimit, validation.Required),
-		validation.Field(c.IdleTimeout, validation.Required, validation.Min(0)),
-		validation.Field(c.ReadHeaderTimeout, validation.Required, validation.Min(0)),
-		validation.Field(c.ReadTimeout, validation.Required, validation.Min(0)),
-		validation.Field(c.ServerShutdownTimeout, validation.Required, validation.Min(0)),
-		validation.Field(c.WriteTimeout, validation.Required, validation.Min(0)),
+		validation.Field(&c.Type, validation.Required, validation.By(cValidation.EnumOneOf(httpservertype.HttpServerTypes))),
+		validation.Field(&c.Host, validation.Required, validationIs.Host),
+		validation.Field(&c.Port, validation.Required, validationIs.Port),
+		validation.Field(&c.BasePath, validation.Required),
+		validation.Field(&c.IgnoreLogUrls),
+		validation.Field(&c.MaxHeaderBytes, validation.Required, validation.Min(0)),
+		validation.Field(&c.BodyLimit, validation.Required),
+		validation.Field(&c.IdleTimeout, validation.Required, validation.Min(0)),
+		validation.Field(&c.ReadHeaderTimeout, validation.Required, validation.Min(0)),
+		validation.Field(&c.ReadTimeout, validation.Required, validation.Min(0)),
+		validation.Field(&c.ServerShutdownTimeout, validation.Required, validation.Min(0)),
+		validation.Field(&c.WriteTimeout, validation.Required, validation.Min(0)),
 	); err != nil {
 		return err
 	}
