@@ -69,12 +69,16 @@ func (c *Config) Validate() error {
 
 type Registry = registry.Registry[Config]
 
-func LoadRegistry(configLoader configloaderContracts.ConfigLoader, env environment.Environment) (*Registry, error) {
-	return registry.Load(
+func LoadRegistry(configLoader configloaderContracts.ConfigLoader, env environment.Environment) (Registry, error) {
+	reg, err := registry.Load(
 		configLoader,
 		env,
 		"rpcServers",
 		"rpcServer",
 		Default,
 	)
+	if err != nil {
+		return nil, err
+	}
+	return &reg, nil
 }

@@ -9,6 +9,7 @@ import (
 	"frisboo-bank/pkg/environment"
 	ginConfig "frisboo-bank/pkg/http/http_server/adapters/gin/config"
 	httpservertype "frisboo-bank/pkg/http/http_server/enums/http_server_type"
+	"frisboo-bank/pkg/syserrors"
 	cValidation "frisboo-bank/pkg/validation"
 
 	validation "github.com/go-ozzo/ozzo-validation/v4"
@@ -98,12 +99,16 @@ func (c *Config) Validate() error {
 
 type Registry = registry.Registry[Config]
 
-func LoadRegistry(configLoader configloaderContracts.ConfigLoader, env environment.Environment) (*Registry, error) {
-	return registry.Load(
+func LoadRegistry(configLoader configloaderContracts.ConfigLoader, env environment.Environment) (Registry, error) {
+	reg, err := registry.Load(
 		configLoader,
 		env,
 		"httpServers",
 		"httpServer",
 		Default,
 	)
+	if err != nil {
+		return nil, syserrors.Wrap(err, "failed to load http server registry")
+	}
+	return &reg, nil
 }

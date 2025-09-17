@@ -62,51 +62,52 @@ func New(opts ...config.Option) (contracts.ConfigLoader, error) {
 	}, nil
 }
 
-func (c *configLoader) Load(env environment.Environment, cfg any) error {
-	if err := c.loadConfigFile(env); err != nil {
+/**
+ *
+ * Commands
+ *
+ */
+func (c *configLoader) Load(env environment.Environment, target any) error {
+	if !reflection.IsPointer(target) {
+		return syserrors.Newf("target must be a pointer: got %s", reflection.GetKind(target))
+	}
+	if err := c.ensureLoaded(env); err != nil {
 		return err
 	}
-	return c.unmarshal("", cfg)
+	return c.unmarshal("", target)
 }
 
-func (c *configLoader) LoadKey(env environment.Environment, cfg any, key string) error {
-	if err := c.loadConfigFile(env); err != nil {
+func (c *configLoader) LoadKey(env environment.Environment, target any, key string) error {
+	if !reflection.IsPointer(target) {
+		return syserrors.Newf("target must be a pointer: got %s", reflection.GetKind(target))
+	}
+	if err := c.ensureLoaded(env); err != nil {
 		return err
 	}
-	return c.unmarshal(key, cfg)
-}
-
-func (c *configLoader) LoadComposableKey(env environment.Environment, cfg any, keys ...string) error {
-	if len(keys) == 0 {
-		return syserrors.CantBeEmptyError("keys")
-	}
-	if err := c.loadConfigFile(env); err != nil {
-		return err
-	}
-	for _, k := range keys {
-		if err := c.unmarshal(k, cfg); err != nil {
-			return err
-		}
-	}
-	return nil
+	return c.unmarshal(key, target)
 }
 
 func (c *configLoader) HasKey(env environment.Environment, key string) (bool, error) {
 	if key == "" {
 		return false, syserrors.CantBeEmptyError("key")
 	}
-	if err := c.loadConfigFile(env); err != nil {
+	if err := c.ensureLoaded(env); err != nil {
 		return false, err
 	}
-	return c.viper.Sub(key) != nil, nil
+	return c.keyExists(key), nil
 }
 
-func (c *configLoader) loadConfigFile(env environment.Environment) error {
+/**
+ *
+ * Internal Helpers
+ *
+ */
+func (c *configLoader) ensureLoaded(env environment.Environment) error {
 	c.mu.Lock()
 	defer c.mu.Unlock()
 
 	if err := validation.Validate(env, validation.Required); err != nil {
-		return err
+		return syserrors.Wrap(err, "env validation failed")
 	}
 
 	configPath := c.cfg.ConfigPath
@@ -120,43 +121,58 @@ func (c *configLoader) loadConfigFile(env environment.Environment) error {
 	if !path.IsAbs(configPath) {
 		rootPath, err := utils.GetProjectRootWorkingDirectory()
 		if err != nil {
-			return err
+			return syserrors.Wrap(err, "failed to resolve project root")
 		}
-
 		configPath = path.Join(rootPath, configPath)
 	}
 
 	configName := fmt.Sprintf("%s.%s", c.cfg.ConfigName, env)
-
-	if c.cfg.Debug {
-		fmt.Printf("try to load the config file with name %s in the path %s\n", configName, configPath)
-	}
-
 	c.viper.SetConfigName(configName)
 	c.viper.AddConfigPath(configPath)
 
 	if err := c.viper.ReadInConfig(); err != nil {
-		return syserrors.Wrapf(err, "failed to read config %s", configName)
+		return syserrors.Wrapf(err, "failed to read config %s in path %s", configName, configPath)
+	}
+
+	if c.cfg.Debug {
+		if fileUsed := c.viper.ConfigFileUsed(); fileUsed != "" {
+			fmt.Printf("loaded config file %s\n", fileUsed)
+		}
 	}
 
 	return nil
 }
 
 func (c *configLoader) unmarshal(key string, target any) error {
-	if !reflection.IsPointer(target) {
-		return syserrors.Newf("target must be a pointer: got %s", reflection.GetKind(target))
-	}
-
 	opts := []viper.DecoderConfigOption{
 		viper.DecodeHook(mapstructure.ComposeDecodeHookFunc(c.cfg.DecodeHookFuncs...)),
 	}
 
 	if key == "" {
-		return c.viper.Unmarshal(target, opts...)
-	}
-
-	if c.viper.Sub(key) == nil {
+		if err := c.viper.UnmarshalExact(target, opts...); err != nil {
+			return syserrors.Wrap(err, "failed to unmarshal root")
+		}
 		return nil
 	}
-	return c.viper.UnmarshalKey(key, target, opts...)
+
+	if !c.keyExists(key) {
+		return syserrors.Newf("required key %s not found", key)
+	}
+
+	sub := c.viper.Sub(key)
+	if sub == nil {
+		return syserrors.Newf("required key %s not found", key)
+	}
+	if err := sub.UnmarshalExact(target, opts...); err != nil {
+		return syserrors.Wrapf(err, "failed to unmarshal key %s", key)
+	}
+	return nil
+}
+
+func (c *configLoader) keyExists(key string) bool {
+	if c.viper.IsSet(key) {
+		return true
+	}
+	sub := c.viper.Sub(key)
+	return sub != nil && len(sub.AllSettings()) > 0
 }

@@ -80,25 +80,25 @@ func NewApplicationBuilder(environments ...environment.Environment) (contracts.A
 	}
 
 	appModule := module.ModuleFunc(
-		"app",
+		"application",
+		ModuleFunc(&appCfg),
 		provider.ProvideFunc(func() environment.Environment { return env }),
-		provider.ProvideFunc(func() loggerContracts.Logger { return appLogger }),
 		provider.ProvideFunc(func() configloaderContracts.ConfigLoader { return configLoader }),
-		provider.ProvideFunc(func() loggerConfig.Registry { return *loggerCfgRegistry }),
+		provider.ProvideFunc(
+			func() (loggerConfig.Registry, loggerContracts.Logger) { return loggerCfgRegistry, appLogger },
+		),
 		provider.ProvideFunc(func() appConfig.Config { return appCfg }),
 	)
 
 	appBuilder := &applicationBuilder{
-		environment: env,
-		logger:      appLogger,
-
+		environment:          env,
+		logger:               appLogger,
 		configLoader:         configLoader,
-		loggerConfigRegistry: *loggerCfgRegistry,
+		loggerConfigRegistry: loggerCfgRegistry,
 		appConfig:            appCfg,
-
-		modules:    []module.Module{appModule},
-		providers:  []provider.Provider{},
-		decorators: []decorator.Decorator{},
+		modules:              []module.Module{appModule},
+		providers:            []provider.Provider{},
+		decorators:           []decorator.Decorator{},
 	}
 
 	diContainer, err := appBuilder.buildContainer()
@@ -126,12 +126,7 @@ func (b *applicationBuilder) Build() contracts.Application {
 }
 
 func (b *applicationBuilder) buildContainer() (containerContracts.Container, error) {
-	configRegistry, err := containerConfig.LoadRegistry(b.configLoader, b.environment)
-	if err != nil {
-		return nil, syserrors.Wrap(err, "failed to load container config registry")
-	}
-
-	cfg, err := configRegistry.GetByNameOrDefault(b.appConfig.Container)
+	cfg, err := containerConfig.Load(b.configLoader, b.environment)
 	if err != nil {
 		return nil, syserrors.Wrap(err, "failed to load container config")
 	}

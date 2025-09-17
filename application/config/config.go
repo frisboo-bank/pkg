@@ -16,7 +16,6 @@ type Config struct {
 	Name        string `mapstructure:"name"`
 	Description string `mapstructure:"description"`
 	Logger      string `mapstructure:"logger"`
-	Container   string `mapstructure:"container"`
 }
 
 func (c *Config) Validate() error {
@@ -29,18 +28,16 @@ func Default() Config {
 	return Config{}
 }
 
-func Load(loader configloaderContracts.ConfigLoader, env environment.Environment, opts ...Option,
-) (Config, error) {
+func Load(loader configloaderContracts.ConfigLoader, env environment.Environment, opts ...Option) (Config, error) {
 	var zero Config
 
 	cfg := Default()
 
 	if err := loader.LoadKey(env, &cfg, "app"); err != nil {
-		return zero, syserrors.Message(err, []string{"app config"})
+		return zero, syserrors.Wrap(err, "failed to load app config key")
 	}
-
 	if err := options.Apply(&cfg, opts...); err != nil {
-		return zero, syserrors.Message(err, []string{"app config"})
+		return zero, syserrors.Wrap(err, "failed to apply options on app config")
 	}
 
 	return cfg, nil

@@ -8,13 +8,23 @@ import (
 	"dario.cat/mergo"
 )
 
-type Registry[T any] struct {
+var _ Registry[any] = (*registry[any])(nil)
+
+type Registry[T any] interface {
+	Has(name string) bool
+	Names() []string
+	GetDefault() (T, error)
+	GetByName(name string) (T, error)
+	GetByNameOrDefault(name string) (T, error)
+}
+
+type registry[T any] struct {
 	key      string
 	kind     string
 	baseline func() T
 
-	Default   T            `mapstructure:",squash"`
-	Instances map[string]T `mapstructure:"instances"`
+	DefaultConfig T            `mapstructure:",squash"`
+	Instances     map[string]T `mapstructure:"instances"`
 }
 
 func Load[T any](
@@ -23,21 +33,23 @@ func Load[T any](
 	key string,
 	kind string,
 	baseline func() T,
-) (*Registry[T], error) {
-	reg := &Registry[T]{
+) (registry[T], error) {
+	var zero registry[T]
+
+	reg := registry[T]{
 		key:      key,
 		kind:     kind,
 		baseline: baseline,
 	}
 
-	if err := configLoader.LoadKey(env, reg, key); err != nil {
-		return nil, err
+	if err := configLoader.LoadKey(env, &reg, key); err != nil {
+		return zero, err
 	}
 
 	return reg, nil
 }
 
-func (r *Registry[T]) Has(name string) bool {
+func (r *registry[T]) Has(name string) bool {
 	if len(r.Instances) == 0 {
 		return false
 	}
@@ -45,25 +57,25 @@ func (r *Registry[T]) Has(name string) bool {
 	return ok
 }
 
-func (r *Registry[T]) GetByNameOrDefault(name string) (T, error) {
+func (r *registry[T]) GetByNameOrDefault(name string) (T, error) {
 	if name != "" {
 		return r.GetByName(name)
 	}
 	return r.GetDefault()
 }
 
-func (r *Registry[T]) GetDefault() (T, error) {
+func (r *registry[T]) GetDefault() (T, error) {
 	var zero T
 
 	base := r.baseline()
-	if err := mergo.Merge(&base, r.Default); err != nil {
+	if err := mergo.Merge(&base, r.DefaultConfig); err != nil {
 		return zero, syserrors.Wrapf(err, "merge default")
 	}
 
 	return base, nil
 }
 
-func (r *Registry[T]) GetByName(name string) (T, error) {
+func (r *registry[T]) GetByName(name string) (T, error) {
 	var zero T
 	if name == "" {
 		return zero, syserrors.CantBeEmptyError("name")
@@ -84,4 +96,12 @@ func (r *Registry[T]) GetByName(name string) (T, error) {
 	}
 
 	return base, nil
+}
+
+func (r *registry[T]) Names() []string {
+	ns := make([]string, 0, len(r.Instances))
+	for name := range r.Instances {
+		ns = append(ns, name)
+	}
+	return ns
 }

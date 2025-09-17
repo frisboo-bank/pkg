@@ -1,8 +1,9 @@
-package validation
+package validation_test
 
 import (
 	"testing"
 
+	"frisboo-bank/pkg/validation"
 	testenum "frisboo-bank/pkg/validation/testdata/enums/test_enum"
 
 	"github.com/stretchr/testify/assert"
@@ -27,7 +28,7 @@ func TestEnumOneOf(t *testing.T) {
 			v = options[idx]
 		}
 
-		err := EnumOneOf(testenum.TestEnums)(v)
+		err := validation.EnumOneOf(testenum.TestEnums)(v)
 
 		if invalid {
 			assert.Error(t, err, "expected %d NOT to be in %v", v, options)

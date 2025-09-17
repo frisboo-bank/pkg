@@ -1,8 +1,9 @@
-package otp
+package otp_test
 
 import (
 	"testing"
 
+	"frisboo-bank/pkg/security/otp"
 	cAssert "frisboo-bank/pkg/testing/assert"
 
 	"github.com/stretchr/testify/assert"
@@ -10,7 +11,7 @@ import (
 
 func TestGenerateWithLength(t *testing.T) {
 	for _, length := range []int{1, 4, 6, 8} {
-		code, err := GenerateWithLength(length)
+		code, err := otp.GenerateWithLength(length)
 
 		assert.Nil(t, err, "GenerateWithLength(%d) unexpected error: %v", length, err)
 		assert.Len(t, code, length, "GenerateWithLength(%d) wrong length: got %d", length, len(code))
@@ -19,17 +20,17 @@ func TestGenerateWithLength(t *testing.T) {
 }
 
 func TestGenerate(t *testing.T) {
-	code, err := Generate()
+	code, err := otp.Generate()
 
 	assert.Nil(t, err, "Generate() unexpected error: %w", err)
-	assert.Len(t, code, DefaultLength, "Generate() wrong length: got %d", len(code))
+	assert.Len(t, code, otp.DefaultLength, "Generate() wrong length: got %d", len(code))
 }
 
 func TestErrorLengthOutOfRange(t *testing.T) {
-	code, err := GenerateWithLength(0)
+	code, err := otp.GenerateWithLength(0)
 
 	assert.Equal(t, "", code, "GenerateWithLength(%d) unexpected code generated: got %q", 0, code)
-	assert.EqualError(t, err, "got 0: length out of allowed range")
+	assert.EqualError(t, err, "length out of range: got 0")
 }
 
 // Generate lots of OTP using multi processes and verity the uniqueness
@@ -39,7 +40,7 @@ func TestUniqueness(t *testing.T) {
 	generatedCodes := map[string]struct{}{}
 
 	for range numberOfCodes {
-		code, err := Generate()
+		code, err := otp.Generate()
 
 		assert.Nil(t, err, "Generate() unexpected error: %w", err)
 		assert.NotContains(t, generatedCodes, code, "Generate() duplicated code detected: got %s twice", code)
@@ -52,7 +53,7 @@ func TestUniqueness(t *testing.T) {
 
 func BenchmarkGenerate(b *testing.B) {
 	for b.Loop() {
-		if _, err := Generate(); err != nil {
+		if _, err := otp.Generate(); err != nil {
 			b.Fatal(err)
 		}
 	}
