@@ -2,10 +2,11 @@ package config
 
 import (
 	configloaderContracts "frisboo-bank/pkg/config/config_loader/contracts"
-	"frisboo-bank/pkg/config/registry"
 	digConfig "frisboo-bank/pkg/container/adapters/dig/config"
 	containertype "frisboo-bank/pkg/container/enums/container_type"
 	"frisboo-bank/pkg/environment"
+	"frisboo-bank/pkg/options"
+	"frisboo-bank/pkg/syserrors"
 	cValidation "frisboo-bank/pkg/validation"
 
 	validation "github.com/go-ozzo/ozzo-validation/v4"
@@ -36,7 +37,7 @@ func Default() Config {
 
 func (c *Config) Validate() error {
 	if err := validation.ValidateStruct(c,
-		validation.Field(c.Type, validation.Required, validation.By(cValidation.EnumOneOf(containertype.ContainerTypes))),
+		validation.Field(&c.Type, validation.Required, validation.By(cValidation.EnumOneOf(containertype.ContainerTypes))),
 	); err != nil {
 		return err
 	}
@@ -52,14 +53,17 @@ func (c *Config) Validate() error {
 	return nil
 }
 
-type Registry = registry.Registry[Config]
+func Load(loader configloaderContracts.ConfigLoader, env environment.Environment, opts ...Option) (Config, error) {
+	var zero Config
 
-func LoadRegistry(configLoader configloaderContracts.ConfigLoader, env environment.Environment) (*Registry, error) {
-	return registry.Load(
-		configLoader,
-		env,
-		"containers",
-		"container",
-		Default,
-	)
+	cfg := Default()
+
+	if err := loader.LoadKey(env, &cfg, "container"); err != nil {
+		return zero, syserrors.Wrap(err, "failed to load container config key")
+	}
+	if err := options.Apply(&cfg, opts...); err != nil {
+		return zero, syserrors.Wrap(err, "failed to apply options on container config")
+	}
+
+	return cfg, nil
 }

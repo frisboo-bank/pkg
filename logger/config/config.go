@@ -12,6 +12,7 @@ import (
 	encodingtype "frisboo-bank/pkg/logger/enums/encoding_type"
 	loglevel "frisboo-bank/pkg/logger/enums/log_level"
 	loggertype "frisboo-bank/pkg/logger/enums/logger_type"
+	"frisboo-bank/pkg/syserrors"
 	cValidation "frisboo-bank/pkg/validation"
 
 	validation "github.com/go-ozzo/ozzo-validation/v4"
@@ -83,12 +84,16 @@ func (c *Config) Validate() error {
 
 type Registry = registry.Registry[Config]
 
-func LoadRegistry(configLoader configloaderContracts.ConfigLoader, env environment.Environment) (*Registry, error) {
-	return registry.Load(
+func LoadRegistry(configLoader configloaderContracts.ConfigLoader, env environment.Environment) (Registry, error) {
+	reg, err := registry.Load(
 		configLoader,
 		env,
 		"loggers",
 		"logger",
 		Default,
 	)
+	if err != nil {
+		return nil, syserrors.Wrap(err, "failed to load logger registry")
+	}
+	return &reg, nil
 }

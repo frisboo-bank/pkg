@@ -22,7 +22,7 @@ func Wrap(err error, message string, kv ...any) E {
 	if err == nil {
 		return nil
 	}
-	return verr.WithDetails(verr.Wrap(err, message), kv...)
+	return verr.WithDetails(verr.Wrap(err, message), ensureDetails(kv...)...)
 }
 
 // Wrapf is the formatted variant of Wrap.
@@ -91,4 +91,13 @@ func Get(err error, key string) (value any, exists bool) {
 	details := verr.AllDetails(err)
 	v, ok := details[key]
 	return v, ok
+}
+
+// ensureDetails validates key/value detail pairs length.
+func ensureDetails(kv ...any) []any {
+	if len(kv)%2 != 0 {
+		// We append meta info so caller can detect misuse later if desired.
+		kv = append(kv, "_syserrors_kv_error", "odd number of key/value arguments")
+	}
+	return kv
 }

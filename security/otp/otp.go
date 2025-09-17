@@ -12,15 +12,13 @@ const (
 	DefaultLength = 6
 )
 
-var ErrorLengthOutOfRange = syserrors.New("length out of allowed range")
-
 func Generate() (string, error) {
 	return GenerateWithLength(DefaultLength)
 }
 
 func GenerateWithLength(length int) (string, error) {
 	if length <= 0 {
-		return "", syserrors.Wrapf(ErrorLengthOutOfRange, "got %d", length)
+		return "", syserrors.Newf("length out of range: got %d", length)
 	}
 
 	code := make([]byte, length)

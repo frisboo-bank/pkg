@@ -140,6 +140,7 @@ func (d *digAdapter) Start(_ context.Context) error {
 	if err != nil {
 		return syserrors.Wrap(err, "failed to resolve hook")
 	}
+
 	d.waiter.Add(hooks...)
 
 	return d.waiter.Wait()

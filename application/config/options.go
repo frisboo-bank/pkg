@@ -19,7 +19,3 @@ var Description = options.Option(func(c *Config, description string) {
 var Logger = options.Option(func(c *Config, logger string) {
 	c.Logger = logger
 })
-
-var Container = options.Option(func(c *Config, container string) {
-	c.Container = container
-})
