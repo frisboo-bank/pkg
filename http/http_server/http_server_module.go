@@ -101,6 +101,16 @@ func ModuleFunc() module.Module {
 						}
 						return nil
 					case <-ctx.Done():
+						// Context cancelled, attempt to stop the server
+						stopErr := s.Stop(ctx)
+						// Wait for the server goroutine to finish
+						err := <-errChan
+						if err != nil {
+							return ServerFailedToStartError(err)
+						}
+						if stopErr != nil {
+							return ServerFailedToStopError(stopErr)
+						}
 						return ctx.Err()
 					}
 				}
