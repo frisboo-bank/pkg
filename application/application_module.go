@@ -1,13 +1,13 @@
 package application
 
 import (
-	"frisboo-bank/pkg/application/config"
+	applicationContracts "frisboo-bank/pkg/application/contracts"
 	"frisboo-bank/pkg/application/infrastructure"
 	"frisboo-bank/pkg/container/dependencies/module"
 )
 
-func ModuleFunc(appCfg *config.Config) module.Module {
+func ModuleFunc(appBuilder applicationContracts.ApplicationBuilder) module.Module {
 	return module.ModuleFunc("application",
-		infrastructure.ModuleFunc(appCfg),
+		infrastructure.ModuleFunc(appBuilder),
 	)
 }

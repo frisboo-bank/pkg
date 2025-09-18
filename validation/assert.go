@@ -3,6 +3,7 @@ package validation
 import (
 	"fmt"
 	"os"
+	"strings"
 
 	"frisboo-bank/pkg/syserrors"
 )
@@ -29,4 +30,8 @@ func Assert(condition bool, err any, prefix ...string) {
 
 func AssertNotNil(name string, value any) {
 	Assert(value != nil, syserrors.CantBeNilError(name))
+}
+
+func AssertNotEmpty(name string, value string) {
+	Assert(strings.TrimSpace(value) != "", syserrors.CantBeEmptyError(name))
 }

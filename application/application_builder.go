@@ -74,21 +74,10 @@ func NewApplicationBuilder(environments ...environment.Environment) (contracts.A
 		return nil, err
 	}
 
-	appLogger, err := logger.GetInstance(&appLoggerCfg)
+	appLogger, err := logger.GetInstance(appLoggerCfg)
 	if err != nil {
 		return nil, err
 	}
-
-	appModule := module.ModuleFunc(
-		"application",
-		ModuleFunc(&appCfg),
-		provider.ProvideFunc(func() environment.Environment { return env }),
-		provider.ProvideFunc(func() configloaderContracts.ConfigLoader { return configLoader }),
-		provider.ProvideFunc(
-			func() (loggerConfig.Registry, loggerContracts.Logger) { return loggerCfgRegistry, appLogger },
-		),
-		provider.ProvideFunc(func() appConfig.Config { return appCfg }),
-	)
 
 	appBuilder := &applicationBuilder{
 		environment:          env,
@@ -96,16 +85,22 @@ func NewApplicationBuilder(environments ...environment.Environment) (contracts.A
 		configLoader:         configLoader,
 		loggerConfigRegistry: loggerCfgRegistry,
 		appConfig:            appCfg,
-		modules:              []module.Module{appModule},
-		providers:            []provider.Provider{},
-		decorators:           []decorator.Decorator{},
 	}
 
-	diContainer, err := appBuilder.buildContainer()
-	if err != nil {
+	if err := appBuilder.buildContainer(); err != nil {
 		return nil, err
 	}
-	appBuilder.container = diContainer
+
+	appBuilder.ProvideModule(module.ModuleFunc(
+		"application",
+		ModuleFunc(appBuilder),
+		provider.ProvideFunc(func() configloaderContracts.ConfigLoader { return configLoader }),
+		provider.ProvideFunc(func() environment.Environment { return env }),
+		provider.ProvideFunc(
+			func() (loggerConfig.Registry, loggerContracts.Logger) { return loggerCfgRegistry, appLogger },
+		),
+		provider.ProvideFunc(func() appConfig.Config { return appCfg }),
+	))
 
 	return appBuilder, nil
 }
@@ -125,36 +120,39 @@ func (b *applicationBuilder) Build() contracts.Application {
 	)
 }
 
-func (b *applicationBuilder) buildContainer() (containerContracts.Container, error) {
+func (b *applicationBuilder) buildContainer() error {
 	cfg, err := containerConfig.Load(b.configLoader, b.environment)
 	if err != nil {
-		return nil, syserrors.Wrap(err, "failed to load container config")
+		return syserrors.Wrap(err, "failed to load container config")
 	}
 
-	diLogger := b.logger
+	log := b.logger
 	if cfg.Logger != "" {
 		loggerCfg, err := b.loggerConfigRegistry.GetByName(cfg.Logger)
 		if err != nil {
-			return nil, syserrors.Wrapf(err, "failed to load container logger config %s", cfg.Logger)
+			return syserrors.Wrapf(err, "failed to load container logger config %s", cfg.Logger)
 		}
 
-		diLogger, err = logger.GetInstance(&loggerCfg)
+		log, err = logger.GetInstance(loggerCfg)
 		if err != nil {
-			return nil, syserrors.Wrapf(err, "failed to initialize container logger %s", cfg.Logger)
+			return syserrors.Wrapf(err, "failed to initialize container logger %s", cfg.Logger)
 		}
 	}
 
-	diContainer, err := container.GetInstance(&cfg, diLogger)
+	diContainer, err := container.GetInstance(&cfg, log)
 	if err != nil {
-		return nil, err
+		return err
 	}
 
-	return diContainer, nil
+	b.container = diContainer
+
+	return nil
 }
 
-func (b *applicationBuilder) Modules() []module.Module                { return b.modules }
-func (b *applicationBuilder) Providers() []provider.Provider          { return b.providers }
-func (b *applicationBuilder) Decorators() []decorator.Decorator       { return b.decorators }
-func (b *applicationBuilder) Container() containerContracts.Container { return b.container }
-func (b *applicationBuilder) Logger() loggerContracts.Logger          { return b.logger }
-func (b *applicationBuilder) Environment() environment.Environment    { return b.environment }
+func (b *applicationBuilder) Modules() []module.Module                         { return b.modules }
+func (b *applicationBuilder) Providers() []provider.Provider                   { return b.providers }
+func (b *applicationBuilder) Decorators() []decorator.Decorator                { return b.decorators }
+func (b *applicationBuilder) Container() containerContracts.Container          { return b.container }
+func (b *applicationBuilder) Logger() loggerContracts.Logger                   { return b.logger }
+func (b *applicationBuilder) ConfigLoader() configloaderContracts.ConfigLoader { return b.configLoader }
+func (b *applicationBuilder) Environment() environment.Environment             { return b.environment }

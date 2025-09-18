@@ -1,6 +1,7 @@
 package contracts
 
 import (
+	configloaderContracts "frisboo-bank/pkg/config/config_loader/contracts"
 	containerContracts "frisboo-bank/pkg/container/contracts"
 	"frisboo-bank/pkg/container/dependencies/decorator"
 	"frisboo-bank/pkg/container/dependencies/module"
@@ -17,5 +18,6 @@ type ApplicationBuilder interface {
 	Decorators() []decorator.Decorator
 	Container() containerContracts.Container
 	Logger() loggerContracts.Logger
+	ConfigLoader() configloaderContracts.ConfigLoader
 	Environment() environment.Environment
 }
