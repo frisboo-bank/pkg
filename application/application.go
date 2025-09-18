@@ -19,14 +19,14 @@ import (
 var _ contracts.Application = (*application)(nil)
 
 type application struct {
-	container   containerContracts.Container
-	decorators  []decorator.Decorator
-	environment environment.Environment
-	hooks       []hook.Hooks
-	invokers    []invoker.Invoker
-	logger      loggerContracts.Logger
 	modules     []module.Module
 	providers   []provider.Provider
+	hooks       []hook.Hooks
+	decorators  []decorator.Decorator
+	invokers    []invoker.Invoker
+	container   containerContracts.Container
+	logger      loggerContracts.Logger
+	environment environment.Environment
 }
 
 func NewApplication(
@@ -37,8 +37,9 @@ func NewApplication(
 	logger loggerContracts.Logger,
 	environment environment.Environment,
 ) contracts.Application {
-	validation.Assert(container != nil, "the container can't be nil", "application")
-	validation.Assert(logger != nil, "the logger can't be nil", "application")
+	validation.AssertNotNil("container", container)
+	validation.AssertNotNil("logger", logger)
+	validation.AssertNotNil("environment", environment)
 
 	return &application{
 		container:   container,
@@ -104,4 +105,8 @@ func (a *application) registerDependencies() error {
 
 func (a *application) Logger() loggerContracts.Logger {
 	return a.logger
+}
+
+func (a *application) Environment() environment.Environment {
+	return a.environment
 }

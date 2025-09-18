@@ -5,6 +5,7 @@ import (
 
 	"frisboo-bank/pkg/container/dependencies/hook"
 	"frisboo-bank/pkg/container/dependencies/invoker"
+	"frisboo-bank/pkg/environment"
 	loggerContracts "frisboo-bank/pkg/logger/contracts"
 )
 
@@ -14,4 +15,5 @@ type Application interface {
 	Start(ctx context.Context) error
 	Stop(ctx context.Context) error
 	Logger() loggerContracts.Logger
+	Environment() environment.Environment
 }

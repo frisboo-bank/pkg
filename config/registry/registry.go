@@ -1,6 +1,8 @@
 package registry
 
 import (
+	"strings"
+
 	configLoaderContracts "frisboo-bank/pkg/config/config_loader/contracts"
 	"frisboo-bank/pkg/environment"
 	"frisboo-bank/pkg/syserrors"
@@ -9,6 +11,15 @@ import (
 )
 
 var _ Registry[any] = (*registry[any])(nil)
+
+func NameNotFoundError(kind string, name string, examples []string) error {
+	err := syserrors.Newf("%s %s not found in the config", kind, name)
+
+	if len(examples) == 0 {
+		return syserrors.Wrapf(err, "no %s registered", kind)
+	}
+	return syserrors.Wrapf(err, "only %s are available", strings.Join(examples, ", "))
+}
 
 type Registry[T any] interface {
 	Has(name string) bool
@@ -68,7 +79,8 @@ func (r *registry[T]) GetDefault() (T, error) {
 	var zero T
 
 	base := r.baseline()
-	if err := mergo.Merge(&base, r.DefaultConfig); err != nil {
+
+	if err := mergeConfig(&base, r.DefaultConfig); err != nil {
 		return zero, syserrors.Wrapf(err, "merge default")
 	}
 
@@ -83,7 +95,7 @@ func (r *registry[T]) GetByName(name string) (T, error) {
 
 	inst, ok := r.Instances[name]
 	if !ok {
-		return zero, syserrors.Newf("%s %q not found in the config", r.kind, name)
+		return zero, NameNotFoundError(r.kind, name, r.Names())
 	}
 
 	base, err := r.GetDefault()
@@ -91,7 +103,7 @@ func (r *registry[T]) GetByName(name string) (T, error) {
 		return zero, err
 	}
 
-	if err := mergo.Merge(&base, inst); err != nil {
+	if err := mergeConfig(&base, inst); err != nil {
 		return zero, syserrors.Wrapf(err, "merge instance %q", name)
 	}
 
@@ -104,4 +116,11 @@ func (r *registry[T]) Names() []string {
 		ns = append(ns, name)
 	}
 	return ns
+}
+
+func mergeConfig[T any](dst *T, src T) error {
+	return mergo.Merge(dst, src,
+		mergo.WithOverride,
+		mergo.WithTypeCheck,
+	)
 }
