@@ -3,13 +3,6 @@ package constants
 import "time"
 
 const (
-	DEVELOPMENT = "development"
-	PREPROD     = "preprod"
-	PRODUCTION  = "production"
-	TESTING     = "testing"
-)
-
-const (
 	DRIVER_NAME_POSTGRES = "postgres"
 	LOGGER_NAME          = "NAME"
 )
@@ -32,14 +25,4 @@ const (
 
 const (
 	HEADER_REQUEST_ID = "X-Request-ID"
-)
-
-const (
-	SERVER_BODY_LIMIT          = "2M"
-	SERVER_SHUTDOWN_TIMEOUT    = 30 * time.Second
-	SERVER_READ_TIMEOUT        = 30 * time.Second
-	SERVER_READ_HEADER_TIMEOUT = 5 * time.Second
-	SERVER_WRITE_TIMEOUT       = 30 * time.Second
-	SERVER_IDLE_TIMEOUT        = 120 * time.Second
-	SERVER_MAX_HEADER_BYTES    = 8 * 1024 // 8 KB
 )

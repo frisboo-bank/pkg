@@ -1,10 +1,15 @@
 package registry
 
 import (
+	"reflect"
 	"strings"
 
+	cachetype "frisboo-bank/pkg/cache/enums/cache_type"
 	configLoaderContracts "frisboo-bank/pkg/config/config_loader/contracts"
 	"frisboo-bank/pkg/environment"
+	encodingtype "frisboo-bank/pkg/logger/enums/encoding_type"
+	loglevel "frisboo-bank/pkg/logger/enums/log_level"
+	loggertype "frisboo-bank/pkg/logger/enums/logger_type"
 	"frisboo-bank/pkg/syserrors"
 
 	"dario.cat/mergo"
@@ -118,9 +123,40 @@ func (r *registry[T]) Names() []string {
 	return ns
 }
 
+type enumTransformer struct{}
+
+type enum interface {
+	IsValid() bool
+}
+
+// Transformer implements mergo.Transformers.
+func (e enumTransformer) Transformer(t reflect.Type) func(dst reflect.Value, src reflect.Value) error {
+	isZero := func(v reflect.Value) bool {
+		return v.IsZero()
+	}
+
+	switch t {
+	case reflect.TypeOf(loglevel.LogLevel{}),
+		reflect.TypeOf(loggertype.LoggerType{}),
+		reflect.TypeOf(encodingtype.EncodingType{}),
+		reflect.TypeOf(cachetype.CacheType{}):
+		return func(dst, src reflect.Value) error {
+			if isZero(src) {
+				return nil
+			}
+			// Otherwise, same semantics as WithOverride
+			dst.Set(src)
+			return nil
+		}
+	}
+
+	return nil
+}
+
 func mergeConfig[T any](dst *T, src T) error {
 	return mergo.Merge(dst, src,
 		mergo.WithOverride,
 		mergo.WithTypeCheck,
+		mergo.WithTransformers(enumTransformer{}),
 	)
 }

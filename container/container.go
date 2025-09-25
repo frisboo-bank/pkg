@@ -34,25 +34,25 @@ func (c *container) RegisterModule(modules ...module.Module) error {
 	}
 
 	for _, module := range modules {
-		if err := c.adapter.RegisterProvider(module.Providers()...); err != nil {
+		if err := c.adapter.RegisterProviders(module.Providers()...); err != nil {
 			return syserrors.Newf("provider registration failed for module %q with error: %w", module.Name(), err)
 		}
 	}
 
 	for _, module := range modules {
-		if err := c.adapter.RegisterHook(module.Hooks()...); err != nil {
+		if err := c.adapter.RegisterHooks(module.Hooks()...); err != nil {
 			return syserrors.Newf("hook registration failed for module %q with error: %w", module.Name(), err)
 		}
 	}
 
 	for _, module := range modules {
-		if err := c.adapter.RegisterDecorator(module.Decorators()...); err != nil {
+		if err := c.adapter.RegisterDecorators(module.Decorators()...); err != nil {
 			return syserrors.Newf("decorator registration failed for module %q with error: %w", module.Name(), err)
 		}
 	}
 
 	for _, module := range modules {
-		if err := c.adapter.RegisterInvoker(module.Invokers()...); err != nil {
+		if err := c.adapter.RegisterInvokers(module.Invokers()...); err != nil {
 			return syserrors.Newf("invoker registration failed for module %q with error: %w", module.Name(), err)
 		}
 	}

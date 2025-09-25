@@ -7,7 +7,7 @@ import (
 	configloaderContracts "frisboo-bank/pkg/config/config_loader/contracts"
 	"frisboo-bank/pkg/config/registry"
 	"frisboo-bank/pkg/environment"
-	ginConfig "frisboo-bank/pkg/http/http_server/adapters/gin/config"
+	echoConfig "frisboo-bank/pkg/http/http_server/adapters/echo/config"
 	httpservertype "frisboo-bank/pkg/http/http_server/enums/http_server_type"
 	"frisboo-bank/pkg/syserrors"
 	cValidation "frisboo-bank/pkg/validation"
@@ -35,9 +35,10 @@ type Config struct {
 	ReadTimeout           time.Duration                 `mapstructure:"readTimeout"`
 	ServerShutdownTimeout time.Duration                 `mapstructure:"serverShutdownTimeout"`
 	WriteTimeout          time.Duration                 `mapstructure:"writeTimeout"`
+	GzipLevel             int                           `mapstructure:"gzipLevel"`
 
 	// adapters
-	Gin *ginConfig.Config `mapstructure:"gin"`
+	Echo *echoConfig.Config `mapstructure:"echo"`
 
 	// dependencies
 	Logger string `mapstructure:"logger"`
@@ -50,11 +51,9 @@ func (c *Config) Address() string {
 func Default() Config {
 	return Config{
 		Enabled:               true,
-		Type:                  httpservertype.HttpServerTypes.GIN,
 		Debug:                 false,
 		Mode:                  "release",
-		Host:                  "0.0.0.0",
-		Port:                  "8080",
+		Host:                  "127.0.0.1",
 		BasePath:              "/",
 		TrustedProxies:        nil,
 		IgnoreLogUrls:         nil,
@@ -65,6 +64,7 @@ func Default() Config {
 		ReadTimeout:           30 * time.Second,
 		ServerShutdownTimeout: 30 * time.Second,
 		WriteTimeout:          30 * time.Second,
+		GzipLevel:             5,
 	}
 }
 
@@ -82,16 +82,17 @@ func (c *Config) Validate() error {
 		validation.Field(&c.ReadTimeout, validation.Required, validation.Min(0)),
 		validation.Field(&c.ServerShutdownTimeout, validation.Required, validation.Min(0)),
 		validation.Field(&c.WriteTimeout, validation.Required, validation.Min(0)),
+		validation.Field(&c.GzipLevel, validation.Required, validation.Min(0)),
 	); err != nil {
 		return err
 	}
 
 	switch c.Type {
-	case httpservertype.HttpServerTypes.GIN:
-		if err := validation.Validate(&c.Gin, validation.Required); err != nil {
+	case httpservertype.HttpServerTypes.ECHO:
+		if err := validation.Validate(&c.Echo, validation.Required); err != nil {
 			return err
 		}
-		return c.Gin.Validate()
+		return c.Echo.Validate()
 	}
 
 	return nil

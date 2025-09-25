@@ -13,7 +13,7 @@ func NoContainerOfTypeError(sType loggertype.LoggerType) error {
 	return syserrors.Newf("no logger of type %q exists", sType)
 }
 
-func GetInstance(cfg config.Config) (contracts.Logger, error) {
+func GetInstance(cfg *config.Config) (contracts.Logger, error) {
 	var adapter contracts.LoggerAdapter
 
 	switch cfg.Type {

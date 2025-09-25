@@ -23,16 +23,16 @@ var loglevelsMapping = map[loglevel.LogLevel]zerolog.Level{
 }
 
 type zerologAdapter struct {
-	cfg    config.Config
-	logger zerolog.Logger
+	cfg    *config.Config
+	logger *zerolog.Logger
 }
 
-func New(cfg config.Config) contracts.LoggerAdapter {
+func New(cfg *config.Config) contracts.LoggerAdapter {
 	logger := zerolog.New(cfg.Output)
 
 	return &zerologAdapter{
 		cfg:    cfg,
-		logger: logger,
+		logger: &logger,
 	}
 }
 

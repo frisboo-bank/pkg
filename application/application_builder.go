@@ -7,6 +7,7 @@ import (
 	configloaderConfig "frisboo-bank/pkg/config/config_loader/config"
 	configloaderContracts "frisboo-bank/pkg/config/config_loader/contracts"
 	"frisboo-bank/pkg/container"
+	"frisboo-bank/pkg/container/adapters/dig"
 	containerConfig "frisboo-bank/pkg/container/config"
 	containerContracts "frisboo-bank/pkg/container/contracts"
 	"frisboo-bank/pkg/container/dependencies/decorator"
@@ -21,6 +22,8 @@ import (
 	loggerEnums "frisboo-bank/pkg/logger/enums"
 	rpcServerEnums "frisboo-bank/pkg/rpc/rpc_server/enums"
 	"frisboo-bank/pkg/syserrors"
+	"frisboo-bank/pkg/waiter"
+	waiterConfig "frisboo-bank/pkg/waiter/config"
 )
 
 var _ contracts.ApplicationBuilder = (*applicationBuilder)(nil)
@@ -38,14 +41,18 @@ type applicationBuilder struct {
 }
 
 func NewApplicationBuilder(environments ...environment.Environment) (contracts.ApplicationBuilder, error) {
-	env := environment.Load(environments...)
+	env, err := environment.Load(environments...)
+	if err != nil {
+		return nil, syserrors.Wrap(err, "failed to instantiate environment")
+	}
 
 	configLoader, err := configloader.New(
 		configloaderConfig.Debug(false),
 		configloaderConfig.DecodeHookFuncs(
 			containerEnums.ContainerEnumsDecodeHook(),
-			loggerEnums.LoggerEnumsDecodeHook(),
+			environment.EnvironmentEnumsDecodeHook(),
 			httpServerEnums.HTTPServerEnumsDecodeHook(),
+			loggerEnums.LoggerEnumsDecodeHook(),
 			rpcServerEnums.RPCServerEnumsDecodeHook(),
 		),
 	)
@@ -74,7 +81,7 @@ func NewApplicationBuilder(environments ...environment.Environment) (contracts.A
 		return nil, err
 	}
 
-	appLogger, err := logger.GetInstance(appLoggerCfg)
+	appLogger, err := logger.GetInstance(&appLoggerCfg)
 	if err != nil {
 		return nil, err
 	}
@@ -133,18 +140,23 @@ func (b *applicationBuilder) buildContainer() error {
 			return syserrors.Wrapf(err, "failed to load container logger config %s", cfg.Logger)
 		}
 
-		log, err = logger.GetInstance(loggerCfg)
+		log, err = logger.GetInstance(&loggerCfg)
 		if err != nil {
 			return syserrors.Wrapf(err, "failed to initialize container logger %s", cfg.Logger)
 		}
 	}
 
-	diContainer, err := container.GetInstance(&cfg, log)
+	w, err := waiter.New(log, waiterConfig.CancelOnShutdownSignal(true))
 	if err != nil {
 		return err
 	}
 
-	b.container = diContainer
+	adapter, err := dig.New(&cfg, log, w)
+	if err != nil {
+		return err
+	}
+
+	b.container = container.New(adapter)
 
 	return nil
 }

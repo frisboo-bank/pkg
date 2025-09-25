@@ -3,6 +3,7 @@ package httpserver
 import (
 	"context"
 
+	"frisboo-bank/pkg/http/http_server/config"
 	"frisboo-bank/pkg/http/http_server/contracts"
 	httpservertype "frisboo-bank/pkg/http/http_server/enums/http_server_type"
 	loggerContracts "frisboo-bank/pkg/logger/contracts"
@@ -43,6 +44,10 @@ func (h *httpServer) ListRoutes() []any {
 
 func (h *httpServer) Type() httpservertype.HttpServerType {
 	return h.adapter.Type()
+}
+
+func (h *httpServer) Config() *config.Config {
+	return h.adapter.Config()
 }
 
 func (h *httpServer) RouteBuilder() contracts.RouteBuilder {

@@ -3,6 +3,7 @@ package contracts
 import (
 	"context"
 
+	"frisboo-bank/pkg/http/http_server/config"
 	httpservertype "frisboo-bank/pkg/http/http_server/enums/http_server_type"
 	loggerContracts "frisboo-bank/pkg/logger/contracts"
 )
@@ -13,10 +14,11 @@ type (
 		AddMiddlewares(middlewares ...any)
 		Start(ctx context.Context) error
 		Stop(ctx context.Context) error
+		ListRoutes() []any
 		Type() httpservertype.HttpServerType
+		Config() *config.Config
 		RouteBuilder() RouteBuilder
 		Logger() loggerContracts.Logger
-		ListRoutes() []any
 	}
 
 	HTTPServer interface {
