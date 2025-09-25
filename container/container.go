@@ -2,6 +2,7 @@ package container
 
 import (
 	"context"
+	"fmt"
 	"sync"
 
 	"frisboo-bank/pkg/container/contracts"
@@ -34,26 +35,37 @@ func (c *container) RegisterModule(modules ...module.Module) error {
 	}
 
 	for _, module := range modules {
-		if err := c.adapter.RegisterProviders(module.Providers()...); err != nil {
-			return syserrors.Newf("provider registration failed for module %q with error: %w", module.Name(), err)
+		for id, p := range module.Providers() {
+			name := fmt.Sprintf("%s:provider:%d", module.Name(), id)
+			if err := c.adapter.RegisterProvider(name, p); err != nil {
+				return syserrors.Newf("provider %s registration failed with error: %w", name, err)
+			}
 		}
 	}
 
 	for _, module := range modules {
-		if err := c.adapter.RegisterHooks(module.Hooks()...); err != nil {
-			return syserrors.Newf("hook registration failed for module %q with error: %w", module.Name(), err)
+		for _, h := range module.Hooks() {
+			if err := c.adapter.RegisterHook(h); err != nil {
+				return syserrors.Newf("hook %s registration failed with error: %w", h.Name(), err)
+			}
 		}
 	}
 
 	for _, module := range modules {
-		if err := c.adapter.RegisterDecorators(module.Decorators()...); err != nil {
-			return syserrors.Newf("decorator registration failed for module %q with error: %w", module.Name(), err)
+		for id, d := range module.Decorators() {
+			name := fmt.Sprintf("%s:decorator:%d", module.Name(), id)
+			if err := c.adapter.RegisterDecorator(name, d); err != nil {
+				return syserrors.Newf("decorator %s registration failed with error: %w", name, err)
+			}
 		}
 	}
 
 	for _, module := range modules {
-		if err := c.adapter.RegisterInvokers(module.Invokers()...); err != nil {
-			return syserrors.Newf("invoker registration failed for module %q with error: %w", module.Name(), err)
+		for id, i := range module.Invokers() {
+			name := fmt.Sprintf("%s:invoker:%d", module.Name(), id)
+			if err := c.adapter.RegisterInvoker(name, i); err != nil {
+				return syserrors.Newf("invoker registration failed for module %q with error: %w", module.Name(), err)
+			}
 		}
 	}
 

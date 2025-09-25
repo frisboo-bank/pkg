@@ -9,6 +9,7 @@ import (
 	"frisboo-bank/pkg/environment"
 	grpcConfig "frisboo-bank/pkg/rpc/rpc_server/adapters/grpc/config"
 	rpcservertype "frisboo-bank/pkg/rpc/rpc_server/enums/rpc_server_type"
+	"frisboo-bank/pkg/syserrors"
 	cValidation "frisboo-bank/pkg/validation"
 
 	validation "github.com/go-ozzo/ozzo-validation/v4"
@@ -18,7 +19,9 @@ import (
 var _ cValidation.Validatable = (*Config)(nil)
 
 type Config struct {
+	Enabled               bool                        `mapstructure:"enabled"`
 	Type                  rpcservertype.RpcServerType `mapstructure:"type"`
+	Debug                 bool                        `mapstructure:"debug"`
 	Host                  string                      `mapstructure:"host"`
 	Port                  string                      `mapstructure:"port"`
 	ServerShutdownTimeout time.Duration               `mapstructure:"serverShutdownTimeout"`
@@ -36,13 +39,11 @@ func (c *Config) Address() string {
 
 func Default() Config {
 	return Config{
+		Enabled:               true,
 		Type:                  rpcservertype.RpcServerTypes.GRPC,
 		Host:                  "0.0.0.0",
 		Port:                  "9000",
 		ServerShutdownTimeout: 30 * time.Second,
-
-		// adapters
-		GRPC: grpcConfig.Default(),
 	}
 }
 
@@ -78,7 +79,7 @@ func LoadRegistry(configLoader configloaderContracts.ConfigLoader, env environme
 		Default,
 	)
 	if err != nil {
-		return nil, err
+		return nil, syserrors.Wrap(err, "failed to load rpc-server registry")
 	}
 	return &reg, nil
 }

@@ -7,7 +7,6 @@ import (
 	"frisboo-bank/pkg/container/contracts"
 	containertype "frisboo-bank/pkg/container/enums/container_type"
 	loggerContracts "frisboo-bank/pkg/logger/contracts"
-	"frisboo-bank/pkg/syserrors"
 	"frisboo-bank/pkg/validation"
 	waiterContracts "frisboo-bank/pkg/waiter/contracts"
 
@@ -18,17 +17,12 @@ var _ contracts.ContainerAdapter = (*digAdapter)(nil)
 
 type DigAdapterConfig struct{}
 
-type hookGroups struct {
-	start string
-	stop  string
-}
-
 type digAdapter struct {
-	cfg        *config.Config
-	dig        *dig.Container
-	logger     loggerContracts.Logger
-	waiter     waiterContracts.Waiter
-	hookGroups []hookGroups
+	cfg    *config.Config
+	dig    *dig.Container
+	logger loggerContracts.Logger
+	waiter waiterContracts.Waiter
+	hooks  []string
 }
 
 func New(
@@ -51,11 +45,11 @@ func New(
 func (a *digAdapter) Start(_ context.Context) error {
 	hooks, err := a.resolveHooks()
 	if err != nil {
-		return syserrors.Wrap(err, "failed to resolve hook")
+		return err
 	}
-
-	a.waiter.Add(hooks...)
-
+	if err := a.waiter.AddHooks(hooks...); err != nil {
+		return err
+	}
 	return a.waiter.Wait()
 }
 

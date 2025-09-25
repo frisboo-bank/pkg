@@ -19,6 +19,7 @@ import (
 var _ contracts.HTTPServerAdapter = (*echoHTTPServerAdapter)(nil)
 
 type echoHTTPServerAdapter struct {
+	name         string
 	cfg          *config.Config
 	echo         *echoVendor.Echo
 	logger       loggerContracts.Logger
@@ -26,7 +27,8 @@ type echoHTTPServerAdapter struct {
 	routeBuilder contracts.RouteBuilder
 }
 
-func New(cfg *config.Config, logger loggerContracts.Logger, meter metric.Meter) contracts.HTTPServerAdapter {
+func New(name string, cfg *config.Config, logger loggerContracts.Logger, meter metric.Meter) contracts.HTTPServerAdapter {
+	validation.AssertNotEmpty("name", name)
 	validation.AssertNotNil("cfg", cfg)
 	validation.AssertNotNil("logger", logger)
 	// validation.AssertNotNil("meter", meter)
@@ -41,6 +43,7 @@ func New(cfg *config.Config, logger loggerContracts.Logger, meter metric.Meter) 
 	e.Server.MaxHeaderBytes = cfg.MaxHeaderBytes
 
 	return &echoHTTPServerAdapter{
+		name:         name,
 		cfg:          cfg,
 		echo:         e,
 		logger:       logger,
@@ -90,6 +93,10 @@ func (e *echoHTTPServerAdapter) Start(ctx context.Context) error {
 
 func (e *echoHTTPServerAdapter) Stop(ctx context.Context) error {
 	return e.echo.Shutdown(ctx)
+}
+
+func (e *echoHTTPServerAdapter) Name() string {
+	return e.name
 }
 
 func (e *echoHTTPServerAdapter) Type() httpservertype.HttpServerType {

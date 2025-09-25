@@ -28,7 +28,7 @@ func (a *digAdapter) RegisterInvoker(name string, i invoker.Invoker) error {
 	opts := toDigInvokerOptions(cfg)
 
 	if err := a.dig.Invoke(i.Constructor(), opts...); err != nil {
-		return syserrors.Wrap(err, "failed to register invoker %s", name)
+		return syserrors.Wrapf(err, "failed to register invoker %s", name)
 	}
 	return nil
 }

@@ -21,7 +21,7 @@ var _ contracts.Waiter = (*waiter)(nil)
 
 type waiter struct {
 	cfg   *config.Config
-	hooks []contracts.WaiterHook
+	hooks map[string]contracts.WaiterHook
 
 	cancel     context.CancelFunc
 	cancelOnce sync.Once
@@ -74,15 +74,37 @@ func New(logger loggerContracts.Logger, opts ...config.Option) (contracts.Waiter
 	return w, nil
 }
 
-func (w *waiter) Add(hooks ...contracts.WaiterHook) {
+func (w *waiter) AddHooks(hooks ...contracts.WaiterHook) error {
+	for _, h := range hooks {
+		if err := w.AddHook(h); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func (w *waiter) AddHook(hook contracts.WaiterHook) error {
 	w.mu.Lock()
 	defer w.mu.Unlock()
 
 	if w.isWaiting {
-		panic(syserrors.Newf("waiter: can't call Add() after Wait() was called"))
+		return syserrors.New("waiter: can't call Add() after Wait() was called")
 	}
 
-	w.hooks = append(w.hooks, hooks...)
+	if w.hooks == nil {
+		w.hooks = make(map[string]contracts.WaiterHook)
+	}
+
+	if hook.Name == "" {
+		return syserrors.New("waiter: hook has no name")
+	}
+
+	if _, exists := w.hooks[hook.Name]; exists {
+		return syserrors.Newf("waiter: a hook %s was already registered", hook.Name)
+	}
+
+	w.hooks[hook.Name] = hook
+	return nil
 }
 
 func (w *waiter) Wait() error {
@@ -127,7 +149,7 @@ func (w *waiter) run() error {
 				defer cancel()
 
 				if err := cleanupFn(cleanupCtx); err != nil {
-					w.logger.Errorf("cleanup failed with error: %v", err)
+					w.logger.Errorf("hook cleanup failed with error: %v", err)
 				}
 				return nil
 			})

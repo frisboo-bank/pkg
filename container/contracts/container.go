@@ -19,13 +19,9 @@ type Container interface {
 }
 
 type ContainerAdapter interface {
-	RegisterDecorators(decorators ...decorator.Decorator) error
 	RegisterDecorator(name string, decorator decorator.Decorator) error
-	RegisterHooks(hooks ...hook.Hooks) error
-	RegisterHook(name string, hook hook.Hooks) error
-	RegisterInvokers(invokers ...invoker.Invoker) error
+	RegisterHook(hook hook.Hooks) error
 	RegisterInvoker(name string, invoker invoker.Invoker) error
-	RegisterProviders(providers ...provider.Provider) error
 	RegisterProvider(name string, provider provider.Provider) error
 	Start(ctx context.Context) error
 	Stop(ctx context.Context) error

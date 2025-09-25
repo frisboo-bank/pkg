@@ -10,12 +10,14 @@ type (
 )
 
 type WaiterHook struct {
+	Name    string
 	Wait    WaitFunc
 	Cleanup CleanupFunc
 }
 
 type Waiter interface {
-	Add(hooks ...WaiterHook)
+	AddHooks(hooks ...WaiterHook) error
+	AddHook(hook WaiterHook) error
 	Wait() error
 	Cancel()
 }

@@ -42,6 +42,10 @@ func (h *httpServer) ListRoutes() []any {
 	return h.adapter.ListRoutes()
 }
 
+func (h *httpServer) Name() string {
+	return h.adapter.Name()
+}
+
 func (h *httpServer) Type() httpservertype.HttpServerType {
 	return h.adapter.Type()
 }

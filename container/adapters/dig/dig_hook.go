@@ -1,7 +1,6 @@
 package dig
 
 import (
-	"fmt"
 	"reflect"
 
 	"frisboo-bank/pkg/container/dependencies/hook"
@@ -13,15 +12,17 @@ import (
 )
 
 func (a *digAdapter) RegisterHooks(hooks ...hook.Hooks) error {
-	for i, h := range hooks {
-		if err := a.RegisterHook(fmt.Sprintf("hook-%d", i), h); err != nil {
+	for _, h := range hooks {
+		if err := a.RegisterHook(h); err != nil {
 			return err
 		}
 	}
 	return nil
 }
 
-func (a *digAdapter) RegisterHook(name string, h hook.Hooks) error {
+func (a *digAdapter) RegisterHook(h hook.Hooks) error {
+	name := h.Name()
+
 	cfg := hook.Config{}
 	if err := options.Apply(&cfg, h.Options()...); err != nil {
 		return syserrors.Wrapf(err, "failed to apply hook %s options", name)
@@ -56,7 +57,6 @@ func (a *digAdapter) RegisterHook(name string, h hook.Hooks) error {
 			return syserrors.Wrapf(err, "failed to register hook start %s", startGroup)
 		}
 	}
-
 	stopGroup := name + "-stop"
 	if stopCtor != nil {
 		if err := a.dig.Provide(stopCtor, append(opts, dig.Group(stopGroup))...); err != nil {
@@ -64,16 +64,15 @@ func (a *digAdapter) RegisterHook(name string, h hook.Hooks) error {
 		}
 	}
 
-	a.hookGroups = append(a.hookGroups, hookGroups{start: startGroup, stop: stopGroup})
+	a.hooks = append(a.hooks, name)
 
 	return nil
 }
 
 func (a *digAdapter) resolveHooks() ([]waiterContracts.WaiterHook, error) {
-	hooks := make([]waiterContracts.WaiterHook, len(a.hookGroups))
-	for i, hg := range a.hookGroups {
-		name := fmt.Sprintf("hook-%d", i)
-		h, err := a.resolveHook(name, hg)
+	hooks := make([]waiterContracts.WaiterHook, len(a.hooks))
+	for i, h := range a.hooks {
+		h, err := a.resolveHook(h)
 		if err != nil {
 			return nil, err
 		}
@@ -82,28 +81,30 @@ func (a *digAdapter) resolveHooks() ([]waiterContracts.WaiterHook, error) {
 	return hooks, nil
 }
 
-func (a *digAdapter) resolveHook(name string, hg hookGroups) (waiterContracts.WaiterHook, error) {
-	wh := waiterContracts.WaiterHook{}
+func (a *digAdapter) resolveHook(hook string) (waiterContracts.WaiterHook, error) {
+	wh := waiterContracts.WaiterHook{Name: hook}
 
+	startGroup := hook + "-start"
 	startFns, err := resolveDynamicGroup[[]waiterContracts.WaitFunc](
 		a.dig,
-		hg.start,
+		startGroup,
 		reflect.TypeOf([]waiterContracts.WaitFunc{}),
 	)
 	if err != nil {
-		return wh, syserrors.Wrapf(err, "failed to resolve start hook %s", name)
+		return wh, syserrors.Wrapf(err, "failed to resolve start hook %s", startGroup)
 	}
 	if len(startFns) > 0 {
 		wh.Wait = startFns[0]
 	}
 
+	stopGroup := hook + "-stop"
 	stopFns, err := resolveDynamicGroup[[]waiterContracts.CleanupFunc](
 		a.dig,
-		hg.stop,
+		stopGroup,
 		reflect.TypeOf([]waiterContracts.CleanupFunc{}),
 	)
 	if err != nil {
-		return wh, syserrors.Wrapf(err, "failed to resolve stop hook %s", name)
+		return wh, syserrors.Wrapf(err, "failed to resolve stop hook %s", stopGroup)
 	}
 	if len(stopFns) > 0 {
 		wh.Cleanup = stopFns[0]

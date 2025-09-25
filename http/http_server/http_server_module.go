@@ -3,6 +3,7 @@ package httpserver
 import (
 	"context"
 	"errors"
+	"fmt"
 	"net/http"
 
 	"frisboo-bank/pkg/container/dependencies/hook"
@@ -20,37 +21,34 @@ import (
 	waiterContracts "frisboo-bank/pkg/waiter/contracts"
 )
 
-const HTTPServersGroup = "http_servers"
+const HTTPServersGroup = "http-servers"
 
-func FailedToStartError(err error) error { return syserrors.Wrap(err, "server failed to start") }
-func FailedToStopError(err error) error  { return syserrors.Wrap(err, "server failed to stop") }
+func ModuleFunc(registry config.Registry) module.Module {
+	m := module.ModuleFunc("http-server")
 
-func ModuleFunc(reg config.Registry) module.Module {
-	m := module.ModuleFunc("http_server")
-
-	for _, name := range reg.Names() {
-		cfg, err := reg.GetByName(name)
+	for _, name := range registry.Names() {
+		cfg, err := registry.GetByName(name)
 		if err != nil {
 			panic(syserrors.Wrapf(err, "failed to load config for http-server %s", name))
 		}
 		if !cfg.Enabled {
 			continue
 		}
-		m.AddModules(serverModuleFunc(name, &cfg))
+		m.AddModule(serverModuleFunc(name, &cfg))
 	}
 
 	return m
 }
 
-func serverModuleFunc(instance string, cfg *config.Config) module.Module {
-	validation.AssertNotEmpty("instance", instance)
+func serverModuleFunc(name string, cfg *config.Config) module.Module {
+	validation.AssertNotEmpty("name", name)
 
-	m := module.ModuleFunc("http_server:" + instance)
+	m := module.ModuleFunc("http-server:" + name)
 
 	// Instance registration name
-	providerName := "http_server:" + instance
+	providerName := "http-server:" + name
 
-	m.AddProviders(provider.ProvideFunc(func(
+	m.AddProvider(provider.ProvideFunc(func(
 		loggerCfgRegistry loggerConfig.Registry,
 		appLogger loggerContracts.Logger,
 	) (contracts.HTTPServer, error) {
@@ -59,11 +57,11 @@ func serverModuleFunc(instance string, cfg *config.Config) module.Module {
 		if cfg.Logger != "" {
 			loggerCfg, err := loggerCfgRegistry.GetByName(cfg.Logger)
 			if err != nil {
-				return nil, syserrors.Wrapf(err, "failed to load http-server %s logger config %s", instance, cfg.Logger)
+				return nil, syserrors.Wrapf(err, "failed to load http-server %s logger config %s", name, cfg.Logger)
 			}
 			log, err = logger.GetInstance(&loggerCfg)
 			if err != nil {
-				return nil, syserrors.Wrapf(err, "failed to initialize http-server %s logger %s", instance, cfg.Logger)
+				return nil, syserrors.Wrapf(err, "failed to initialize http-server %s logger %s", name, cfg.Logger)
 			}
 		}
 
@@ -71,9 +69,9 @@ func serverModuleFunc(instance string, cfg *config.Config) module.Module {
 		var adapter contracts.HTTPServerAdapter
 		switch cfg.Type {
 		case httpservertype.HttpServerTypes.ECHO:
-			adapter = echo.New(cfg, log, nil)
+			adapter = echo.New(name, cfg, log, nil)
 		default:
-			return nil, syserrors.Newf("http_server %s is using an invalid type: got %s", instance, cfg.Type)
+			return nil, syserrors.Newf("http-server %s is using an invalid type: got %s", name, cfg.Type)
 		}
 
 		return New(adapter), nil
@@ -86,40 +84,38 @@ func serverModuleFunc(instance string, cfg *config.Config) module.Module {
 		HTTPServer contracts.HTTPServer `name:"httpServerRef"`
 	}
 
-	m.AddHooks(
-		hook.HooksFunc(
-			func(p hookParams) waiterContracts.WaitFunc {
-				return func(ctx context.Context) error {
-					srv := p.HTTPServer
-					srv.SetupDefaultMiddlewares()
+	m.AddHook(hook.HooksFunc(fmt.Sprintf("http-server-%s-hook", name),
+		func(p hookParams) waiterContracts.WaitFunc {
+			return func(ctx context.Context) error {
+				srv := p.HTTPServer
+				srv.SetupDefaultMiddlewares()
 
-					srv.Logger().Printf("http server started; listening at %s", srv.Config().Address())
-					defer srv.Logger().Print("http server shutdown")
+				srv.Logger().Infof("%s is listening on address:{%s}", srv.Name(), srv.Config().Address())
 
-					if err := srv.Start(ctx); err != nil && !errors.Is(err, http.ErrServerClosed) {
-						return FailedToStartError(err)
-					}
-					return nil
+				if err := srv.Start(ctx); err != nil && !errors.Is(err, http.ErrServerClosed) {
+					srv.Logger().Fatalf("%s failed to start with error: %v", srv.Name(), err)
 				}
-			},
-			func(p hookParams) waiterContracts.CleanupFunc {
-				return func(ctx context.Context) error {
-					srv := p.HTTPServer
 
-					srv.Logger().Print("http server stopping")
+				return nil
+			}
+		},
+		func(p hookParams) waiterContracts.CleanupFunc {
+			return func(ctx context.Context) error {
+				srv := p.HTTPServer
 
-					ctx, cancel := context.WithTimeout(ctx, srv.Config().ServerShutdownTimeout)
-					defer cancel()
+				ctx, cancel := context.WithTimeout(ctx, srv.Config().ServerShutdownTimeout)
+				defer cancel()
 
-					if err := srv.Stop(ctx); err != nil {
-						return FailedToStopError(err)
-					}
-					return nil
+				if err := srv.Stop(ctx); err != nil {
+					srv.Logger().Errorf("shutting down %s failed with error: %v", srv.Name(), err)
+				} else {
+					srv.Logger().Infof("%s server shutdown successfully", srv.Name())
 				}
-			},
-			hook.NamedDep("httpServerRef", providerName),
-		),
-	)
+				return nil
+			}
+		},
+		hook.NamedDep("httpServerRef", providerName),
+	))
 
 	return m
 }

@@ -15,6 +15,7 @@ type (
 		Start(ctx context.Context) error
 		Stop(ctx context.Context) error
 		ListRoutes() []any
+		Name() string
 		Type() httpservertype.HttpServerType
 		Config() *config.Config
 		RouteBuilder() RouteBuilder
