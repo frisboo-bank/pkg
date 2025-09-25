@@ -28,9 +28,6 @@ func HooksFunc(startConstructor any, stopConstructor any, opts ...Option) Hooks 
 }
 
 func (h *hooks) StartConstructor() any { return h.startConstructor }
-
-func (h *hooks) StopConstructor() any { return h.stopConstructor }
-
-func (h *hooks) Options() []Option { return h.options }
-
-func (h *hooks) IsDependency() {}
+func (h *hooks) StopConstructor() any  { return h.stopConstructor }
+func (h *hooks) Options() []Option     { return h.options }
+func (h *hooks) IsDependency()         {}

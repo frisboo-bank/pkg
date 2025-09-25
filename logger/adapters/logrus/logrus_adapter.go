@@ -26,11 +26,11 @@ var loglevelsMapping = map[loglevel.LogLevel]logrus.Level{
 }
 
 type logrusAdapter struct {
-	cfg    config.Config
+	cfg    *config.Config
 	logger *logrus.Logger
 }
 
-func New(cfg config.Config) contracts.LoggerAdapter {
+func New(cfg *config.Config) contracts.LoggerAdapter {
 	logger := logrus.New()
 	logger.SetLevel(mapToLogrusLevel(cfg.Level))
 	logger.SetOutput(cfg.Output)

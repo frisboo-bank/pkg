@@ -16,7 +16,7 @@ var As = options.VarOptionErr(func(c *Config, ifaces ...any) error {
 	}
 	for _, i := range ifaces {
 		t := reflect.TypeOf(i)
-		if t == nil || t.Kind() != reflect.Ptr || t.Elem().Kind() != reflect.Interface {
+		if t == nil || t.Kind() != reflect.Pointer || t.Elem().Kind() != reflect.Interface {
 			return syserrors.New("As expects pointers to interface types")
 		}
 	}
@@ -40,3 +40,13 @@ var LocationForPC = options.Option(func(c *Config, pc uintptr) {
 var Name = options.Option(func(c *Config, name string) {
 	c.Name = strings.TrimSpace(name)
 })
+
+func NamedDep(ref string, name string) Option {
+	return func(c *Config) error {
+		if c.NamedDeps == nil {
+			c.NamedDeps = make(map[string]string, 1)
+		}
+		c.NamedDeps[ref] = name
+		return nil
+	}
+}

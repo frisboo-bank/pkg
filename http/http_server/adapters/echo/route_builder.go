@@ -1,34 +1,34 @@
-package gin
+package echo
 
 import (
 	"frisboo-bank/pkg/http/http_server/contracts"
 	"frisboo-bank/pkg/syserrors"
 
-	"github.com/gin-gonic/gin"
+	echoVendor "github.com/labstack/echo/v4"
 )
 
 type routeBuilder struct {
-	engine *gin.Engine
-	groups map[string]*gin.RouterGroup
+	echo   *echoVendor.Echo
+	groups map[string]*echoVendor.Group
 }
 
 var _ contracts.RouteBuilder = (*routeBuilder)(nil)
 
-func NewRouteBuilder(engine *gin.Engine) contracts.RouteBuilder {
-	return &routeBuilder{
-		engine: engine,
-	}
+func NewRouteBuilder(echo *echoVendor.Echo) contracts.RouteBuilder {
+	return &routeBuilder{echo: echo}
 }
 
 func (r *routeBuilder) Build() any {
-	return r.engine
+	return r.echo
 }
 
 func (r *routeBuilder) RegisterGroup(groupName string) contracts.RouteBuilder {
-	if _, exists := r.groups[groupName]; !exists {
-		r.groups[groupName] = r.engine.Group(groupName)
+	if r.groups == nil {
+		r.groups = make(map[string]*echoVendor.Group)
 	}
-
+	if _, exist := r.groups[groupName]; !exist {
+		r.groups[groupName] = r.echo.Group(groupName)
+	}
 	return r
 }
 
@@ -38,25 +38,20 @@ func (r *routeBuilder) RegisterGroupFunc(
 ) contracts.RouteBuilder {
 	r.RegisterGroup(groupName)
 	builder(r.groups[groupName])
-
 	return r
 }
 
 func (r *routeBuilder) RegisterRoutes(builder func(server any)) contracts.RouteBuilder {
-	builder(r.engine)
-
+	builder(r.echo)
 	return r
 }
 
 func (r *routeBuilder) UseForGroup(groupName string, middlewares ...any) contracts.RouteBuilder {
 	r.RegisterGroup(groupName)
-
 	ms, err := ToMiddlewaresType(middlewares...)
 	if err != nil {
-		panic(syserrors.Newf("gin-server: invalid middleware for group: `%s` `%v`", groupName, err))
+		panic(syserrors.Newf("invalid middleware for group: `%s` `%v`", groupName, err))
 	}
-
 	r.groups[groupName].Use(ms...)
-
 	return r
 }

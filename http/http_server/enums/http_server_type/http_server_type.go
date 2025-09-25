@@ -6,5 +6,5 @@ type (
 
 const (
 	unknown httpServerType = iota // invalid
-	gin
+	echo
 )
