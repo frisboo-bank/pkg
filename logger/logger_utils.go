@@ -27,3 +27,25 @@ func GetInstance(cfg *config.Config) (contracts.Logger, error) {
 
 	return New(adapter), nil
 }
+
+func GetByName(cfgRegistry config.Registry, name string) (contracts.Logger, error) {
+	if name == "" {
+		return nil, syserrors.New("no logger name specified")
+	}
+	cfg, err := cfgRegistry.GetByName(name)
+	if err != nil {
+		return nil, syserrors.Wrapf(err, "failed to load %s config", name)
+	}
+	log, err := GetInstance(&cfg)
+	if err != nil {
+		return nil, syserrors.Wrapf(err, "failed to initialize %s logger", name)
+	}
+	return log, nil
+}
+
+func GetByNameWithFallback(cfgRegistry config.Registry, name string, fallback contracts.Logger) (contracts.Logger, error) {
+	if name == "" {
+		return fallback, nil
+	}
+	return GetByName(cfgRegistry, name)
+}

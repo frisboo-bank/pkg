@@ -36,6 +36,7 @@ func New(name string, cfg *config.Config, logger loggerContracts.Logger, metrics
 	validation.AssertNotEmpty("name", name)
 	validation.AssertNotNil("cfg", cfg)
 	validation.AssertNotNil("logger", logger)
+	// validation.AssertNotNil("meter", meter)
 
 	server := googlerpc.NewServer(
 		googlerpc.StatsHandler(otelgrpc.NewServerHandler()),
@@ -60,7 +61,7 @@ func New(name string, cfg *config.Config, logger loggerContracts.Logger, metrics
 	healthServer := health.NewServer()
 	grpc_health_v1.RegisterHealthServer(server, healthServer)
 	healthServer.SetServingStatus("test", grpc_health_v1.HealthCheckResponse_SERVING)
-	// reflection.Register(server)
+	reflection.Register(server)
 
 	return &grpcRPCServerAdapter{
 		name:     name,
@@ -72,19 +73,11 @@ func New(name string, cfg *config.Config, logger loggerContracts.Logger, metrics
 }
 
 func (g *grpcRPCServerAdapter) Start(ctx context.Context) error {
-	g.logger.Info("starting server...")
-
-	addr := g.cfg.Address()
-
-	listener, err := net.Listen("tcp", addr)
+	listener, err := net.Listen("tcp", g.cfg.Address())
 	if err != nil {
 		return err
 	}
 	g.listener = listener
-
-	g.logger.Infof("server listening on address: %s", addr)
-
-	reflection.Register(g.server)
 
 	if err := g.server.Serve(listener); err != nil && !errors.Is(err, googlerpc.ErrServerStopped) {
 		return err
