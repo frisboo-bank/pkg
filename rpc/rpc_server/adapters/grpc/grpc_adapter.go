@@ -33,7 +33,7 @@ type grpcRPCServerAdapter struct {
 }
 
 func New(name string, cfg *config.Config, logger loggerContracts.Logger, metrics any) contracts.RPCServerAdapter {
-	validation.AssertNotNil("name", name)
+	validation.AssertNotEmpty("name", name)
 	validation.AssertNotNil("cfg", cfg)
 	validation.AssertNotNil("logger", logger)
 
