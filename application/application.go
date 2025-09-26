@@ -13,6 +13,7 @@ import (
 	"frisboo-bank/pkg/container/dependencies/provider"
 	"frisboo-bank/pkg/environment"
 	loggerContracts "frisboo-bank/pkg/logger/contracts"
+	"frisboo-bank/pkg/syserrors"
 	"frisboo-bank/pkg/validation"
 )
 
@@ -63,13 +64,12 @@ func (a *application) Start(ctx context.Context) error {
 	if err := a.registerDependencies(); err != nil {
 		return err
 	}
-
 	return a.container.Start(ctx)
 }
 
 func (a *application) Stop(ctx context.Context) error {
 	if a.container == nil {
-		a.logger.Fatal("failed to stop because application not started")
+		return syserrors.New("failed to stop because application not started")
 	}
 	return a.container.Stop(ctx)
 }

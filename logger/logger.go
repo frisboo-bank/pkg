@@ -30,8 +30,11 @@ func (l *logger) Errorw(msg string, fields contracts.Fields) {
 	l.logw(loglevel.LogLevels.ERRORLEVEL, msg, fields)
 }
 
-func (l *logger) Fatal(v ...any)            { l.log(loglevel.LogLevels.FATALLEVEL, v...) }
-func (l *logger) Fatalf(f string, v ...any) { l.logf(loglevel.LogLevels.FATALLEVEL, f, v...) }
+func (l *logger) Fatal(v ...any) { l.log(loglevel.LogLevels.FATALLEVEL, v...) }
+func (l *logger) Fatalf(f string, v ...any) {
+	l.logf(loglevel.LogLevels.FATALLEVEL, f, v...)
+}
+
 func (l *logger) Fatalw(msg string, fields contracts.Fields) {
 	l.logw(loglevel.LogLevels.FATALLEVEL, msg, fields)
 }

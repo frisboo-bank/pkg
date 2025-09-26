@@ -25,13 +25,15 @@ import (
 var _ contracts.RPCServerAdapter = (*grpcRPCServerAdapter)(nil)
 
 type grpcRPCServerAdapter struct {
-	cfg      config.Config
+	name     string
+	cfg      *config.Config
 	listener net.Listener
 	logger   loggerContracts.Logger
 	server   *googlerpc.Server
 }
 
-func New(cfg config.Config, logger loggerContracts.Logger) contracts.RPCServerAdapter {
+func New(name string, cfg *config.Config, logger loggerContracts.Logger, metrics any) contracts.RPCServerAdapter {
+	validation.AssertNotEmpty("name", name)
 	validation.AssertNotNil("cfg", cfg)
 	validation.AssertNotNil("logger", logger)
 
@@ -58,13 +60,14 @@ func New(cfg config.Config, logger loggerContracts.Logger) contracts.RPCServerAd
 	healthServer := health.NewServer()
 	grpc_health_v1.RegisterHealthServer(server, healthServer)
 	healthServer.SetServingStatus("test", grpc_health_v1.HealthCheckResponse_SERVING)
-	reflection.Register(server)
+	// reflection.Register(server)
 
 	return &grpcRPCServerAdapter{
-		logger:   logger,
+		name:     name,
 		cfg:      cfg,
 		listener: nil,
 		server:   server,
+		logger:   logger,
 	}
 }
 
@@ -90,20 +93,23 @@ func (g *grpcRPCServerAdapter) Start(ctx context.Context) error {
 	return nil
 }
 
-func (g *grpcRPCServerAdapter) Shutdown(ctx context.Context) error {
-	g.logger.Info("server shutting down...")
-
+func (g *grpcRPCServerAdapter) Stop(ctx context.Context) error {
 	g.server.GracefulStop()
-
-	g.logger.Info("server shutdown done successfully")
-
 	return nil
 }
 
-func (g *grpcRPCServerAdapter) Logger() loggerContracts.Logger {
-	return g.logger
+func (g *grpcRPCServerAdapter) Name() string {
+	return g.name
 }
 
 func (g *grpcRPCServerAdapter) Type() rpcservertype.RpcServerType {
 	return rpcservertype.RpcServerTypes.GRPC
+}
+
+func (g *grpcRPCServerAdapter) Config() *config.Config {
+	return g.cfg
+}
+
+func (g *grpcRPCServerAdapter) Logger() loggerContracts.Logger {
+	return g.logger
 }

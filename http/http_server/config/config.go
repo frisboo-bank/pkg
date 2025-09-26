@@ -109,7 +109,7 @@ func LoadRegistry(configLoader configloaderContracts.ConfigLoader, env environme
 		Default,
 	)
 	if err != nil {
-		return nil, syserrors.Wrap(err, "failed to load http server registry")
+		return nil, syserrors.Wrap(err, "failed to load http-server registry")
 	}
 	return &reg, nil
 }

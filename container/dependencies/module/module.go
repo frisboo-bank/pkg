@@ -12,17 +12,18 @@ import (
 
 type Module interface {
 	dependencies.Dependency
-	AddModules(modules ...Module) Module
-	Modules() []Module
-	AddProviders(providers ...provider.Provider) Module
-	Providers() []provider.Provider
-	AddDecorators(decorators ...decorator.Decorator) Module
-	Decorators() []decorator.Decorator
-	AddHooks(hooks ...hook.Hooks) Module
-	Hooks() []hook.Hooks
-	AddInvokers(invokers ...invoker.Invoker) Module
-	Invokers() []invoker.Invoker
 	Name() string
+	AddModule(module Module) Module
+	AddProvider(provider provider.Provider) Module
+	AddHook(hook hook.Hooks) Module
+	AddDecorator(decorator decorator.Decorator) Module
+	AddInvoker(invoker invoker.Invoker) Module
+
+	Modules() []Module
+	Providers() []provider.Provider
+	Hooks() []hook.Hooks
+	Decorators() []decorator.Decorator
+	Invokers() []invoker.Invoker
 }
 
 var _ Module = (*module)(nil)
@@ -39,55 +40,55 @@ type module struct {
 
 func ModuleFunc(name string, deps ...dependencies.Dependency) Module {
 	m := &module{name: name}
-
 	for _, dep := range deps {
 		switch d := dep.(type) {
 		case Module:
-			m.AddModules(d)
+			m.AddModule(d)
 		case provider.Provider:
-			m.AddProviders(d)
+			m.AddProvider(d)
 		case decorator.Decorator:
-			m.AddDecorators(d)
+			m.AddDecorator(d)
 		case hook.Hooks:
-			m.AddHooks(d)
+			m.AddHook(d)
 		case invoker.Invoker:
-			m.AddInvokers(d)
+			m.AddInvoker(d)
 		}
 	}
-
 	return m
 }
 
-func (m *module) AddModules(modules ...Module) Module {
+func (m *module) AddDecorator(decorator decorator.Decorator) Module {
 	m.mu.Lock()
 	defer m.mu.Unlock()
-	m.modules = append(m.modules, modules...)
+	m.decorators = append(m.decorators, decorator)
 	return m
 }
 
-func (m *module) Modules() []Module {
-	m.mu.RLock()
-	defer m.mu.RUnlock()
-	return m.modules
-}
-
-func (m *module) AddProviders(providers ...provider.Provider) Module {
+func (m *module) AddHook(hook hook.Hooks) Module {
 	m.mu.Lock()
 	defer m.mu.Unlock()
-	m.providers = append(m.providers, providers...)
+	m.hooks = append(m.hooks, hook)
 	return m
 }
 
-func (m *module) Providers() []provider.Provider {
-	m.mu.RLock()
-	defer m.mu.RUnlock()
-	return m.providers
-}
-
-func (m *module) AddDecorators(decorators ...decorator.Decorator) Module {
+func (m *module) AddInvoker(invoker invoker.Invoker) Module {
 	m.mu.Lock()
 	defer m.mu.Unlock()
-	m.decorators = append(m.decorators, decorators...)
+	m.invokers = append(m.invokers, invoker)
+	return m
+}
+
+func (m *module) AddModule(module Module) Module {
+	m.mu.Lock()
+	defer m.mu.Unlock()
+	m.modules = append(m.modules, module)
+	return m
+}
+
+func (m *module) AddProvider(provider provider.Provider) Module {
+	m.mu.Lock()
+	defer m.mu.Unlock()
+	m.providers = append(m.providers, provider)
 	return m
 }
 
@@ -97,25 +98,10 @@ func (m *module) Decorators() []decorator.Decorator {
 	return m.decorators
 }
 
-func (m *module) AddHooks(hooks ...hook.Hooks) Module {
-	m.mu.Lock()
-	defer m.mu.Unlock()
-	m.hooks = append(m.hooks, hooks...)
-	return m
-}
-
 func (m *module) Hooks() []hook.Hooks {
 	m.mu.RLock()
 	defer m.mu.RUnlock()
-
 	return m.hooks
-}
-
-func (m *module) AddInvokers(invokers ...invoker.Invoker) Module {
-	m.mu.Lock()
-	defer m.mu.Unlock()
-	m.invokers = append(m.invokers, invokers...)
-	return m
 }
 
 func (m *module) Invokers() []invoker.Invoker {
@@ -126,4 +112,18 @@ func (m *module) Invokers() []invoker.Invoker {
 
 func (m *module) IsDependency() {}
 
-func (m *module) Name() string { return m.name }
+func (m *module) Modules() []Module {
+	m.mu.RLock()
+	defer m.mu.RUnlock()
+	return m.modules
+}
+
+func (m *module) Name() string {
+	return m.name
+}
+
+func (m *module) Providers() []provider.Provider {
+	m.mu.RLock()
+	defer m.mu.RUnlock()
+	return m.providers
+}

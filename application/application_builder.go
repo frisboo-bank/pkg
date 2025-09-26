@@ -103,9 +103,8 @@ func NewApplicationBuilder(environments ...environment.Environment) (contracts.A
 		ModuleFunc(appBuilder),
 		provider.ProvideFunc(func() configloaderContracts.ConfigLoader { return configLoader }),
 		provider.ProvideFunc(func() environment.Environment { return env }),
-		provider.ProvideFunc(
-			func() (loggerConfig.Registry, loggerContracts.Logger) { return loggerCfgRegistry, appLogger },
-		),
+		provider.ProvideFunc(func() loggerConfig.Registry { return loggerCfgRegistry }),
+		provider.ProvideFunc(func() loggerContracts.Logger { return appLogger }),
 		provider.ProvideFunc(func() appConfig.Config { return appCfg }),
 	))
 
