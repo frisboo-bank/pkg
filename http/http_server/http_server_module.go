@@ -9,10 +9,8 @@ import (
 	"frisboo-bank/pkg/container/dependencies/hook"
 	"frisboo-bank/pkg/container/dependencies/module"
 	"frisboo-bank/pkg/container/dependencies/provider"
-	"frisboo-bank/pkg/http/http_server/adapters/echo"
 	"frisboo-bank/pkg/http/http_server/config"
 	"frisboo-bank/pkg/http/http_server/contracts"
-	httpservertype "frisboo-bank/pkg/http/http_server/enums/http_server_type"
 	"frisboo-bank/pkg/logger"
 	loggerConfig "frisboo-bank/pkg/logger/config"
 	loggerContracts "frisboo-bank/pkg/logger/contracts"
@@ -53,28 +51,11 @@ func serverModuleFunc(name string, cfg *config.Config) module.Module {
 		appLogger loggerContracts.Logger,
 	) (contracts.HTTPServer, error) {
 		// Resolve logger (either server-specific or fallback to app logger)
-		log := appLogger
-		if cfg.Logger != "" {
-			loggerCfg, err := loggerCfgRegistry.GetByName(cfg.Logger)
-			if err != nil {
-				return nil, syserrors.Wrapf(err, "failed to load http-server %s logger config %s", name, cfg.Logger)
-			}
-			log, err = logger.GetInstance(&loggerCfg)
-			if err != nil {
-				return nil, syserrors.Wrapf(err, "failed to initialize http-server %s logger %s", name, cfg.Logger)
-			}
+		log, err := logger.GetByNameWithFallback(loggerCfgRegistry, cfg.Logger, appLogger)
+		if err != nil {
+			return nil, syserrors.Wrapf(err, "http-server %s logger", name)
 		}
-
-		// Select proper adapter
-		var adapter contracts.HTTPServerAdapter
-		switch cfg.Type {
-		case httpservertype.HttpServerTypes.ECHO:
-			adapter = echo.New(name, cfg, log, nil)
-		default:
-			return nil, syserrors.Newf("http-server %s is using an invalid type: got %s", name, cfg.Type)
-		}
-
-		return New(adapter), nil
+		return GetInstance(name, cfg, log)
 	},
 		provider.Name(providerName),
 		provider.Group(HTTPServersGroup),

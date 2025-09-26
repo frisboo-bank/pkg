@@ -69,6 +69,7 @@ func New(logger loggerContracts.Logger, opts ...config.Option) (contracts.Waiter
 		logger: logger,
 		cancel: cancel,
 		ctx:    ctx,
+		hooks:  make(map[string]contracts.WaiterHook),
 	}
 
 	return w, nil
@@ -89,10 +90,6 @@ func (w *waiter) AddHook(hook contracts.WaiterHook) error {
 
 	if w.isWaiting {
 		return syserrors.New("waiter: can't call Add() after Wait() was called")
-	}
-
-	if w.hooks == nil {
-		w.hooks = make(map[string]contracts.WaiterHook)
 	}
 
 	if hook.Name == "" {
@@ -118,7 +115,6 @@ func (w *waiter) Wait() error {
 func (w *waiter) run() error {
 	w.mu.Lock()
 	w.isWaiting = true
-	// hooks := slices.Clone(w.hooks)
 	w.mu.Unlock()
 
 	defer w.cancel()
@@ -132,11 +128,13 @@ func (w *waiter) run() error {
 		if waitFn != nil {
 			group.Go(func() error {
 				waitCtx := gCtx
+
 				if w.cfg.WaitTimeout > 0 {
 					var cancel context.CancelFunc
 					waitCtx, cancel = context.WithTimeout(gCtx, w.cfg.WaitTimeout)
 					defer cancel()
 				}
+
 				return waitFn(waitCtx)
 			})
 		}

@@ -12,10 +12,8 @@ import (
 	"frisboo-bank/pkg/logger"
 	loggerConfig "frisboo-bank/pkg/logger/config"
 	loggerContracts "frisboo-bank/pkg/logger/contracts"
-	"frisboo-bank/pkg/rpc/rpc_server/adapters/grpc"
 	"frisboo-bank/pkg/rpc/rpc_server/config"
 	"frisboo-bank/pkg/rpc/rpc_server/contracts"
-	rpcservertype "frisboo-bank/pkg/rpc/rpc_server/enums/rpc_server_type"
 	"frisboo-bank/pkg/syserrors"
 	"frisboo-bank/pkg/validation"
 	waiterContracts "frisboo-bank/pkg/waiter/contracts"
@@ -53,28 +51,12 @@ func serverModuleFunc(name string, cfg *config.Config) module.Module {
 		appLogger loggerContracts.Logger,
 	) (contracts.RPCServer, error) {
 		// Resolve logger (either server-specific or fallback to app logger)
-		log := appLogger
-		if cfg.Logger != "" {
-			loggerCfg, err := loggerCfgRegistry.GetByName(cfg.Logger)
-			if err != nil {
-				return nil, syserrors.Wrapf(err, "failed to load rpc-server %s logger config %s", name, cfg.Logger)
-			}
-			log, err = logger.GetInstance(&loggerCfg)
-			if err != nil {
-				return nil, syserrors.Wrapf(err, "failed to initialize rpc-server %s logger %s", name, cfg.Logger)
-			}
+		log, err := logger.GetByNameWithFallback(loggerCfgRegistry, cfg.Logger, appLogger)
+		if err != nil {
+			return nil, syserrors.Wrapf(err, "rpc-server %s logger", name)
 		}
 
-		// Select proper adapter
-		var adapter contracts.RPCServerAdapter
-		switch cfg.Type {
-		case rpcservertype.RpcServerTypes.GRPC:
-			adapter = grpc.New(name, cfg, log, nil)
-		default:
-			return nil, syserrors.Newf("rpc-server %s is using an invalid type: got %s", name, cfg.Type)
-		}
-
-		return New(adapter), nil
+		return GetInstance(name, cfg, log)
 	},
 		provider.Name(providerName),
 		provider.Group(RPCServersGroup),

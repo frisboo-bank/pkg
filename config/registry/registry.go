@@ -31,7 +31,6 @@ type Registry[T any] interface {
 	Names() []string
 	GetDefault() (T, error)
 	GetByName(name string) (T, error)
-	GetByNameOrDefault(name string) (T, error)
 }
 
 type registry[T any] struct {
@@ -71,13 +70,6 @@ func (r *registry[T]) Has(name string) bool {
 	}
 	_, ok := r.Instances[name]
 	return ok
-}
-
-func (r *registry[T]) GetByNameOrDefault(name string) (T, error) {
-	if name != "" {
-		return r.GetByName(name)
-	}
-	return r.GetDefault()
 }
 
 func (r *registry[T]) GetDefault() (T, error) {

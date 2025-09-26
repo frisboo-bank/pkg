@@ -132,17 +132,9 @@ func (b *applicationBuilder) buildContainer() error {
 		return syserrors.Wrap(err, "failed to load container config")
 	}
 
-	log := b.logger
-	if cfg.Logger != "" {
-		loggerCfg, err := b.loggerConfigRegistry.GetByName(cfg.Logger)
-		if err != nil {
-			return syserrors.Wrapf(err, "failed to load container logger config %s", cfg.Logger)
-		}
-
-		log, err = logger.GetInstance(&loggerCfg)
-		if err != nil {
-			return syserrors.Wrapf(err, "failed to initialize container logger %s", cfg.Logger)
-		}
+	log, err := logger.GetByNameWithFallback(b.loggerConfigRegistry, cfg.Logger, b.logger)
+	if err != nil {
+		return syserrors.Wrapf(err, "container logger")
 	}
 
 	w, err := waiter.New(log, waiterConfig.CancelOnShutdownSignal(true))
