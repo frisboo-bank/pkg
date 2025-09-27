@@ -1,6 +1,8 @@
 package config
 
 import (
+	"strings"
+
 	configloaderContracts "frisboo-bank/pkg/config/config_loader/contracts"
 	"frisboo-bank/pkg/environment"
 	"frisboo-bank/pkg/options"
@@ -17,6 +19,8 @@ type Config struct {
 	Description string `mapstructure:"description"`
 	Logger      string `mapstructure:"logger"`
 }
+
+type Option = options.OptionFn[Config]
 
 func (c *Config) Validate() error {
 	return validation.ValidateStruct(c,
@@ -42,3 +46,15 @@ func Load(loader configloaderContracts.ConfigLoader, env environment.Environment
 
 	return cfg, nil
 }
+
+var Name = options.Option(func(c *Config, name string) {
+	c.Name = strings.TrimSpace(name)
+})
+
+var Description = options.Option(func(c *Config, description string) {
+	c.Description = strings.TrimSpace(description)
+})
+
+var Logger = options.Option(func(c *Config, logger string) {
+	c.Logger = logger
+})

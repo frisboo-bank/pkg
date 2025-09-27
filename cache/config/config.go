@@ -6,6 +6,8 @@ import (
 	configloaderContracts "frisboo-bank/pkg/config/config_loader/contracts"
 	"frisboo-bank/pkg/config/registry"
 	"frisboo-bank/pkg/environment"
+	"frisboo-bank/pkg/options"
+	"frisboo-bank/pkg/syserrors"
 	cValidation "frisboo-bank/pkg/validation"
 
 	validation "github.com/go-ozzo/ozzo-validation/v4"
@@ -32,6 +34,24 @@ func Default() Config {
 	}
 }
 
+type Option = options.OptionFn[Config]
+
+type Registry = registry.Registry[Config]
+
+func LoadRegistry(configLoader configloaderContracts.ConfigLoader, env environment.Environment) (Registry, error) {
+	reg, err := registry.Load(
+		configLoader,
+		env,
+		"caches",
+		"cache",
+		Default,
+	)
+	if err != nil {
+		return nil, syserrors.Wrap(err, "failed to load cache registry")
+	}
+	return reg, nil
+}
+
 func (c *Config) Validate() error {
 	if err := validation.ValidateStruct(c,
 		validation.Field(&c.Type, validation.Required, validation.By(cValidation.EnumOneOf(cachetype.CacheTypes))),
@@ -50,14 +70,18 @@ func (c *Config) Validate() error {
 	return nil
 }
 
-type Registry = registry.Registry[Config]
+var Type = options.Option(func(c *Config, sType cachetype.CacheType) {
+	c.Type = sType
+})
 
-func LoadRegistry(configLoader configloaderContracts.ConfigLoader, env environment.Environment) (*Registry, error) {
-	return registry.Load(
-		configLoader,
-		env,
-		"caches",
-		"cache",
-		Default,
-	)
-}
+var Debug = options.Option(func(c *Config, debug bool) {
+	c.Debug = debug
+})
+
+var RedisConfig = options.Option(func(c *Config, redisConfig redisConfig.Config) {
+	c.Redis = redisConfig
+})
+
+var Logger = options.Option(func(c *Config, logger string) {
+	c.Logger = logger
+})

@@ -64,7 +64,7 @@ func Load[T any](
 	return reg, nil
 }
 
-func (r *registry[T]) Has(name string) bool {
+func (r registry[T]) Has(name string) bool {
 	if len(r.Instances) == 0 {
 		return false
 	}
@@ -72,7 +72,7 @@ func (r *registry[T]) Has(name string) bool {
 	return ok
 }
 
-func (r *registry[T]) GetDefault() (T, error) {
+func (r registry[T]) GetDefault() (T, error) {
 	var zero T
 
 	base := r.baseline()
@@ -84,7 +84,7 @@ func (r *registry[T]) GetDefault() (T, error) {
 	return base, nil
 }
 
-func (r *registry[T]) GetByName(name string) (T, error) {
+func (r registry[T]) GetByName(name string) (T, error) {
 	var zero T
 	if name == "" {
 		return zero, syserrors.CantBeEmptyError("name")
@@ -107,7 +107,7 @@ func (r *registry[T]) GetByName(name string) (T, error) {
 	return base, nil
 }
 
-func (r *registry[T]) Names() []string {
+func (r registry[T]) Names() []string {
 	ns := make([]string, 0, len(r.Instances))
 	for name := range r.Instances {
 		ns = append(ns, name)
