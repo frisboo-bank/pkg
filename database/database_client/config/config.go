@@ -6,6 +6,8 @@ import (
 	postgresConfig "frisboo-bank/pkg/database/database_client/adapters/postgres/config"
 	databaseclienttype "frisboo-bank/pkg/database/database_client/enums/database_client_type"
 	"frisboo-bank/pkg/environment"
+	"frisboo-bank/pkg/options"
+	"frisboo-bank/pkg/syserrors"
 	cValidation "frisboo-bank/pkg/validation"
 
 	validation "github.com/go-ozzo/ozzo-validation/v4"
@@ -34,6 +36,24 @@ func Default() Config {
 	return Config{}
 }
 
+type Option = options.OptionFn[Config]
+
+type Registry = registry.Registry[Config]
+
+func LoadRegistry(configLoader configloaderContracts.ConfigLoader, env environment.Environment) (Registry, error) {
+	reg, err := registry.Load(
+		configLoader,
+		env,
+		"dbClients",
+		"dbClient",
+		Default,
+	)
+	if err != nil {
+		return nil, syserrors.Wrap(err, "failed to load database-client registry")
+	}
+	return reg, nil
+}
+
 func (c *Config) Validate() error {
 	if err := validation.ValidateStruct(c,
 		validation.Field(&c.Type, validation.Required, validation.By(cValidation.EnumOneOf(databaseclienttype.DatabaseClientTypes))),
@@ -54,16 +74,4 @@ func (c *Config) Validate() error {
 	}
 
 	return nil
-}
-
-type Registry = registry.Registry[Config]
-
-func LoadRegistry(configLoader configloaderContracts.ConfigLoader, env environment.Environment) (*Registry, error) {
-	return registry.Load(
-		configLoader,
-		env,
-		"dbClients",
-		"dbClient",
-		Default,
-	)
 }

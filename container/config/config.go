@@ -35,6 +35,23 @@ func Default() Config {
 	}
 }
 
+type Option = options.OptionFn[Config]
+
+func Load(loader configloaderContracts.ConfigLoader, env environment.Environment, opts ...Option) (Config, error) {
+	var zero Config
+
+	cfg := Default()
+
+	if err := loader.LoadKey(env, &cfg, "container"); err != nil {
+		return zero, syserrors.Wrap(err, "failed to load container config key")
+	}
+	if err := options.Apply(&cfg, opts...); err != nil {
+		return zero, syserrors.Wrap(err, "failed to apply options on container config")
+	}
+
+	return cfg, nil
+}
+
 func (c *Config) Validate() error {
 	if err := validation.ValidateStruct(c,
 		validation.Field(&c.Type, validation.Required, validation.By(cValidation.EnumOneOf(containertype.ContainerTypes))),
@@ -53,17 +70,22 @@ func (c *Config) Validate() error {
 	return nil
 }
 
-func Load(loader configloaderContracts.ConfigLoader, env environment.Environment, opts ...Option) (Config, error) {
-	var zero Config
+var Type = options.Option(func(c *Config, sType containertype.ContainerType) {
+	c.Type = sType
+})
 
-	cfg := Default()
+var Debug = options.Option(func(c *Config, debug bool) {
+	c.Debug = debug
+})
 
-	if err := loader.LoadKey(env, &cfg, "container"); err != nil {
-		return zero, syserrors.Wrap(err, "failed to load container config key")
-	}
-	if err := options.Apply(&cfg, opts...); err != nil {
-		return zero, syserrors.Wrap(err, "failed to apply options on container config")
-	}
+var Tracing = options.Option(func(c *Config, tracing bool) {
+	c.Tracing = tracing
+})
 
-	return cfg, nil
-}
+var Dig = options.Option(func(c *Config, dig *digConfig.Config) {
+	c.Dig = dig
+})
+
+var Logger = options.Option(func(c *Config, logger string) {
+	c.Logger = logger
+})

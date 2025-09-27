@@ -2,6 +2,7 @@ package config
 
 import (
 	"net"
+	"strings"
 	"time"
 
 	configloaderContracts "frisboo-bank/pkg/config/config_loader/contracts"
@@ -9,6 +10,7 @@ import (
 	"frisboo-bank/pkg/environment"
 	echoConfig "frisboo-bank/pkg/http/http_server/adapters/echo/config"
 	httpservertype "frisboo-bank/pkg/http/http_server/enums/http_server_type"
+	"frisboo-bank/pkg/options"
 	"frisboo-bank/pkg/syserrors"
 	cValidation "frisboo-bank/pkg/validation"
 
@@ -38,13 +40,13 @@ type Config struct {
 	GzipLevel             int                           `mapstructure:"gzipLevel"`
 
 	// adapters
-	Echo *echoConfig.Config `mapstructure:"echo"`
+	Echo echoConfig.Config `mapstructure:"echo"`
 
 	// dependencies
 	Logger string `mapstructure:"logger"`
 }
 
-func (c *Config) Address() string {
+func (c Config) Address() string {
 	return net.JoinHostPort(c.Host, c.Port)
 }
 
@@ -66,6 +68,33 @@ func Default() Config {
 		WriteTimeout:          30 * time.Second,
 		GzipLevel:             5,
 	}
+}
+
+type Registry = registry.Registry[Config]
+
+func LoadRegistry(configLoader configloaderContracts.ConfigLoader, env environment.Environment) (Registry, error) {
+	reg, err := registry.Load(
+		configLoader,
+		env,
+		"httpServers",
+		"httpServer",
+		Default,
+	)
+	if err != nil {
+		return nil, syserrors.Wrap(err, "failed to load http-server registry")
+	}
+	return reg, nil
+}
+
+type Option = options.OptionFn[Config]
+
+func New(opts ...Option) (Config, error) {
+	var zero Config
+	base := Default()
+	if err := options.Apply(&base, opts...); err != nil {
+		return zero, err
+	}
+	return base, nil
 }
 
 func (c *Config) Validate() error {
@@ -98,18 +127,102 @@ func (c *Config) Validate() error {
 	return nil
 }
 
-type Registry = registry.Registry[Config]
+var Type = options.Option(func(c *Config, sType httpservertype.HttpServerType) {
+	c.Type = sType
+})
 
-func LoadRegistry(configLoader configloaderContracts.ConfigLoader, env environment.Environment) (Registry, error) {
-	reg, err := registry.Load(
-		configLoader,
-		env,
-		"httpServers",
-		"httpServer",
-		Default,
-	)
-	if err != nil {
-		return nil, syserrors.Wrap(err, "failed to load http-server registry")
+var Enabled = options.Option(func(c *Config, enabled bool) {
+	c.Enabled = enabled
+})
+
+var BasePath = options.Option(func(c *Config, basePath string) {
+	c.BasePath = strings.TrimSpace(basePath)
+})
+
+var BodyLimit = options.Option(func(c *Config, bodyLimit string) {
+	c.BodyLimit = strings.TrimSpace(bodyLimit)
+})
+
+var Debug = options.Option(func(c *Config, debug bool) {
+	c.Debug = debug
+})
+
+var Host = options.Option(func(c *Config, host string) {
+	c.Host = strings.TrimSpace(host)
+})
+
+var IdleTimeout = options.Option(func(c *Config, idleTimeout time.Duration) {
+	c.IdleTimeout = idleTimeout
+})
+
+var IgnoreLogUrls = options.Option(func(c *Config, ignoreLogUrls []string) {
+	out := make([]string, 0, len(ignoreLogUrls))
+	for _, p := range ignoreLogUrls {
+		p = strings.TrimSpace(p)
+		if p == "" {
+			continue
+		}
+		out = append(out, p)
 	}
-	return &reg, nil
-}
+	c.IgnoreLogUrls = out
+})
+
+var AppendIgnoreLogUrls = options.VarOption(func(c *Config, ignoreLogUrls ...string) {
+	for _, p := range ignoreLogUrls {
+		p = strings.TrimSpace(p)
+		if p == "" {
+			continue
+		}
+		c.IgnoreLogUrls = append(c.IgnoreLogUrls, p)
+	}
+})
+
+var MaxHeaderBytes = options.Option(func(c *Config, maxHeaderBytes int) {
+	c.MaxHeaderBytes = maxHeaderBytes
+})
+
+var Mode = options.Option(func(c *Config, mode string) {
+	c.Mode = strings.TrimSpace(mode)
+})
+
+var Port = options.Option(func(c *Config, port string) {
+	c.Port = strings.TrimSpace(port)
+})
+
+var ReadHeaderTimeout = options.Option(func(c *Config, readHeaderTimeout time.Duration) {
+	c.ReadHeaderTimeout = readHeaderTimeout
+})
+
+var ReadTimeout = options.Option(func(c *Config, readTimeout time.Duration) {
+	c.ReadTimeout = readTimeout
+})
+
+var ServerShutdownTimeout = options.Option(func(c *Config, serverShutdownTimeout time.Duration) {
+	c.ServerShutdownTimeout = serverShutdownTimeout
+})
+
+var TrustedProxies = options.Option(func(c *Config, proxies []string) {
+	out := make([]string, 0, len(proxies))
+	for _, p := range proxies {
+		p = strings.TrimSpace(p)
+		if p == "" {
+			continue
+		}
+		out = append(out, p)
+	}
+	c.TrustedProxies = out
+})
+
+var AppendTrustedProxies = options.VarOption(func(c *Config, proxies ...string) {
+	for _, p := range proxies {
+		p = strings.TrimSpace(p)
+		if p == "" {
+			continue
+		}
+		c.TrustedProxies = append(c.TrustedProxies, p)
+	}
+})
+
+var WriteTimeout = options.Option(func(c *Config, writeTimeout time.Duration) {
+	c.WriteTimeout = writeTimeout
+})

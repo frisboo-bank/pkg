@@ -2,11 +2,13 @@ package config
 
 import (
 	"net"
+	"strings"
 	"time"
 
 	configloaderContracts "frisboo-bank/pkg/config/config_loader/contracts"
 	"frisboo-bank/pkg/config/registry"
 	"frisboo-bank/pkg/environment"
+	"frisboo-bank/pkg/options"
 	grpcConfig "frisboo-bank/pkg/rpc/rpc_server/adapters/grpc/config"
 	rpcservertype "frisboo-bank/pkg/rpc/rpc_server/enums/rpc_server_type"
 	"frisboo-bank/pkg/syserrors"
@@ -33,7 +35,7 @@ type Config struct {
 	Logger string `mapstructure:"logger"`
 }
 
-func (c *Config) Address() string {
+func (c Config) Address() string {
 	return net.JoinHostPort(c.Host, c.Port)
 }
 
@@ -45,6 +47,24 @@ func Default() Config {
 		Port:                  "9000",
 		ServerShutdownTimeout: 30 * time.Second,
 	}
+}
+
+type Option = options.OptionFn[Config]
+
+type Registry = registry.Registry[Config]
+
+func LoadRegistry(configLoader configloaderContracts.ConfigLoader, env environment.Environment) (Registry, error) {
+	reg, err := registry.Load(
+		configLoader,
+		env,
+		"rpcServers",
+		"rpcServer",
+		Default,
+	)
+	if err != nil {
+		return nil, syserrors.Wrap(err, "failed to load rpc-server registry")
+	}
+	return reg, nil
 }
 
 func (c *Config) Validate() error {
@@ -68,18 +88,26 @@ func (c *Config) Validate() error {
 	return nil
 }
 
-type Registry = registry.Registry[Config]
+var Type = options.Option(func(c *Config, sType rpcservertype.RpcServerType) {
+	c.Type = sType
+})
 
-func LoadRegistry(configLoader configloaderContracts.ConfigLoader, env environment.Environment) (Registry, error) {
-	reg, err := registry.Load(
-		configLoader,
-		env,
-		"rpcServers",
-		"rpcServer",
-		Default,
-	)
-	if err != nil {
-		return nil, syserrors.Wrap(err, "failed to load rpc-server registry")
-	}
-	return &reg, nil
-}
+var Host = options.Option(func(c *Config, host string) {
+	c.Host = strings.TrimSpace(host)
+})
+
+var Port = options.Option(func(c *Config, port string) {
+	c.Port = strings.TrimSpace(port)
+})
+
+var ServerShutdownTimeout = options.Option(func(c *Config, serverShutdownTimeout time.Duration) {
+	c.ServerShutdownTimeout = serverShutdownTimeout
+})
+
+var GRPC = options.Option(func(c *Config, grpc *grpcConfig.Config) {
+	c.GRPC = grpc
+})
+
+var Logger = options.Option(func(c *Config, logger string) {
+	c.Logger = logger
+})

@@ -43,7 +43,11 @@ func GetByName(cfgRegistry config.Registry, name string) (contracts.Logger, erro
 	return log, nil
 }
 
-func GetByNameWithFallback(cfgRegistry config.Registry, name string, fallback contracts.Logger) (contracts.Logger, error) {
+func GetByNameWithFallback(
+	cfgRegistry config.Registry,
+	name string,
+	fallback contracts.Logger,
+) (contracts.Logger, error) {
 	if name == "" {
 		return fallback, nil
 	}

@@ -28,13 +28,7 @@ func Default() Config {
 	}
 }
 
-func (c *Config) Validate() error {
-	return validation.ValidateStruct(c,
-		validation.Field(&c.ParentContext, validation.Required),
-		validation.Field(&c.WaitTimeout, validation.Required, validation.Min(0)),
-		validation.Field(&c.CleanupTimeout, validation.Required, validation.Min(0)),
-	)
-}
+type Option = options.OptionFn[Config]
 
 func New(opts ...Option) (Config, error) {
 	var zero Config
@@ -45,4 +39,30 @@ func New(opts ...Option) (Config, error) {
 	}
 
 	return base, nil
+}
+
+var ParentContext = options.Option(func(c *Config, parentCtx context.Context) {
+	c.ParentContext = parentCtx
+})
+
+var CancelOnShutdownSignal = options.Option(func(c *Config, cancelOnShutdownSignal bool) {
+	c.CancelOnShutdownSignal = cancelOnShutdownSignal
+})
+
+// WaitTimeout sets the maximum duration for each Wait hook.
+var WaitTimeout = options.Option(func(c *Config, waitTimeout time.Duration) {
+	c.WaitTimeout = waitTimeout
+})
+
+// CleanupTimeout sets the maximum duration for each Cleanup hook.
+var CleanupTimeout = options.Option(func(c *Config, cleanupTimeout time.Duration) {
+	c.CleanupTimeout = cleanupTimeout
+})
+
+func (c *Config) Validate() error {
+	return validation.ValidateStruct(c,
+		validation.Field(&c.ParentContext, validation.Required),
+		validation.Field(&c.WaitTimeout, validation.Required, validation.Min(0)),
+		validation.Field(&c.CleanupTimeout, validation.Required, validation.Min(0)),
+	)
 }

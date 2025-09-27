@@ -3,6 +3,7 @@ package config
 import (
 	"time"
 
+	"frisboo-bank/pkg/options"
 	cValidation "frisboo-bank/pkg/validation"
 
 	validation "github.com/go-ozzo/ozzo-validation/v4"
@@ -31,6 +32,8 @@ func Default() *Config {
 		WriteTimeout: 0,
 	}
 }
+
+type Option = options.OptionFn[Config]
 
 func (c *Config) Validate() error {
 	return validation.ValidateStruct(c,

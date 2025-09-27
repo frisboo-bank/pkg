@@ -47,6 +47,7 @@ func New(name string, cfg *config.Config, logger loggerContracts.Logger, meter m
 		cfg:          cfg,
 		echo:         e,
 		logger:       logger,
+		meter:        meter,
 		routeBuilder: NewRouteBuilder(e),
 	}
 }
@@ -76,6 +77,7 @@ func (e *echoHTTPServerAdapter) SetupDefaultMiddlewares() {
 	}
 
 	e.echo.Use(
+		// middlewares.HTTPMetrics(e.name, e.meter, e.logger, skipper),
 		middleware.Recover(),
 		middleware.BodyLimit(e.cfg.BodyLimit),
 		middleware.RequestID(),
