@@ -53,7 +53,7 @@ func serverModuleFunc(name string, log loggerContracts.Logger, cfg *config.Confi
 
 	log.Debugf("Try to register rpc-server:{%s} module", name)
 
-	m := module.ModuleFunc("http-server:" + name)
+	m := module.ModuleFunc("rpc-server:" + name)
 
 	// Instance registration name
 	providerName := "rpc-server:" + name
