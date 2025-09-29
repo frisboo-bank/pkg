@@ -33,7 +33,7 @@ func ModuleFunc(appBuilder applicationContracts.ApplicationBuilder) module.Modul
 	for _, name := range cfgRegistry.Names() {
 		cfg, err := cfgRegistry.GetByName(name)
 		if err != nil {
-			appBuilder.Logger().Fatal("failed to register database-client:{%s} module with error:{%v}", name, err)
+			appBuilder.Logger().Fatalf("failed to register database-client:{%s} module with error:{%v}", name, err)
 		}
 		if !cfg.Enabled {
 			appBuilder.Logger().Debugf("database-client:{%s} is disabled and will not be loaded", name)
