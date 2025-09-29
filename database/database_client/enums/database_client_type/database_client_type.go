@@ -6,5 +6,6 @@ type (
 
 const (
 	unknown databaseClientType = iota // invalid
+	mongodb
 	postgres
 )

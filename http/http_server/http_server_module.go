@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"net/http"
 
+	applicationContracts "frisboo-bank/pkg/application/contracts"
 	"frisboo-bank/pkg/container/dependencies/hook"
 	"frisboo-bank/pkg/container/dependencies/module"
 	"frisboo-bank/pkg/container/dependencies/provider"
@@ -21,25 +22,36 @@ import (
 
 const HTTPServersGroup = "http-servers"
 
-func ModuleFunc(registry config.Registry) module.Module {
+func ModuleFunc(appBuilder applicationContracts.ApplicationBuilder) module.Module {
 	m := module.ModuleFunc("http-server")
 
-	for _, name := range registry.Names() {
-		cfg, err := registry.GetByName(name)
+	// Load and register the config registry
+	cfgRegistry, err := config.LoadRegistry(appBuilder.ConfigLoader(), appBuilder.Environment())
+	if err != nil {
+		appBuilder.Logger().Fatalf("failed to register http-server module with error: %v", err)
+	}
+	m.AddProvider(provider.ProvideFunc(func() config.Registry { return cfgRegistry }))
+
+	for _, name := range cfgRegistry.Names() {
+		cfg, err := cfgRegistry.GetByName(name)
 		if err != nil {
-			panic(syserrors.Wrapf(err, "failed to load config for http-server %s", name))
+			appBuilder.Logger().Fatalf("failed to register http-server:{%s} module with error:{%v}", name, err)
 		}
 		if !cfg.Enabled {
 			continue
 		}
-		m.AddModule(serverModuleFunc(name, &cfg))
+		m.AddModule(serverModuleFunc(name, appBuilder.Logger(), &cfg))
 	}
 
 	return m
 }
 
-func serverModuleFunc(name string, cfg *config.Config) module.Module {
+func serverModuleFunc(name string, log loggerContracts.Logger, cfg *config.Config) module.Module {
 	validation.AssertNotEmpty("name", name)
+	validation.AssertNotNil("log", log)
+	validation.AssertNotNil("cfg", cfg)
+
+	log.Debugf("Try to register http-server:{%s} module", name)
 
 	m := module.ModuleFunc("http-server:" + name)
 
@@ -53,7 +65,7 @@ func serverModuleFunc(name string, cfg *config.Config) module.Module {
 		// Resolve logger (either server-specific or fallback to app logger)
 		log, err := logger.GetByNameWithFallback(loggerCfgRegistry, cfg.Logger, appLogger)
 		if err != nil {
-			return nil, syserrors.Wrapf(err, "http-server %s logger", name)
+			return nil, syserrors.Wrapf(err, "http-server:{%s} logger", name)
 		}
 		return GetInstance(name, cfg, log)
 	},
@@ -71,10 +83,10 @@ func serverModuleFunc(name string, cfg *config.Config) module.Module {
 				srv := p.HTTPServer
 				srv.SetupDefaultMiddlewares()
 
-				srv.Logger().Infof("%s is listening on address:{%s}", srv.Name(), srv.Config().Address())
+				srv.Logger().Infof("http-server:{%s} is listening on address:{%s}", srv.Name(), srv.Config().Address())
 
 				if err := srv.Start(ctx); err != nil && !errors.Is(err, http.ErrServerClosed) {
-					srv.Logger().Fatalf("%s failed to start with error: %v", srv.Name(), err)
+					srv.Logger().Fatalf("{%s} failed to start with error:{%v}", srv.Name(), err)
 				}
 
 				return nil
@@ -88,9 +100,9 @@ func serverModuleFunc(name string, cfg *config.Config) module.Module {
 				defer cancel()
 
 				if err := srv.Stop(ctx); err != nil {
-					srv.Logger().Errorf("shutting down %s failed with error: %v", srv.Name(), err)
+					srv.Logger().Errorf("http-server:{%s} shutdown failed with error:{%v}", srv.Name(), err)
 				} else {
-					srv.Logger().Infof("%s server shutdown successfully", srv.Name())
+					srv.Logger().Infof("http-server:{%s} shutdown successfully", srv.Name())
 				}
 				return nil
 			}

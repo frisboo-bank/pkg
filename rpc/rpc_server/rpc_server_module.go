@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"net/http"
 
+	applicationContracts "frisboo-bank/pkg/application/contracts"
 	"frisboo-bank/pkg/container/dependencies/hook"
 	"frisboo-bank/pkg/container/dependencies/module"
 	"frisboo-bank/pkg/container/dependencies/provider"
@@ -21,27 +22,38 @@ import (
 
 const RPCServersGroup = "rpc-servers"
 
-func ModuleFunc(registry config.Registry) module.Module {
+func ModuleFunc(appBuilder applicationContracts.ApplicationBuilder) module.Module {
 	m := module.ModuleFunc("rpc-server")
 
-	for _, name := range registry.Names() {
-		cfg, err := registry.GetByName(name)
+	// Load and register the config registry
+	cfgRegistry, err := config.LoadRegistry(appBuilder.ConfigLoader(), appBuilder.Environment())
+	if err != nil {
+		appBuilder.Logger().Fatalf("failed to register RPCServer module with error: %v", err)
+	}
+	m.AddProvider(provider.ProvideFunc(func() config.Registry { return cfgRegistry }))
+
+	for _, name := range cfgRegistry.Names() {
+		cfg, err := cfgRegistry.GetByName(name)
 		if err != nil {
-			panic(syserrors.Wrapf(err, "failed to load config for rpc-server %s", name))
+			appBuilder.Logger().Fatalf("failed to register RPCServer module with error: %v", err)
 		}
 		if !cfg.Enabled {
 			continue
 		}
-		m.AddModule(serverModuleFunc(name, &cfg))
+		m.AddModule(serverModuleFunc(name, appBuilder.Logger(), &cfg))
 	}
 
 	return m
 }
 
-func serverModuleFunc(name string, cfg *config.Config) module.Module {
+func serverModuleFunc(name string, log loggerContracts.Logger, cfg *config.Config) module.Module {
 	validation.AssertNotEmpty("name", name)
+	validation.AssertNotNil("log", log)
+	validation.AssertNotNil("cfg", cfg)
 
-	m := module.ModuleFunc("http-server:" + name)
+	log.Debugf("Try to register rpc-server:{%s} module", name)
+
+	m := module.ModuleFunc("rpc-server:" + name)
 
 	// Instance registration name
 	providerName := "rpc-server:" + name
