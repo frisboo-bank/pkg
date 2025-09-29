@@ -14,6 +14,7 @@ import (
 	"frisboo-bank/pkg/container/dependencies/module"
 	"frisboo-bank/pkg/container/dependencies/provider"
 	containerEnums "frisboo-bank/pkg/container/enums"
+	databaseclientEnums "frisboo-bank/pkg/database/database_client/enums"
 	"frisboo-bank/pkg/environment"
 	httpServerEnums "frisboo-bank/pkg/http/http_server/enums"
 	"frisboo-bank/pkg/logger"
@@ -50,6 +51,7 @@ func NewApplicationBuilder(environments ...environment.Environment) (contracts.A
 		configloaderConfig.Debug(false),
 		configloaderConfig.DecodeHookFuncs(
 			containerEnums.ContainerEnumsDecodeHook(),
+			databaseclientEnums.DatabaseClientEnumsDecodeHook(),
 			environment.EnvironmentEnumsDecodeHook(),
 			httpServerEnums.HTTPServerEnumsDecodeHook(),
 			loggerEnums.LoggerEnumsDecodeHook(),

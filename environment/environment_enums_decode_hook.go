@@ -7,11 +7,7 @@ import (
 )
 
 func EnvironmentEnumsDecodeHook() mapstructure.DecodeHookFunc {
-	return func(
-		f reflect.Type,
-		t reflect.Type,
-		data any,
-	) (any, error) {
+	return func(f reflect.Type, t reflect.Type, data any) (any, error) {
 		switch t {
 		case reflect.TypeOf(Environment{}):
 			return ParseEnvironment(data)
