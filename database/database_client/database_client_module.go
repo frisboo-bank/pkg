@@ -67,7 +67,7 @@ func serverModuleFunc(name string, log loggerContracts.Logger, cfg *config.Confi
 		// Resolve logger (either server-specific or fallback to app logger)
 		log, err := logger.GetByNameWithFallback(loggerCfgRegistry, cfg.Logger, appLogger)
 		if err != nil {
-			return nil, syserrors.Wrapf(err, "http-server:{%s} logger", name)
+			return nil, syserrors.Wrapf(err, "database-client:{%s} logger", name)
 		}
 		return GetInstance(name, cfg, log)
 	},
