@@ -5,11 +5,12 @@ import (
 	"path/filepath"
 	"testing"
 
-	configloader "frisboo-bank/pkg/config/config_loader"
 	"frisboo-bank/pkg/config/config_loader/config"
 	"frisboo-bank/pkg/config/config_loader/contracts"
 	"frisboo-bank/pkg/environment"
 	"frisboo-bank/pkg/syserrors"
+
+	configloader "frisboo-bank/pkg/config/config_loader"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -51,7 +52,7 @@ httpServers:
 	loader := newLoader(t, tmp, "application")
 
 	var cfg sampleConfig
-	require.NoError(t, loader.Load(environment.Development, &cfg))
+	require.NoError(t, loader.Load(environment.Environments.DEVELOPMENT, &cfg))
 
 	assert.Equal(t, "my-service", cfg.App.Name)
 	assert.Equal(t, "my-service description", cfg.App.Description)
@@ -81,7 +82,7 @@ httpServers:
 	loader := newLoader(t, tmp, "application")
 
 	var cfg httpServerConfig
-	require.NoError(t, loader.LoadKey(environment.Development, &cfg, "httpServers"))
+	require.NoError(t, loader.LoadKey(environment.Environments.DEVELOPMENT, &cfg, "httpServers"))
 
 	main, ok := cfg.Instances["main"]
 	assert.True(t, ok)
@@ -98,15 +99,15 @@ httpServers: {}
 `)
 	loader := newLoader(t, tmp, "application")
 
-	ok, err := loader.HasKey(environment.Development, "app")
+	ok, err := loader.HasKey(environment.Environments.DEVELOPMENT, "app")
 	require.NoError(t, err)
 	assert.True(t, ok)
 
-	ok, err = loader.HasKey(environment.Development, "httpServers")
+	ok, err = loader.HasKey(environment.Environments.DEVELOPMENT, "httpServers")
 	require.NoError(t, err)
 	assert.True(t, ok)
 
-	ok, err = loader.HasKey(environment.Development, "doesNotExist")
+	ok, err = loader.HasKey(environment.Environments.DEVELOPMENT, "doesNotExist")
 	require.NoError(t, err)
 	assert.False(t, ok)
 }
@@ -117,7 +118,7 @@ func TestConfigLoader_Load_TargetMustBePointer(t *testing.T) {
 	loader := newLoader(t, tmpDir, "application")
 
 	var loadedNotPtr sampleConfig
-	err := loader.Load(environment.Development, loadedNotPtr)
+	err := loader.Load(environment.Environments.DEVELOPMENT, loadedNotPtr)
 
 	require.Error(t, err)
 	assert.Contains(t, err.Error(), "target must be a pointer")
@@ -129,7 +130,7 @@ func TestConfigLoader_LoadKey_TargetMustBePointer(t *testing.T) {
 	loader := newLoader(t, tmpDir, "application")
 
 	var loadedNotPtr sampleConfig
-	err := loader.LoadKey(environment.Development, loadedNotPtr, "app")
+	err := loader.LoadKey(environment.Environments.DEVELOPMENT, loadedNotPtr, "app")
 
 	require.Error(t, err)
 	assert.Contains(t, err.Error(), "target must be a pointer")
@@ -143,7 +144,7 @@ func TestConfigLoader_LoadKey_MissingKey(t *testing.T) {
 	loader := newLoader(t, tmp, "application")
 
 	var httpCfg httpServerConfig
-	err := loader.LoadKey(environment.Development, &httpCfg, "httpServers")
+	err := loader.LoadKey(environment.Environments.DEVELOPMENT, &httpCfg, "httpServers")
 
 	require.Error(t, err)
 	assert.Contains(t, err.Error(), "required key httpServers not found")

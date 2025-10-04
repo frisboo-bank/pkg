@@ -1,6 +1,7 @@
-package application
+package builder
 
 import (
+	"frisboo-bank/pkg/application/app"
 	appConfig "frisboo-bank/pkg/application/config"
 	"frisboo-bank/pkg/application/contracts"
 	configloader "frisboo-bank/pkg/config/config_loader"
@@ -73,17 +74,7 @@ func NewApplicationBuilder(environments ...environment.Environment) (contracts.A
 	}
 
 	// Initialize logger
-	var appLoggerCfg loggerConfig.Config
-	if appCfg.Logger != "" {
-		appLoggerCfg, err = loggerCfgRegistry.GetByName(appCfg.Logger)
-	} else {
-		appLoggerCfg, err = loggerCfgRegistry.GetDefault()
-	}
-	if err != nil {
-		return nil, err
-	}
-
-	appLogger, err := logger.GetInstance(&appLoggerCfg)
+	appLogger, err := logger.GetByNameOrDefault(loggerCfgRegistry, appCfg.Logger)
 	if err != nil {
 		return nil, err
 	}
@@ -101,8 +92,7 @@ func NewApplicationBuilder(environments ...environment.Environment) (contracts.A
 	}
 
 	appBuilder.ProvideModule(module.ModuleFunc(
-		"application",
-		ModuleFunc(appBuilder),
+		"core",
 		provider.ProvideFunc(func() configloaderContracts.ConfigLoader { return configLoader }),
 		provider.ProvideFunc(func() environment.Environment { return env }),
 		provider.ProvideFunc(func() loggerConfig.Registry { return loggerCfgRegistry }),
@@ -118,13 +108,13 @@ func (b *applicationBuilder) ProvideModule(modules ...module.Module) {
 }
 
 func (b *applicationBuilder) Build() contracts.Application {
-	return NewApplication(
-		b.modules,
-		b.providers,
-		b.decorators,
+	return app.NewApplication(
 		b.container,
 		b.logger,
 		b.environment,
+		b.modules,
+		b.providers,
+		b.decorators,
 	)
 }
 

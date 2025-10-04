@@ -41,6 +41,10 @@ func New(name string, cfg *config.Config, logger loggerContracts.Logger) (contra
 
 	mongoOpts := mongoOptions.Client().
 		ApplyURI(uri).
+		SetAuth(mongoOptions.Credential{
+			Username: cfg.User,
+			Password: cfg.Password,
+		}).
 		SetConnectTimeout(cfg.ConnectionTimeout).
 		SetMaxConnIdleTime(cfg.MaxConnectionIdleTime).
 		SetMinPoolSize(cfg.MinPoolSize).

@@ -21,25 +21,31 @@ import (
 const DatabaseClientsGroup = "database-clients"
 
 func ModuleFunc(appBuilder applicationContracts.ApplicationBuilder) module.Module {
+	validation.AssertNotNil("appBuilder", appBuilder)
+
+	configLoader := appBuilder.ConfigLoader()
+	env := appBuilder.Environment()
+	logger := appBuilder.Logger()
+
 	m := module.ModuleFunc("database-clients")
 
 	// Load and register the config registry
-	cfgRegistry, err := config.LoadRegistry(appBuilder.ConfigLoader(), appBuilder.Environment())
+	cfgRegistry, err := config.LoadRegistry(configLoader, env)
 	if err != nil {
-		appBuilder.Logger().Fatalf("failed to register database-clients module with error: %v", err)
+		logger.Fatalf("failed to register database-clients module with error: %v", err)
 	}
 	m.AddProvider(provider.ProvideFunc(func() config.Registry { return cfgRegistry }))
 
 	for _, name := range cfgRegistry.Names() {
 		cfg, err := cfgRegistry.GetByName(name)
 		if err != nil {
-			appBuilder.Logger().Fatalf("failed to register database-client:{%s} module with error:{%v}", name, err)
+			logger.Fatal("failed to register database-client:{%s} module with error:{%v}", name, err)
 		}
 		if !cfg.Enabled {
-			appBuilder.Logger().Debugf("database-client:{%s} is disabled and will not be loaded", name)
+			logger.Debugf("database-client:{%s} is disabled and will not be loaded", name)
 			continue
 		}
-		m.AddModule(serverModuleFunc(name, appBuilder.Logger(), &cfg))
+		m.AddModule(serverModuleFunc(name, logger, &cfg))
 	}
 
 	return m

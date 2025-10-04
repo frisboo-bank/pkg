@@ -1,4 +1,4 @@
-package application
+package app
 
 import (
 	"context"
@@ -31,12 +31,12 @@ type application struct {
 }
 
 func NewApplication(
-	modules []module.Module,
-	providers []provider.Provider,
-	decorators []decorator.Decorator,
 	container containerContracts.Container,
 	logger loggerContracts.Logger,
 	environment environment.Environment,
+	modules []module.Module,
+	providers []provider.Provider,
+	decorators []decorator.Decorator,
 ) contracts.Application {
 	validation.AssertNotNil("container", container)
 	validation.AssertNotNil("logger", logger)
@@ -58,6 +58,13 @@ func (a *application) ResolveFunc(invoke invoker.Invoker) {
 
 func (a *application) RegisterHook(hook hook.Hooks) {
 	a.hooks = append(a.hooks, hook)
+}
+
+func (a *application) Run() error {
+	if err := a.registerDependencies(); err != nil {
+		return err
+	}
+	return nil
 }
 
 func (a *application) Start(ctx context.Context) error {

@@ -7,6 +7,7 @@ import (
 
 	configloaderContracts "frisboo-bank/pkg/config/config_loader/contracts"
 	"frisboo-bank/pkg/config/registry"
+	mongoDBConfig "frisboo-bank/pkg/database/database_client/adapters/mongoDB/config"
 	postgresConfig "frisboo-bank/pkg/database/database_client/adapters/postgres/config"
 	databaseclienttype "frisboo-bank/pkg/database/database_client/enums/database_client_type"
 	"frisboo-bank/pkg/environment"
@@ -38,7 +39,7 @@ type Config struct {
 	MaxPoolSize           uint64                                `mapstructure:"maxPoolSize"`
 
 	// adapters
-	MongoDB  any                   `mapstructure:"mongoDB"`
+	MongoDB  mongoDBConfig.Config  `mapstructure:"mongoDB"`
 	Postgres postgresConfig.Config `mapstructure:"postgres"`
 
 	// dependencies
@@ -86,11 +87,19 @@ func (c *Config) Validate() error {
 		validation.Field(&c.Port, validation.Required, validationIs.Port),
 		validation.Field(&c.User, validation.Required),
 		validation.Field(&c.Database, validation.Required),
+		validation.Field(&c.ConnectionTimeout, validation.Required),
+		validation.Field(&c.MaxConnectionIdleTime, validation.Required),
+		validation.Field(&c.MaxPoolSize, validation.Required),
 	); err != nil {
 		return err
 	}
 
 	switch c.Type {
+	case databaseclienttype.DatabaseClientTypes.MONGODB:
+		if err := validation.Validate(&c.MongoDB, validation.Required); err != nil {
+			return err
+		}
+		return c.MongoDB.Validate()
 	case databaseclienttype.DatabaseClientTypes.POSTGRES:
 		if err := validation.Validate(&c.Postgres, validation.Required); err != nil {
 			return err
@@ -137,12 +146,32 @@ var SSLMode = options.Option(func(c *Config, sslMode bool) {
 	c.SSLMode = sslMode
 })
 
+var EnableTracing = options.Option(func(c *Config, enableTracing bool) {
+	c.EnableTracing = enableTracing
+})
+
+var ConnectionTimeout = options.Option(func(c *Config, timeout time.Duration) {
+	c.ConnectionTimeout = timeout
+})
+
+var MaxConnectionIdleTime = options.Option(func(c *Config, idleTime time.Duration) {
+	c.MaxConnectionIdleTime = idleTime
+})
+
+var MinPoolSize = options.Option(func(c *Config, minPoolSize uint64) {
+	c.MinPoolSize = minPoolSize
+})
+
+var MaxPoolSize = options.Option(func(c *Config, maxPoolSize uint64) {
+	c.MaxPoolSize = maxPoolSize
+})
+
 var Context = options.Option(func(c *Config, ctx context.Context) {
 	c.Context = ctx
 })
 
-var EnableTracing = options.Option(func(c *Config, enableTracing bool) {
-	c.EnableTracing = enableTracing
+var MongoDB = options.Option(func(c *Config, mgConfig mongoDBConfig.Config) {
+	c.MongoDB = mgConfig
 })
 
 var Postgres = options.Option(func(c *Config, pgConfig postgresConfig.Config) {

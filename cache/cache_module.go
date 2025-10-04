@@ -1,10 +1,14 @@
 package cache
 
 import (
+	applicationContracts "frisboo-bank/pkg/application/contracts"
 	"frisboo-bank/pkg/container/dependencies/module"
+	"frisboo-bank/pkg/validation"
 )
 
-var ModuleFunc = func() module.Module {
+func ModuleFunc(appBuilder applicationContracts.ApplicationBuilder) module.Module {
+	validation.AssertNotNil("appBuilder", appBuilder)
+
 	m := module.ModuleFunc("cache")
 
 	return m

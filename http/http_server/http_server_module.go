@@ -6,41 +6,50 @@ import (
 	"fmt"
 	"net/http"
 
-	applicationContracts "frisboo-bank/pkg/application/contracts"
 	"frisboo-bank/pkg/container/dependencies/hook"
 	"frisboo-bank/pkg/container/dependencies/module"
 	"frisboo-bank/pkg/container/dependencies/provider"
 	"frisboo-bank/pkg/http/http_server/config"
 	"frisboo-bank/pkg/http/http_server/contracts"
 	"frisboo-bank/pkg/logger"
-	loggerConfig "frisboo-bank/pkg/logger/config"
-	loggerContracts "frisboo-bank/pkg/logger/contracts"
 	"frisboo-bank/pkg/syserrors"
 	"frisboo-bank/pkg/validation"
+
+	applicationContracts "frisboo-bank/pkg/application/contracts"
+
+	loggerConfig "frisboo-bank/pkg/logger/config"
+	loggerContracts "frisboo-bank/pkg/logger/contracts"
+
 	waiterContracts "frisboo-bank/pkg/waiter/contracts"
 )
 
 const HTTPServersGroup = "http-servers"
 
 func ModuleFunc(appBuilder applicationContracts.ApplicationBuilder) module.Module {
+	validation.AssertNotNil("appBuilder", appBuilder)
+
+	configLoader := appBuilder.ConfigLoader()
+	env := appBuilder.Environment()
+	logger := appBuilder.Logger()
+
 	m := module.ModuleFunc("http-server")
 
 	// Load and register the config registry
-	cfgRegistry, err := config.LoadRegistry(appBuilder.ConfigLoader(), appBuilder.Environment())
+	cfgRegistry, err := config.LoadRegistry(configLoader, env)
 	if err != nil {
-		appBuilder.Logger().Fatalf("failed to register http-server module with error: %v", err)
+		logger.Fatalf("failed to register http-server module with error: %v", err)
 	}
 	m.AddProvider(provider.ProvideFunc(func() config.Registry { return cfgRegistry }))
 
 	for _, name := range cfgRegistry.Names() {
 		cfg, err := cfgRegistry.GetByName(name)
 		if err != nil {
-			appBuilder.Logger().Fatalf("failed to register http-server:{%s} module with error:{%v}", name, err)
+			logger.Fatalf("failed to register http-server:{%s} module with error:{%v}", name, err)
 		}
 		if !cfg.Enabled {
 			continue
 		}
-		m.AddModule(serverModuleFunc(name, appBuilder.Logger(), &cfg))
+		m.AddModule(serverModuleFunc(name, logger, &cfg))
 	}
 
 	return m
@@ -58,10 +67,7 @@ func serverModuleFunc(name string, log loggerContracts.Logger, cfg *config.Confi
 	// Instance registration name
 	providerName := "http-server:" + name
 
-	m.AddProvider(provider.ProvideFunc(func(
-		loggerCfgRegistry loggerConfig.Registry,
-		appLogger loggerContracts.Logger,
-	) (contracts.HTTPServer, error) {
+	m.AddProvider(provider.ProvideFunc(func(loggerCfgRegistry loggerConfig.Registry, appLogger loggerContracts.Logger) (contracts.HTTPServer, error) {
 		// Resolve logger (either server-specific or fallback to app logger)
 		log, err := logger.GetByNameWithFallback(loggerCfgRegistry, cfg.Logger, appLogger)
 		if err != nil {
