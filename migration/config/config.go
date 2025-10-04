@@ -6,6 +6,7 @@ import (
 	configloaderContracts "frisboo-bank/pkg/config/config_loader/contracts"
 	"frisboo-bank/pkg/config/registry"
 	"frisboo-bank/pkg/environment"
+	migratortype "frisboo-bank/pkg/migration/enums/migrator_type"
 	"frisboo-bank/pkg/options"
 	"frisboo-bank/pkg/syserrors"
 	cValidation "frisboo-bank/pkg/validation"
@@ -16,13 +17,17 @@ import (
 var _ cValidation.Validatable = (*Config)(nil)
 
 type Config struct {
-	DBKey         string `mapstructure:"db"`
-	MigrationsDir string `mapstructure:"migrationsDir"`
+	Type          migratortype.MigratorType `mapstructure:"type"`
+	DB            string                    `mapstructure:"db"`
+	MigrationsDir string                    `mapstructure:"migrationsDir"`
+
+	// dependencies
+	Logger string `mapstructure:"logger"`
 }
 
 func Default() Config {
 	return Config{
-		MigrationsDir: "./migrations",
+		Type: migratortype.MigratorTypes.GOOSE,
 	}
 }
 
@@ -46,15 +51,24 @@ func LoadRegistry(configLoader configloaderContracts.ConfigLoader, env environme
 
 func (c *Config) Validate() error {
 	return validation.ValidateStruct(c,
-		validation.Field(&c.DBKey, validation.Required),
+		validation.Field(&c.Type, validation.Required, validation.By(cValidation.EnumOneOf(migratortype.MigratorTypes))),
+		validation.Field(&c.DB, validation.Required),
 		validation.Field(&c.MigrationsDir, validation.Required),
 	)
 }
 
-var DB = options.Option(func(c *Config, dbKey string) {
-	c.DBKey = strings.TrimSpace(dbKey)
+var Type = options.Option(func(c *Config, sType migratortype.MigratorType) {
+	c.Type = sType
+})
+
+var DB = options.Option(func(c *Config, db string) {
+	c.DB = strings.TrimSpace(db)
 })
 
 var MigrationsDir = options.Option(func(c *Config, migrationsDir string) {
 	c.MigrationsDir = strings.TrimSpace(migrationsDir)
+})
+
+var Logger = options.Option(func(c *Config, logger string) {
+	c.Logger = logger
 })

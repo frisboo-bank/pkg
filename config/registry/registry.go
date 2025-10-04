@@ -18,12 +18,12 @@ import (
 var _ Registry[any] = (*registry[any])(nil)
 
 func NameNotFoundError(kind string, name string, examples []string) error {
-	err := syserrors.Newf("%s %s not found in the config", kind, name)
+	err := syserrors.Newf("kind:{%s} name:{%s} not found in the config", kind, name)
 
 	if len(examples) == 0 {
-		return syserrors.Wrapf(err, "no %s registered", kind)
+		return syserrors.Wrapf(err, "no kind:{%s} registered", kind)
 	}
-	return syserrors.Wrapf(err, "only %s are available", strings.Join(examples, ", "))
+	return syserrors.Wrapf(err, "wrong name:{%s} only:{%s} are available", name, strings.Join(examples, ", "))
 }
 
 type Registry[T any] interface {

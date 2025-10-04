@@ -13,14 +13,14 @@ func NoContainerOfTypeError(sType loggertype.LoggerType) error {
 	return syserrors.Newf("no logger of type %q exists", sType)
 }
 
-func GetInstance(cfg *config.Config) (contracts.Logger, error) {
+func GetInstance(name string, cfg config.Config) (contracts.Logger, error) {
 	var adapter contracts.LoggerAdapter
 
 	switch cfg.Type {
 	case loggertype.LoggerTypes.LOGRUS:
-		adapter = logrus.New(cfg)
+		adapter = logrus.New(&cfg)
 	case loggertype.LoggerTypes.ZEROLOG:
-		adapter = zerolog.New(cfg)
+		adapter = zerolog.New(&cfg)
 	default:
 		return nil, NoContainerOfTypeError(cfg.Type)
 	}
@@ -29,27 +29,31 @@ func GetInstance(cfg *config.Config) (contracts.Logger, error) {
 }
 
 func GetByName(cfgRegistry config.Registry, name string) (contracts.Logger, error) {
-	if name == "" {
-		return nil, syserrors.New("no logger name specified")
-	}
-	cfg, err := cfgRegistry.GetByName(name)
+	cfg, err := config.GetConfigByName(cfgRegistry, name)
 	if err != nil {
-		return nil, syserrors.Wrapf(err, "failed to load %s config", name)
+		return nil, err
 	}
-	log, err := GetInstance(&cfg)
-	if err != nil {
-		return nil, syserrors.Wrapf(err, "failed to initialize %s logger", name)
-	}
-	return log, nil
+	return GetInstance(name, cfg)
 }
 
-func GetByNameWithFallback(
-	cfgRegistry config.Registry,
-	name string,
-	fallback contracts.Logger,
-) (contracts.Logger, error) {
+func GetDefault(cfgRegistry config.Registry) (contracts.Logger, error) {
+	cfg, err := cfgRegistry.GetDefault()
+	if err != nil {
+		return nil, err
+	}
+	return GetInstance("default", cfg)
+}
+
+func GetByNameWithFallback(cfgRegistry config.Registry, name string, fallback contracts.Logger) (contracts.Logger, error) {
 	if name == "" {
 		return fallback, nil
+	}
+	return GetByName(cfgRegistry, name)
+}
+
+func GetByNameOrDefault(cfgRegistry config.Registry, name string) (contracts.Logger, error) {
+	if name == "" {
+		return GetDefault(cfgRegistry)
 	}
 	return GetByName(cfgRegistry, name)
 }

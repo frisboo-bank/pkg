@@ -2,6 +2,7 @@ package databaseclient
 
 import (
 	"frisboo-bank/pkg/database/database_client/adapters/mongodb"
+	"frisboo-bank/pkg/database/database_client/adapters/postgres"
 	"frisboo-bank/pkg/database/database_client/config"
 	"frisboo-bank/pkg/database/database_client/contracts"
 	databaseclienttype "frisboo-bank/pkg/database/database_client/enums/database_client_type"
@@ -20,6 +21,8 @@ func GetInstance(name string, cfg *config.Config, logger loggerContracts.Logger)
 	switch cfg.Type {
 	case databaseclienttype.DatabaseClientTypes.MONGODB:
 		adapter, err = mongodb.New(name, cfg, logger)
+	case databaseclienttype.DatabaseClientTypes.POSTGRES:
+		adapter, err = postgres.New(name, cfg, logger)
 	default:
 		return nil, NoDatabaseClientOfTypeError(name, cfg.Type)
 	}

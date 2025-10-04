@@ -23,24 +23,30 @@ import (
 const RPCServersGroup = "rpc-servers"
 
 func ModuleFunc(appBuilder applicationContracts.ApplicationBuilder) module.Module {
+	validation.AssertNotNil("appBuilder", appBuilder)
+
+	configLoader := appBuilder.ConfigLoader()
+	env := appBuilder.Environment()
+	logger := appBuilder.Logger()
+
 	m := module.ModuleFunc("rpc-server")
 
 	// Load and register the config registry
-	cfgRegistry, err := config.LoadRegistry(appBuilder.ConfigLoader(), appBuilder.Environment())
+	cfgRegistry, err := config.LoadRegistry(configLoader, env)
 	if err != nil {
-		appBuilder.Logger().Fatalf("failed to register RPCServer module with error: %v", err)
+		logger.Fatalf("failed to register rpc-server module with error: %v", err)
 	}
 	m.AddProvider(provider.ProvideFunc(func() config.Registry { return cfgRegistry }))
 
 	for _, name := range cfgRegistry.Names() {
 		cfg, err := cfgRegistry.GetByName(name)
 		if err != nil {
-			appBuilder.Logger().Fatalf("failed to register RPCServer module with error: %v", err)
+			logger.Fatalf("failed to register rpc-server module with error: %v", err)
 		}
 		if !cfg.Enabled {
 			continue
 		}
-		m.AddModule(serverModuleFunc(name, appBuilder.Logger(), &cfg))
+		m.AddModule(serverModuleFunc(name, logger, &cfg))
 	}
 
 	return m

@@ -12,6 +12,7 @@ import (
 type Application interface {
 	ResolveFunc(invoker invoker.Invoker)
 	RegisterHook(hook hook.Hooks)
+	Run() error
 	Start(ctx context.Context) error
 	Stop(ctx context.Context) error
 	Logger() loggerContracts.Logger

@@ -103,15 +103,17 @@ func (c *Config) Validate() error {
 		validation.Field(&c.Host, validation.Required, validationIs.Host),
 		validation.Field(&c.Port, validation.Required, validationIs.Port),
 		validation.Field(&c.BasePath, validation.Required),
+		validation.Field(&c.Mode, validation.Required, validation.In("debug", "release", "test")),
 		validation.Field(&c.IgnoreLogUrls),
-		validation.Field(&c.MaxHeaderBytes, validation.Required, validation.Min(0)),
+		validation.Field(&c.TrustedProxies),
+		validation.Field(&c.MaxHeaderBytes, validation.Required, validation.Min(1024)),
 		validation.Field(&c.BodyLimit, validation.Required),
-		validation.Field(&c.IdleTimeout, validation.Required, validation.Min(0)),
-		validation.Field(&c.ReadHeaderTimeout, validation.Required, validation.Min(0)),
-		validation.Field(&c.ReadTimeout, validation.Required, validation.Min(0)),
-		validation.Field(&c.ServerShutdownTimeout, validation.Required, validation.Min(0)),
-		validation.Field(&c.WriteTimeout, validation.Required, validation.Min(0)),
-		validation.Field(&c.GzipLevel, validation.Required, validation.Min(0)),
+		validation.Field(&c.IdleTimeout, validation.Required, validation.Min(1*time.Second)),
+		validation.Field(&c.ReadHeaderTimeout, validation.Required, validation.Min(1*time.Second)),
+		validation.Field(&c.ReadTimeout, validation.Required, validation.Min(1*time.Second)),
+		validation.Field(&c.ServerShutdownTimeout, validation.Required, validation.Min(1*time.Second)),
+		validation.Field(&c.WriteTimeout, validation.Required, validation.Min(1*time.Second)),
+		validation.Field(&c.GzipLevel, validation.Required, validation.Min(-1), validation.Max(9)),
 	); err != nil {
 		return err
 	}
@@ -225,4 +227,16 @@ var AppendTrustedProxies = options.VarOption(func(c *Config, proxies ...string) 
 
 var WriteTimeout = options.Option(func(c *Config, writeTimeout time.Duration) {
 	c.WriteTimeout = writeTimeout
+})
+
+var GzipLevel = options.Option(func(c *Config, gzipLevel int) {
+	c.GzipLevel = gzipLevel
+})
+
+var EchoConfig = options.Option(func(c *Config, echoConfig echoConfig.Config) {
+	c.Echo = echoConfig
+})
+
+var Logger = options.Option(func(c *Config, logger string) {
+	c.Logger = logger
 })

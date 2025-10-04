@@ -16,7 +16,6 @@ type databaseClient struct {
 
 func New(adapter contracts.DatabaseClientAdapter) contracts.DatabaseClient {
 	validation.AssertNotNil("adapter", adapter)
-
 	return &databaseClient{adapter}
 }
 
