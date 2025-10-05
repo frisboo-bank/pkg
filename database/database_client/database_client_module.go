@@ -76,7 +76,7 @@ func serverModuleFunc(name string, log loggerContracts.Logger, cfg *config.Confi
 	))
 
 	type hookParams struct {
-		DatabaseClient contracts.DatabaseClient `name:"databaseClientRef"`
+		DatabaseClient contracts.DatabaseClient `name:"dbClientRef"`
 	}
 
 	m.AddHook(hook.HooksFunc(fmt.Sprintf("database-client-%s-hook", name),
@@ -108,7 +108,7 @@ func serverModuleFunc(name string, log loggerContracts.Logger, cfg *config.Confi
 				return nil
 			}
 		},
-		hook.NamedDep("databaseClientRef", providerName),
+		hook.NamedDep("dbClientRef", providerName),
 	))
 
 	return m

@@ -27,8 +27,17 @@ func (a *digAdapter) RegisterProvider(name string, p provider.Provider) error {
 		return syserrors.Wrap(err, "failed to apply provider options")
 	}
 
+	fn := p.Fn()
+	if len(cfg.NamedDeps) > 0 {
+		var err error
+		fn, err = wrapFuncWithNamedInputs(fn, cfg.NamedDeps, "provider "+name)
+		if err != nil {
+			return syserrors.Wrapf(err, "failed to adapt provider %s named deps", name)
+		}
+	}
+
 	if cfg.Name == "" || cfg.Group == "" {
-		if err := a.dig.Provide(p.Constructor(), toDigProvideOptions(cfg)...); err != nil {
+		if err := a.dig.Provide(fn, toDigProvideOptions(cfg)...); err != nil {
 			return syserrors.Wrap(err, "failed to register provider")
 		}
 		return nil
@@ -38,22 +47,21 @@ func (a *digAdapter) RegisterProvider(name string, p provider.Provider) error {
 	group := cfg.Group
 	cfg.Group = ""
 
-	if err := a.dig.Provide(p.Constructor(), toDigProvideOptions(cfg)...); err != nil {
+	if err := a.dig.Provide(fn, toDigProvideOptions(cfg)...); err != nil {
 		return syserrors.Wrap(err, "failed to register provider")
 	}
 
-	// Reflect the constructor to find the primary return type.
-	t := reflect.TypeOf(p.Constructor())
+	// Reflect the function to find the primary return type.
+	t := reflect.TypeOf(fn)
 	if t.Kind() != reflect.Func {
-		return syserrors.Newf("constructor is not a function (kind=%s)", t.Kind())
+		return syserrors.Newf("fn is not a function (kind=%s)", t.Kind())
 	}
 	numOut := t.NumOut()
 	if numOut == 0 || numOut > 2 {
-		return syserrors.Newf("constructor must return (T) or (T, error); got %d outputs", numOut)
+		return syserrors.Newf("fn must return (T) or (T, error); got %d outputs", numOut)
 	}
 	outType := t.Out(0)
 	if numOut == 2 {
-		// Validate second return is error.
 		second := t.Out(1)
 		if !second.Implements(reflect.TypeOf((*error)(nil)).Elem()) {
 			return syserrors.Newf("second return value is not error but %s", second.String())
@@ -74,14 +82,13 @@ func (a *digAdapter) RegisterProvider(name string, p provider.Provider) error {
 		},
 	})
 
-	// Build the re-export function type: func(in <inStruct>) <mainOutType>.
 	fnType := reflect.FuncOf([]reflect.Type{inParams}, []reflect.Type{outType}, false)
 	fnVal := reflect.MakeFunc(fnType, func(args []reflect.Value) []reflect.Value {
 		in := args[0]
 		return []reflect.Value{in.FieldByName("Value")}
 	})
 
-	// Provide the re-export into the group (no Name).
+	// Re-export into group.
 	cfg.Name = ""
 	cfg.Group = group
 	if err := a.dig.Provide(fnVal.Interface(), toDigProvideOptions(cfg)...); err != nil {

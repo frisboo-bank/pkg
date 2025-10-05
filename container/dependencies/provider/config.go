@@ -19,6 +19,7 @@ type Config struct {
 	Group      string
 	LocationPC uintptr
 	Name       string
+	NamedDeps  map[string]string
 }
 
 type Option = options.OptionFn[Config]
@@ -56,3 +57,13 @@ var LocationForPC = options.Option(func(c *Config, pc uintptr) {
 var Name = options.Option(func(c *Config, name string) {
 	c.Name = strings.TrimSpace(name)
 })
+
+func NamedDep(ref string, name string) Option {
+	return func(c *Config) error {
+		if c.NamedDeps == nil {
+			c.NamedDeps = make(map[string]string, 1)
+		}
+		c.NamedDeps[ref] = name
+		return nil
+	}
+}
