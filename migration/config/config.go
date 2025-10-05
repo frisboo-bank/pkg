@@ -27,15 +27,17 @@ type Config struct {
 
 func Default() Config {
 	return Config{
-		Type: migratortype.MigratorTypes.GOOSE,
+		Type:          migratortype.MigratorTypes.GOOSE,
+		MigrationsDir: "db/migrations",
 	}
 }
 
-type Option = options.OptionFn[Config]
+type (
+	Option   = options.OptionFn[Config]
+	Registry = registry.Registry[Config]
+)
 
-type Registry = registry.Registry[Config]
-
-func LoadRegistry(configLoader configloaderContracts.ConfigLoader, env environment.Environment) (registry.Registry[Config], error) {
+func LoadRegistry(configLoader configloaderContracts.ConfigLoader, env environment.Environment) (Registry, error) {
 	reg, err := registry.Load(
 		configLoader,
 		env,

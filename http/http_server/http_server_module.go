@@ -32,14 +32,16 @@ func ModuleFunc(appBuilder applicationContracts.ApplicationBuilder) module.Modul
 	env := appBuilder.Environment()
 	logger := appBuilder.Logger()
 
-	m := module.ModuleFunc("http-server")
-
 	// Load and register the config registry
 	cfgRegistry, err := config.LoadRegistry(configLoader, env)
 	if err != nil {
 		logger.Fatalf("failed to register http-server module with error: %v", err)
 	}
-	m.AddProvider(provider.ProvideFunc(func() config.Registry { return cfgRegistry }))
+
+	m := module.ModuleFunc(
+		"http-server",
+		provider.ProvideFunc(func() config.Registry { return cfgRegistry }),
+	)
 
 	for _, name := range cfgRegistry.Names() {
 		cfg, err := cfgRegistry.GetByName(name)
@@ -58,7 +60,6 @@ func ModuleFunc(appBuilder applicationContracts.ApplicationBuilder) module.Modul
 func serverModuleFunc(name string, log loggerContracts.Logger, cfg *config.Config) module.Module {
 	validation.AssertNotEmpty("name", name)
 	validation.AssertNotNil("log", log)
-	validation.AssertNotNil("cfg", cfg)
 
 	log.Debugf("Try to register http-server:{%s} module", name)
 

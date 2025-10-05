@@ -7,9 +7,15 @@ import (
 	cachetype "frisboo-bank/pkg/cache/enums/cache_type"
 	configLoaderContracts "frisboo-bank/pkg/config/config_loader/contracts"
 	"frisboo-bank/pkg/environment"
+	responseformat "frisboo-bank/pkg/health/enums/response_format"
+	httpservertype "frisboo-bank/pkg/http/http_server/enums/http_server_type"
 	encodingtype "frisboo-bank/pkg/logger/enums/encoding_type"
 	loglevel "frisboo-bank/pkg/logger/enums/log_level"
 	loggertype "frisboo-bank/pkg/logger/enums/logger_type"
+	migrationcommandtype "frisboo-bank/pkg/migration/enums/migration_command_type"
+	migratortype "frisboo-bank/pkg/migration/enums/migrator_type"
+	"frisboo-bank/pkg/options"
+	rpcservertype "frisboo-bank/pkg/rpc/rpc_server/enums/rpc_server_type"
 	"frisboo-bank/pkg/syserrors"
 
 	"dario.cat/mergo"
@@ -29,8 +35,8 @@ func NameNotFoundError(kind string, name string, examples []string) error {
 type Registry[T any] interface {
 	Has(name string) bool
 	Names() []string
-	GetDefault() (T, error)
-	GetByName(name string) (T, error)
+	GetDefault(opts ...options.OptionFn[T]) (T, error)
+	GetByName(name string, opts ...options.OptionFn[T]) (T, error)
 }
 
 type registry[T any] struct {
@@ -72,7 +78,7 @@ func (r registry[T]) Has(name string) bool {
 	return ok
 }
 
-func (r registry[T]) GetDefault() (T, error) {
+func (r registry[T]) GetDefault(opts ...options.OptionFn[T]) (T, error) {
 	var zero T
 
 	base := r.baseline()
@@ -81,11 +87,16 @@ func (r registry[T]) GetDefault() (T, error) {
 		return zero, syserrors.Wrapf(err, "merge default")
 	}
 
+	if err := options.Apply(&base, opts...); err != nil {
+		return zero, syserrors.Wrapf(err, "apply options")
+	}
+
 	return base, nil
 }
 
-func (r registry[T]) GetByName(name string) (T, error) {
+func (r registry[T]) GetByName(name string, opts ...options.OptionFn[T]) (T, error) {
 	var zero T
+
 	if name == "" {
 		return zero, syserrors.CantBeEmptyError("name")
 	}
@@ -95,13 +106,18 @@ func (r registry[T]) GetByName(name string) (T, error) {
 		return zero, NameNotFoundError(r.kind, name, r.Names())
 	}
 
-	base, err := r.GetDefault()
-	if err != nil {
-		return zero, err
+	base := r.baseline()
+
+	if err := mergeConfig(&base, r.DefaultConfig); err != nil {
+		return zero, syserrors.Wrapf(err, "merge default %s", name)
 	}
 
 	if err := mergeConfig(&base, inst); err != nil {
-		return zero, syserrors.Wrapf(err, "merge instance %q", name)
+		return zero, syserrors.Wrapf(err, "merge instance %s", name)
+	}
+
+	if err := options.Apply(&base, opts...); err != nil {
+		return zero, syserrors.Wrapf(err, "apply options %s", name)
 	}
 
 	return base, nil
@@ -128,10 +144,16 @@ func (e enumTransformer) Transformer(t reflect.Type) func(dst reflect.Value, src
 	}
 
 	switch t {
-	case reflect.TypeOf(loglevel.LogLevel{}),
-		reflect.TypeOf(loggertype.LoggerType{}),
+	case
+		reflect.TypeOf(cachetype.CacheType{}),
 		reflect.TypeOf(encodingtype.EncodingType{}),
-		reflect.TypeOf(cachetype.CacheType{}):
+		reflect.TypeOf(httpservertype.HttpServerType{}),
+		reflect.TypeOf(responseformat.ResponseFormat{}),
+		reflect.TypeOf(loggertype.LoggerType{}),
+		reflect.TypeOf(loglevel.LogLevel{}),
+		reflect.TypeOf(migratortype.MigratorType{}),
+		reflect.TypeOf(migrationcommandtype.MigrationCommandType{}),
+		reflect.TypeOf(rpcservertype.RpcServerType{}):
 		return func(dst, src reflect.Value) error {
 			if isZero(src) {
 				return nil

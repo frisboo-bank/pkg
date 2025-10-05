@@ -2,18 +2,18 @@ package command
 
 import (
 	"fmt"
-	"os"
 
 	"frisboo-bank/pkg/application/builder"
 	"frisboo-bank/pkg/container/dependencies/invoker"
 	"frisboo-bank/pkg/container/dependencies/module"
+	databaseclient "frisboo-bank/pkg/database/database_client"
 	"frisboo-bank/pkg/environment"
 	"frisboo-bank/pkg/migration"
+	"frisboo-bank/pkg/migration/config"
 
 	"frisboo-bank/pkg/migration/contracts"
 	migrationcommandtype "frisboo-bank/pkg/migration/enums/migration_command_type"
 
-	"github.com/davecgh/go-spew/spew"
 	"github.com/spf13/cobra"
 )
 
@@ -49,6 +49,9 @@ var cmdDown = &cobra.Command{
 }
 
 func NewMigrationCommand() *MigrationCommand {
+	cmdUp.Flags().Uint("version", 0, "Migration version")
+	cmdDown.Flags().Uint("version", 0, "Migration version")
+
 	rootCmd.AddCommand(cmdUp)
 	rootCmd.AddCommand(cmdDown)
 
@@ -56,15 +59,15 @@ func NewMigrationCommand() *MigrationCommand {
 }
 
 func (c *MigrationCommand) Execute() error {
-	err := rootCmd.Execute()
-	if err != nil {
-		return err
-	}
-	return nil
+	return rootCmd.Execute()
 }
 
 func executeMigration(commandType migrationcommandtype.MigrationCommandType, cmd *cobra.Command, args []string) error {
 	databaseName := args[0]
+	version, err := cmd.Flags().GetUint("version")
+	if err != nil {
+		return err
+	}
 
 	fmt.Printf("Migration started for database %s...\n", databaseName)
 
@@ -73,19 +76,47 @@ func executeMigration(commandType migrationcommandtype.MigrationCommandType, cmd
 		return err
 	}
 
-	m := module.ModuleFunc("migration",
-		migration.ModuleFunc(appBuilder),
-	)
-
-	type invokerParams struct {
-		Migrator contracts.Migrator `name:"migrationRef"`
+	cfgRegistry, err := config.LoadRegistry(appBuilder.ConfigLoader(), appBuilder.Environment())
+	if err != nil {
+		return fmt.Errorf("failed to load migration registry: %w", err)
 	}
 
-	m.AddInvoker(invoker.InvokerFunc(func(props invokerParams) {
-		spew.Dump(props)
-		os.Exit(1)
+	cfg, err := cfgRegistry.GetByName(databaseName)
+	if err != nil {
+		return err
+	}
+
+	m := module.ModuleFunc(
+		"migration",
+		databaseclient.ModuleFunc(appBuilder),
+		migration.ModuleFunc(migration.ModuleProps{
+			AppBuilder:  appBuilder,
+			CfgRegistry: cfgRegistry,
+		}),
+	)
+
+	m.AddInvoker(invoker.InvokerFunc(func(props struct {
+		Migrator contracts.Migrator `name:"migrationRef"`
 	},
-		invoker.NamedDep("migrationRef", "migration:"+databaseName),
+	) {
+		migrator := props.Migrator
+
+		migrator.Logger().Info("Migration process started...")
+
+		var err error
+		switch commandType {
+		case migrationcommandtype.MigrationCommandTypes.UP:
+			err = migrator.Up(version)
+		case migrationcommandtype.MigrationCommandTypes.DOWN:
+			err = migrator.Down(version)
+		}
+		if err != nil {
+			migrator.Logger().Fatalf("migration failed with error: %v", err)
+		}
+
+		migrator.Logger().Info("Migration completed...")
+	},
+		invoker.NamedDep("migrationRef", fmt.Sprintf(migration.MigrationsProvider, cfg.DB)),
 	))
 
 	appBuilder.ProvideModule(m)
@@ -97,6 +128,5 @@ func executeMigration(commandType migrationcommandtype.MigrationCommandType, cmd
 	}
 
 	fmt.Printf("Migration of the database %s done successfully\n", databaseName)
-
 	return nil
 }

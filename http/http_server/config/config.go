@@ -70,7 +70,10 @@ func Default() Config {
 	}
 }
 
-type Registry = registry.Registry[Config]
+type (
+	Option   = options.OptionFn[Config]
+	Registry = registry.Registry[Config]
+)
 
 func LoadRegistry(configLoader configloaderContracts.ConfigLoader, env environment.Environment) (Registry, error) {
 	reg, err := registry.Load(
@@ -84,17 +87,6 @@ func LoadRegistry(configLoader configloaderContracts.ConfigLoader, env environme
 		return nil, syserrors.Wrap(err, "failed to load http-server registry")
 	}
 	return reg, nil
-}
-
-type Option = options.OptionFn[Config]
-
-func New(opts ...Option) (Config, error) {
-	var zero Config
-	base := Default()
-	if err := options.Apply(&base, opts...); err != nil {
-		return zero, err
-	}
-	return base, nil
 }
 
 func (c *Config) Validate() error {

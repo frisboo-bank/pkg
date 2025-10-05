@@ -36,12 +36,10 @@ type Option = options.OptionFn[Config]
 
 func New(opts ...Option) (Config, error) {
 	var zero Config
-
 	base := Default()
 	if err := options.Apply(&base, opts...); err != nil {
 		return zero, err
 	}
-
 	return base, nil
 }
 

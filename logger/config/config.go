@@ -54,9 +54,10 @@ func Default() Config {
 	}
 }
 
-type Option = options.OptionFn[Config]
-
-type Registry = registry.Registry[Config]
+type (
+	Option   = options.OptionFn[Config]
+	Registry = registry.Registry[Config]
+)
 
 func LoadRegistry(configLoader configloaderContracts.ConfigLoader, env environment.Environment) (Registry, error) {
 	reg, err := registry.Load(
@@ -70,28 +71,6 @@ func LoadRegistry(configLoader configloaderContracts.ConfigLoader, env environme
 		return nil, syserrors.Wrap(err, "failed to load logger registry")
 	}
 	return reg, nil
-}
-
-func GetConfigByName(cfgRegistry Registry, name string) (Config, error) {
-	var zero Config
-
-	if name == "" {
-		return zero, syserrors.New("no logger name specified")
-	}
-	cfg, err := cfgRegistry.GetByName(name)
-	if err != nil {
-		return zero, syserrors.Wrapf(err, "failed to load %s config", name)
-	}
-	return cfg, nil
-}
-
-func New(opts ...Option) (Config, error) {
-	var zero Config
-	base := Default()
-	if err := options.Apply(&base, opts...); err != nil {
-		return zero, err
-	}
-	return base, nil
 }
 
 func (c *Config) Validate() error {

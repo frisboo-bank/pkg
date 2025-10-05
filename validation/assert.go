@@ -1,8 +1,6 @@
 package validation
 
 import (
-	"fmt"
-	"os"
 	"strings"
 
 	"frisboo-bank/pkg/syserrors"
@@ -20,12 +18,10 @@ func Assert(condition bool, err any, prefix ...string) {
 	case string:
 		nerr = syserrors.New(err)
 	default:
-		fmt.Printf("assert err can only be an error or a string: get %v\n", err)
-		os.Exit(1)
+		panic(syserrors.Newf("assert err can only be an error or a string: get %v\n", err))
 	}
 
-	fmt.Println(syserrors.Message(nerr, prefix))
-	os.Exit(1)
+	panic(nerr)
 }
 
 func AssertNotNil(name string, value any) {
