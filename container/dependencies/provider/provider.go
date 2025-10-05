@@ -8,23 +8,20 @@ var _ Provider = (*provider)(nil)
 
 type Provider interface {
 	dependencies.Dependency
-	Constructor() any
+	Fn() any
 	Options() []Option
 }
 
 type provider struct {
-	constructor any
-	options     []Option
+	fn      any
+	options []Option
 }
 
-func ProvideFunc(constructor any, opts ...Option) Provider {
-	return &provider{
-		constructor,
-		opts,
-	}
+func ProvideFunc(fn any, opts ...Option) Provider {
+	return &provider{fn, opts}
 }
 
-func (i *provider) Constructor() any { return i.constructor }
+func (i *provider) Fn() any { return i.fn }
 
 func (i *provider) Options() []Option { return i.options }
 

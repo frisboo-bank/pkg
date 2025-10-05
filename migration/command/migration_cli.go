@@ -2,14 +2,18 @@ package command
 
 import (
 	"fmt"
+	"os"
 
 	"frisboo-bank/pkg/application/builder"
+	"frisboo-bank/pkg/container/dependencies/invoker"
 	"frisboo-bank/pkg/container/dependencies/module"
 	"frisboo-bank/pkg/environment"
 	"frisboo-bank/pkg/migration"
 
+	"frisboo-bank/pkg/migration/contracts"
 	migrationcommandtype "frisboo-bank/pkg/migration/enums/migration_command_type"
 
+	"github.com/davecgh/go-spew/spew"
 	"github.com/spf13/cobra"
 )
 
@@ -72,6 +76,18 @@ func executeMigration(commandType migrationcommandtype.MigrationCommandType, cmd
 	m := module.ModuleFunc("migration",
 		migration.ModuleFunc(appBuilder),
 	)
+
+	type invokerParams struct {
+		Migrator contracts.Migrator `name:"migrationRef"`
+	}
+
+	m.AddInvoker(invoker.InvokerFunc(func(props invokerParams) {
+		spew.Dump(props)
+		os.Exit(1)
+	},
+		invoker.NamedDep("migrationRef", "migration:"+databaseName),
+	))
+
 	appBuilder.ProvideModule(m)
 
 	app := appBuilder.Build()

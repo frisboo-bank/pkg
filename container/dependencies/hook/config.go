@@ -26,10 +26,6 @@ type Option = options.OptionFn[Config]
 
 func (c *Config) Validate() error {
 	return validation.ValidateStruct(c)
-	// validation.Field(&c.NamedDeps, validation.Map(
-	// 	validation.Key("Iface", validation.Required),
-	// 	validation.Key("Name", validation.Required),
-	// )))
 }
 
 var As = options.VarOptionErr(func(c *Config, ifaces ...any) error {

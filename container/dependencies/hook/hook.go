@@ -10,29 +10,29 @@ type Hooks interface {
 	dependencies.Dependency
 
 	Name() string
-	StartConstructor() any
-	StopConstructor() any
+	StartFn() any
+	StopFn() any
 	Options() []Option
 }
 
 type hooks struct {
-	name             string
-	startConstructor any
-	stopConstructor  any
-	options          []Option
+	name    string
+	startFn any
+	stopFn  any
+	options []Option
 }
 
-func HooksFunc(name string, startConstructor any, stopConstructor any, opts ...Option) Hooks {
+func HooksFunc(name string, startFn any, stopFn any, opts ...Option) Hooks {
 	return &hooks{
 		name,
-		startConstructor,
-		stopConstructor,
+		startFn,
+		stopFn,
 		opts,
 	}
 }
 
-func (h *hooks) Name() string          { return h.name }
-func (h *hooks) StartConstructor() any { return h.startConstructor }
-func (h *hooks) StopConstructor() any  { return h.stopConstructor }
-func (h *hooks) Options() []Option     { return h.options }
-func (h *hooks) IsDependency()         {}
+func (h *hooks) Name() string      { return h.name }
+func (h *hooks) StartFn() any      { return h.startFn }
+func (h *hooks) StopFn() any       { return h.stopFn }
+func (h *hooks) Options() []Option { return h.options }
+func (h *hooks) IsDependency()     {}

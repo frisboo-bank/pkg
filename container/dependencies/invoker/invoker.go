@@ -8,24 +8,19 @@ var _ Invoker = (*invoker)(nil)
 
 type Invoker interface {
 	dependencies.Dependency
-	Constructor() any
+	Fn() any
 	Options() []Option
 }
 
 type invoker struct {
-	constructor any
-	options     []Option
+	fn      any
+	options []Option
 }
 
-func InvokerFunc(constructor any, opts ...Option) Invoker {
-	return &invoker{
-		constructor,
-		opts,
-	}
+func InvokerFunc(fn any, opts ...Option) Invoker {
+	return &invoker{fn, opts}
 }
 
-func (i *invoker) Constructor() any { return i.constructor }
-
+func (i *invoker) Fn() any           { return i.fn }
 func (i *invoker) Options() []Option { return i.options }
-
-func (i *invoker) IsDependency() {}
+func (i *invoker) IsDependency()     {}

@@ -53,23 +53,28 @@ func serverModuleFunc(name string, log loggerContracts.Logger, cfg *config.Confi
 
 	m := module.ModuleFunc("migration:" + name)
 
-	// Instance registration name
-	providerName := "migration:" + name
+	type providerParams struct {
+		DBClient          databaseclientContracts.DatabaseClient `name:"dbClientRef"`
+		LoggerCfgRegistry loggerConfig.Registry
+		AppLogger         loggerContracts.Logger
+	}
 
-	m.AddProvider(provider.ProvideFunc(func(
-		dbClient databaseclientContracts.DatabaseClient,
-		loggerCfgRegistry loggerConfig.Registry,
-		appLogger loggerContracts.Logger,
-	) (contracts.Migrator, error) {
+	m.AddProvider(provider.ProvideFunc(func(props providerParams) (contracts.Migrator, error) {
+		dbClient := props.DBClient
+		loggerCfgRegistry := props.LoggerCfgRegistry
+		appLogger := props.AppLogger
+
 		// Resolve logger (either server-specific or fallback to app logger)
 		log, err := logger.GetByNameWithFallback(loggerCfgRegistry, cfg.Logger, appLogger)
 		if err != nil {
 			return nil, syserrors.Wrapf(err, "migration:{%s} logger", name)
 		}
+
 		return GetInstance(name, cfg, dbClient, log)
 	},
-		provider.Name(providerName),
+		provider.Name("migration:"+name),
 		provider.Group(MigrationsGroup),
+		provider.NamedDep("dbClientRef", "database-client:"+name),
 	))
 
 	return m
