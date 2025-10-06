@@ -35,7 +35,10 @@ func ModuleFunc(appBuilder applicationContracts.ApplicationBuilder) module.Modul
 	// Load and register the config registry
 	cfgRegistry, err := config.LoadRegistry(configLoader, env)
 	if err != nil {
-		logger.Fatalf("failed to register rpc-server module with error: %v", err)
+		logger.Panicw(
+			"failed to register rpc-server module",
+			loggerContracts.Fields{"err": err, "cause": syserrors.Cause(err)},
+		)
 	}
 
 	m := module.ModuleFunc(
@@ -46,7 +49,10 @@ func ModuleFunc(appBuilder applicationContracts.ApplicationBuilder) module.Modul
 	for _, name := range cfgRegistry.Names() {
 		cfg, err := cfgRegistry.GetByName(name)
 		if err != nil {
-			logger.Fatalf("failed to register rpc-server module with error: %v", err)
+			logger.Panicw(
+				"failed to register rpc-server module",
+				loggerContracts.Fields{"err": err, "cause": syserrors.Cause(err)},
+			)
 		}
 		if !cfg.Enabled {
 			continue
@@ -66,7 +72,15 @@ func serverModuleFunc(name string, log loggerContracts.Logger, cfg *config.Confi
 
 	m := module.ModuleFunc("rpc-server:" + name)
 
-	m.AddProvider(provider.ProvideFunc(func(loggerCfgRegistry loggerConfig.Registry, appLogger loggerContracts.Logger) (contracts.RPCServer, error) {
+	type providerProps struct {
+		LoggerCfgRegistry loggerConfig.Registry
+		AppLogger         loggerContracts.Logger
+	}
+
+	m.AddProvider(provider.ProvideFunc(func(props providerProps) (contracts.RPCServer, error) {
+		loggerCfgRegistry := props.LoggerCfgRegistry
+		appLogger := props.AppLogger
+
 		// Resolve logger (either server-specific or fallback to app logger)
 		log, err := logger.GetByNameWithFallback(loggerCfgRegistry, cfg.Logger, appLogger)
 		if err != nil {

@@ -5,8 +5,6 @@ import (
 	"database/sql"
 	"fmt"
 
-	_ "github.com/jackc/pgx/v5/stdlib"
-
 	"frisboo-bank/pkg/database/database_client/config"
 	"frisboo-bank/pkg/database/database_client/contracts"
 	databaseclienttype "frisboo-bank/pkg/database/database_client/enums/database_client_type"
@@ -14,6 +12,8 @@ import (
 	"frisboo-bank/pkg/validation"
 
 	"github.com/jmoiron/sqlx"
+
+	_ "github.com/jackc/pgx/v5/stdlib"
 )
 
 var _ contracts.DatabaseClientAdapter = (*postgresDatabaseClientAdapter)(nil)

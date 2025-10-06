@@ -44,7 +44,11 @@ func GetDefault(cfgRegistry config.Registry) (contracts.Logger, error) {
 	return GetInstance("default", cfg)
 }
 
-func GetByNameWithFallback(cfgRegistry config.Registry, name string, fallback contracts.Logger) (contracts.Logger, error) {
+func GetByNameWithFallback(
+	cfgRegistry config.Registry,
+	name string,
+	fallback contracts.Logger,
+) (contracts.Logger, error) {
 	if name == "" {
 		return fallback, nil
 	}

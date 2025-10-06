@@ -6,24 +6,24 @@ import (
 	"fmt"
 	"net/http"
 
+	applicationContracts "frisboo-bank/pkg/application/contracts"
 	"frisboo-bank/pkg/container/dependencies/hook"
 	"frisboo-bank/pkg/container/dependencies/module"
 	"frisboo-bank/pkg/container/dependencies/provider"
 	"frisboo-bank/pkg/http/http_server/config"
 	"frisboo-bank/pkg/http/http_server/contracts"
 	"frisboo-bank/pkg/logger"
-	"frisboo-bank/pkg/syserrors"
-	"frisboo-bank/pkg/validation"
-
-	applicationContracts "frisboo-bank/pkg/application/contracts"
-
 	loggerConfig "frisboo-bank/pkg/logger/config"
 	loggerContracts "frisboo-bank/pkg/logger/contracts"
-
+	"frisboo-bank/pkg/syserrors"
+	"frisboo-bank/pkg/validation"
 	waiterContracts "frisboo-bank/pkg/waiter/contracts"
 )
 
-const HTTPServersGroup = "http-servers"
+const (
+	HTTPServersGroup   = "http-servers"
+	HTTPServerProvider = "http-server:%s"
+)
 
 func ModuleFunc(appBuilder applicationContracts.ApplicationBuilder) module.Module {
 	validation.AssertNotNil("appBuilder", appBuilder)
@@ -35,7 +35,10 @@ func ModuleFunc(appBuilder applicationContracts.ApplicationBuilder) module.Modul
 	// Load and register the config registry
 	cfgRegistry, err := config.LoadRegistry(configLoader, env)
 	if err != nil {
-		logger.Fatalf("failed to register http-server module with error: %v", err)
+		logger.Panicw(
+			"failed to register http-server module",
+			loggerContracts.Fields{"err": err, "cause": syserrors.Cause(err)},
+		)
 	}
 
 	m := module.ModuleFunc(
@@ -46,29 +49,38 @@ func ModuleFunc(appBuilder applicationContracts.ApplicationBuilder) module.Modul
 	for _, name := range cfgRegistry.Names() {
 		cfg, err := cfgRegistry.GetByName(name)
 		if err != nil {
-			logger.Fatalf("failed to register http-server:{%s} module with error:{%v}", name, err)
+			logger.Panicw(
+				"failed to register http-server module",
+				loggerContracts.Fields{"err": err, "cause": syserrors.Cause(err)},
+			)
 		}
 		if !cfg.Enabled {
 			continue
 		}
-		m.AddModule(serverModuleFunc(name, logger, &cfg))
+		m.AddModule(serverModuleFunc(name, &cfg, logger))
 	}
 
 	return m
 }
 
-func serverModuleFunc(name string, log loggerContracts.Logger, cfg *config.Config) module.Module {
+func serverModuleFunc(name string, cfg *config.Config, log loggerContracts.Logger) module.Module {
 	validation.AssertNotEmpty("name", name)
+	validation.AssertNotNil("cfg", cfg)
 	validation.AssertNotNil("log", log)
 
 	log.Debugf("Try to register http-server:{%s} module", name)
 
 	m := module.ModuleFunc("http-server:" + name)
 
-	// Instance registration name
-	providerName := "http-server:" + name
+	type providerProps struct {
+		LoggerCfgRegistry loggerConfig.Registry
+		AppLogger         loggerContracts.Logger
+	}
 
-	m.AddProvider(provider.ProvideFunc(func(loggerCfgRegistry loggerConfig.Registry, appLogger loggerContracts.Logger) (contracts.HTTPServer, error) {
+	m.AddProvider(provider.ProvideFunc(func(props providerProps) (contracts.HTTPServer, error) {
+		loggerCfgRegistry := props.LoggerCfgRegistry
+		appLogger := props.AppLogger
+
 		// Resolve logger (either server-specific or fallback to app logger)
 		log, err := logger.GetByNameWithFallback(loggerCfgRegistry, cfg.Logger, appLogger)
 		if err != nil {
@@ -76,7 +88,7 @@ func serverModuleFunc(name string, log loggerContracts.Logger, cfg *config.Confi
 		}
 		return GetInstance(name, cfg, log)
 	},
-		provider.Name(providerName),
+		provider.Name(fmt.Sprintf(HTTPServerProvider, name)),
 		provider.Group(HTTPServersGroup),
 	))
 
@@ -114,7 +126,7 @@ func serverModuleFunc(name string, log loggerContracts.Logger, cfg *config.Confi
 				return nil
 			}
 		},
-		hook.NamedDep("httpServerRef", providerName),
+		hook.NamedDep("httpServerRef", fmt.Sprintf(HTTPServerProvider, name)),
 	))
 
 	return m
