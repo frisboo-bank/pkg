@@ -36,14 +36,14 @@ func (a *digAdapter) RegisterHook(h hook.Hooks) error {
 	}
 
 	var err error
-	if startFunc != nil && len(cfg.NamedDeps) > 0 {
-		startFunc, err = wrapFuncWithNamedInputs(startFunc, cfg.NamedDeps, "hook "+name+" start")
+	if startFunc != nil {
+		startFunc, err = wrapFuncWithDigIn(startFunc, cfg.NamedDeps, "hook "+name+" start")
 		if err != nil {
 			return err
 		}
 	}
-	if stopFunc != nil && len(cfg.NamedDeps) > 0 {
-		stopFunc, err = wrapFuncWithNamedInputs(stopFunc, cfg.NamedDeps, "hook "+name+" stop")
+	if stopFunc != nil {
+		stopFunc, err = wrapFuncWithDigIn(stopFunc, cfg.NamedDeps, "hook "+name+" stop")
 		if err != nil {
 			return err
 		}

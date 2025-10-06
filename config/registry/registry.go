@@ -87,8 +87,10 @@ func (r registry[T]) GetDefault(opts ...options.OptionFn[T]) (T, error) {
 		return zero, syserrors.Wrapf(err, "merge default")
 	}
 
-	if err := options.Apply(&base, opts...); err != nil {
-		return zero, syserrors.Wrapf(err, "apply options")
+	if len(opts) > 0 {
+		if err := options.Apply(&base, opts...); err != nil {
+			return zero, syserrors.Wrapf(err, "apply options")
+		}
 	}
 
 	return base, nil
@@ -116,8 +118,10 @@ func (r registry[T]) GetByName(name string, opts ...options.OptionFn[T]) (T, err
 		return zero, syserrors.Wrapf(err, "merge instance %s", name)
 	}
 
-	if err := options.Apply(&base, opts...); err != nil {
-		return zero, syserrors.Wrapf(err, "apply options %s", name)
+	if len(opts) > 0 {
+		if err := options.Apply(&base, opts...); err != nil {
+			return zero, syserrors.Wrapf(err, "apply options %s", name)
+		}
 	}
 
 	return base, nil
