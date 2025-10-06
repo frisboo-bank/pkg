@@ -3,6 +3,7 @@ package dig
 import (
 	"fmt"
 	"reflect"
+	"strings"
 
 	"frisboo-bank/pkg/syserrors"
 
@@ -12,11 +13,7 @@ import (
 // resolveDynamicGroup dynamically resolves a dig group into a value of type T.
 // It constructs a struct input with a group tag and invokes the container.
 // It returns the resolved group or an error if resolution fails.
-func resolveDynamicGroup[T any](
-	container *dig.Container,
-	groupName string,
-	sliceType reflect.Type,
-) (T, error) {
+func resolveDynamicGroup[T any](container *dig.Container, groupName string, sliceType reflect.Type) (T, error) {
 	groupTag := fmt.Sprintf(`group:"%s"`, groupName)
 
 	inputType := reflect.StructOf([]reflect.StructField{
@@ -42,7 +39,7 @@ func resolveDynamicGroup[T any](
 	)
 
 	if err := container.Invoke(fn.Interface()); err != nil {
-		return *new(T), syserrors.Newf("dig invoke failed for group %q: %w", groupName, err)
+		return *new(T), syserrors.Wrapf(err, "dig invoke failed for group %s", groupName)
 	}
 
 	field := input.FieldByName("Funcs")
@@ -52,23 +49,24 @@ func resolveDynamicGroup[T any](
 
 	result, ok := field.Interface().(T)
 	if !ok {
-		return *new(T), syserrors.Newf(
-			"type conversion failed for group %q: got %T, want %T",
-			groupName,
-			field.Interface(),
-			*new(T),
-		)
+		return *new(T), syserrors.Newf("type conversion failed for group %q: got %T, want %T", groupName, field.Interface(), *new(T))
 	}
 
 	return result, nil
 }
 
-func wrapFuncWithNamedInputs(fn any, namedDeps map[string]string, ctx string) (any, error) {
+// wrapFuncAddDigInAndNamed wraps a single-struct-param provider constructor so that:
+//  1. The parameter is replaced by an internally generated struct embedding dig.In.
+//  2. All exported fields of the original struct become fields of the internal struct.
+//  3. If a field has a tag name:"symbolic" and namedDeps maps symbolic -> concrete,
+//     the tag is rewritten to name:"concrete".
+//  4. If the original parameter already anonymously embeds dig.In (rare, since we enforce plain struct),
+//     wrapping is skipped.
+//
+// The function enforces the provider-level rule: fn must be func(Struct) (T, error).
+func wrapFuncWithDigIn(fn any, namedDeps map[string]string, ctx string) (any, error) {
 	if fn == nil {
 		return nil, syserrors.Newf("%s: function is nil", ctx)
-	}
-	if len(namedDeps) == 0 {
-		return fn, nil
 	}
 
 	origVal := reflect.ValueOf(fn)
@@ -78,62 +76,68 @@ func wrapFuncWithNamedInputs(fn any, namedDeps map[string]string, ctx string) (a
 	}
 
 	numIn := origType.NumIn()
-	if numIn != 1 {
+	if numIn == 0 {
 		return fn, nil
 	}
-
+	if numIn > 1 {
+		return nil, syserrors.Newf("%s: constructor must have exactly 1 param (struct), got %d", ctx, numIn)
+	}
 	paramType := origType.In(0)
-	ptrParam := false
 	if paramType.Kind() == reflect.Pointer {
-		paramType = paramType.Elem()
-		ptrParam = true
+		return nil, syserrors.Newf("%s: param must be a non-pointer struct", ctx)
 	}
 	if paramType.Kind() != reflect.Struct {
-		return fn, nil
+		return nil, syserrors.Newf("%s: param must be struct, got %s", ctx, paramType.Kind())
 	}
 
-	// Collect exported struct fields with name tag.
-	var adaptedFields []reflect.StructField
-	var originalFieldIndexes []int
-	for i := range paramType.NumField() {
+	// Skip wrapping if already embeds dig.In
+	for i := 0; i < paramType.NumField(); i++ {
+		sf := paramType.Field(i)
+		if sf.Anonymous && sf.Type == reflect.TypeOf(dig.In{}) {
+			return fn, nil
+		}
+	}
+
+	// Build new parameter struct: dig.In + exported fields of original struct.
+	internalFields := make([]reflect.StructField, 0, paramType.NumField()+1)
+	internalFields = append(internalFields, reflect.StructField{
+		Name:      "In",
+		Type:      reflect.TypeOf(dig.In{}),
+		Anonymous: true,
+	})
+
+	type fieldMap struct{ origIndex int }
+	mapping := []fieldMap{}
+
+	for i := 0; i < paramType.NumField(); i++ {
 		sf := paramType.Field(i)
 		if !sf.IsExported() {
 			continue
 		}
-		tagName, has := sf.Tag.Lookup("name")
-		if !has || tagName == "" {
-			continue
+		newTag := string(sf.Tag)
+		// If there's a name tag, rewrite if mapping is provided.
+		if tagVal, ok := sf.Tag.Lookup("name"); ok {
+			actual := namedDeps[tagVal]
+			if actual == "" {
+				// If no explicit mapping, keep tagVal (so it still uses symbolic).
+				actual = tagVal
+			}
+			// Replace only the name:"..." portion; simplest approach is to rebuild a minimal tag.
+			// If you need to preserve other tags, you'd parse them. For now we only care about name.
+			newTag = mergeOrReplaceNameTag(string(sf.Tag), actual)
 		}
-		actual := namedDeps[tagName]
-		if actual == "" {
-			// If user didn't provide a mapping, treat symbolic as actual.
-			actual = tagName
-		}
-		adaptedFields = append(adaptedFields, reflect.StructField{
+
+		internalFields = append(internalFields, reflect.StructField{
 			Name: sf.Name,
 			Type: sf.Type,
-			Tag:  reflect.StructTag(`name:"` + actual + `"`),
+			Tag:  reflect.StructTag(newTag),
 		})
-		originalFieldIndexes = append(originalFieldIndexes, i)
+		mapping = append(mapping, fieldMap{origIndex: i})
 	}
 
-	// If no fields need adaptation, use original.
-	if len(adaptedFields) == 0 {
-		return fn, nil
-	}
+	internalParamType := reflect.StructOf(internalFields)
 
-	// Build internal dig.In struct type.
-	fields := []reflect.StructField{
-		{
-			Name:      "In",
-			Type:      reflect.TypeOf(dig.In{}),
-			Anonymous: true,
-		},
-	}
-	fields = append(fields, adaptedFields...)
-	internalParamType := reflect.StructOf(fields)
-
-	// Outputs unchanged.
+	// Prepare wrapper signature
 	numOut := origType.NumOut()
 	outTypes := make([]reflect.Type, numOut)
 	for i := range numOut {
@@ -141,28 +145,41 @@ func wrapFuncWithNamedInputs(fn any, namedDeps map[string]string, ctx string) (a
 	}
 
 	wrapperType := reflect.FuncOf([]reflect.Type{internalParamType}, outTypes, false)
+
 	wrapped := reflect.MakeFunc(wrapperType, func(args []reflect.Value) []reflect.Value {
 		inVal := args[0]
-
-		var origParam reflect.Value
-		if ptrParam {
-			origParam = reflect.New(paramType)
-		} else {
-			origParam = reflect.New(paramType).Elem()
+		// Re-create original param struct value
+		origParam := reflect.New(paramType).Elem()
+		for idx, m := range mapping {
+			fieldVal := inVal.Field(idx + 1) // +1 to skip dig.In
+			origParam.Field(m.origIndex).Set(fieldVal)
 		}
 
-		for idx, origFieldIdx := range originalFieldIndexes {
-			fieldVal := inVal.Field(idx + 1) // skip dig.In at index 0
-			if ptrParam {
-				origParam.Elem().Field(origFieldIdx).Set(fieldVal)
-			} else {
-				origParam.Field(origFieldIdx).Set(fieldVal)
-			}
-		}
-
-		callArgs := []reflect.Value{origParam}
-		return origVal.Call(callArgs)
+		results := origVal.Call([]reflect.Value{origParam})
+		return results
 	})
 
 	return wrapped.Interface(), nil
+}
+
+// mergeOrReplaceNameTag attempts to preserve other tag components while replacing or adding name:"value".
+// For simplicity, if other tags exist they are preserved as-is and name:"..." is appended or replaced.
+func mergeOrReplaceNameTag(existing string, newName string) string {
+	if existing == "" {
+		return fmt.Sprintf(`name:"%s"`, newName)
+	}
+
+	parts := strings.Split(existing, " ")
+	found := false
+	for i, p := range parts {
+		if strings.HasPrefix(p, "name:\"") {
+			parts[i] = fmt.Sprintf(`name:"%s"`, newName)
+			found = true
+			break
+		}
+	}
+	if !found {
+		parts = append(parts, fmt.Sprintf(`name:"%s"`, newName))
+	}
+	return strings.Join(parts, " ")
 }

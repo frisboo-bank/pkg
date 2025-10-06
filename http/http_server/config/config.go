@@ -79,7 +79,7 @@ func LoadRegistry(configLoader configloaderContracts.ConfigLoader, env environme
 	reg, err := registry.Load(
 		configLoader,
 		env,
-		"httpServers",
+		"http-servers",
 		"httpServer",
 		Default,
 	)

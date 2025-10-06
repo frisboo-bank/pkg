@@ -26,13 +26,9 @@ func (a *digAdapter) RegisterInvoker(name string, i invoker.Invoker) error {
 		return syserrors.Wrapf(err, "failed to apply invoker %s options", name)
 	}
 
-	fn := i.Fn()
-	if len(cfg.NamedDeps) > 0 {
-		var err error
-		fn, err = wrapFuncWithNamedInputs(fn, cfg.NamedDeps, name)
-		if err != nil {
-			return syserrors.Wrapf(err, "failed to adapt invoker %s named deps", name)
-		}
+	fn, err := wrapFuncWithDigIn(i.Fn(), cfg.NamedDeps, name)
+	if err != nil {
+		return syserrors.Wrapf(err, "failed to adapt invoker %s named deps", name)
 	}
 
 	opts := toDigInvokerOptions(cfg)

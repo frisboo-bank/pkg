@@ -26,13 +26,9 @@ func (a *digAdapter) RegisterDecorator(name string, d decorator.Decorator) error
 		return syserrors.Wrap(err, "failed to apply decorator %s options", name)
 	}
 
-	fn := d.Fn()
-	if len(cfg.NamedDeps) > 0 {
-		var err error
-		fn, err = wrapFuncWithNamedInputs(fn, cfg.NamedDeps, name)
-		if err != nil {
-			return syserrors.Wrap(err, "failed to adapt decorator %s named deps", name)
-		}
+	fn, err := wrapFuncWithDigIn(d.Fn(), cfg.NamedDeps, name)
+	if err != nil {
+		return syserrors.Wrap(err, "failed to adapt decorator %s named deps", name)
 	}
 
 	opts := toDigDecoratorOptions(cfg)

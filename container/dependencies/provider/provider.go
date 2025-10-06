@@ -2,6 +2,7 @@ package provider
 
 import (
 	"frisboo-bank/pkg/container/dependencies"
+	"frisboo-bank/pkg/validation"
 )
 
 var _ Provider = (*provider)(nil)
@@ -18,6 +19,8 @@ type provider struct {
 }
 
 func ProvideFunc(fn any, opts ...Option) Provider {
+	validation.AssertNotNil("fn", fn)
+
 	return &provider{fn, opts}
 }
 
