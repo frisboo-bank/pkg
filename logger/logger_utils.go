@@ -29,7 +29,7 @@ func GetInstance(name string, cfg config.Config) (contracts.Logger, error) {
 }
 
 func GetByName(cfgRegistry config.Registry, name string) (contracts.Logger, error) {
-	cfg, err := config.GetConfigByName(cfgRegistry, name)
+	cfg, err := cfgRegistry.GetByName(name)
 	if err != nil {
 		return nil, err
 	}

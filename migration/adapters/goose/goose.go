@@ -5,29 +5,38 @@ import (
 	loggerContracts "frisboo-bank/pkg/logger/contracts"
 	"frisboo-bank/pkg/migration/config"
 	"frisboo-bank/pkg/migration/contracts"
-	migrationcommandtype "frisboo-bank/pkg/migration/enums/migration_command_type"
 	migratortype "frisboo-bank/pkg/migration/enums/migrator_type"
+	"frisboo-bank/pkg/validation"
 )
 
 var _ contracts.MigratorAdapter = (*gooseMigratorAdapter)(nil)
 
 type gooseMigratorAdapter struct {
-	name   string
-	cfg    *config.Config
-	client databaseclientContracts.DatabaseClient
-	logger loggerContracts.Logger
+	name     string
+	cfg      *config.Config
+	dbClient databaseclientContracts.DatabaseClient
+	logger   loggerContracts.Logger
 }
 
 func New(name string, cfg *config.Config, dbClient databaseclientContracts.DatabaseClient, logger loggerContracts.Logger) *gooseMigratorAdapter {
+	validation.AssertNotEmpty("name", name)
+	validation.AssertNotNil("cfg", cfg)
+	validation.AssertNotNil("dbClient", dbClient)
+	validation.AssertNotNil("logger", logger)
+
 	return &gooseMigratorAdapter{
-		name:   name,
-		cfg:    cfg,
-		client: dbClient,
-		logger: logger,
+		name:     name,
+		cfg:      cfg,
+		dbClient: dbClient,
+		logger:   logger,
 	}
 }
 
-func (g *gooseMigratorAdapter) Run(commandType migrationcommandtype.MigrationCommandType, version string) error {
+func (g *gooseMigratorAdapter) Down(version uint) error {
+	panic("unimplemented")
+}
+
+func (g *gooseMigratorAdapter) Up(version uint) error {
 	panic("unimplemented")
 }
 

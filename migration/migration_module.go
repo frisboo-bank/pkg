@@ -1,37 +1,51 @@
 package migration
 
 import (
+	"fmt"
+
 	applicationContracts "frisboo-bank/pkg/application/contracts"
 	"frisboo-bank/pkg/container/dependencies/module"
 	"frisboo-bank/pkg/container/dependencies/provider"
 	databaseclientContracts "frisboo-bank/pkg/database/database_client/contracts"
 	"frisboo-bank/pkg/logger"
+	loggerConfig "frisboo-bank/pkg/logger/config"
 	loggerContracts "frisboo-bank/pkg/logger/contracts"
 	"frisboo-bank/pkg/migration/config"
 	"frisboo-bank/pkg/migration/contracts"
 	"frisboo-bank/pkg/syserrors"
 	"frisboo-bank/pkg/validation"
-
-	loggerConfig "frisboo-bank/pkg/logger/config"
 )
 
-const MigrationsGroup = "migrations"
+const (
+	MigrationsGroup    = "migrations"
+	MigrationsProvider = "migration:%s"
+)
 
-func ModuleFunc(appBuilder applicationContracts.ApplicationBuilder) module.Module {
-	validation.AssertNotNil("appBuilder", appBuilder)
+type ModuleProps struct {
+	AppBuilder  applicationContracts.ApplicationBuilder
+	CfgRegistry config.Registry
+}
 
-	configLoader := appBuilder.ConfigLoader()
-	env := appBuilder.Environment()
+func ModuleFunc(props ModuleProps) module.Module {
+	validation.AssertNotNil("props", props)
+	validation.AssertNotNil("props.AppBuilder", props.AppBuilder)
+
+	appBuilder := props.AppBuilder
 	logger := appBuilder.Logger()
+	cfgRegistry := props.CfgRegistry
 
-	m := module.ModuleFunc("migration")
-
-	// Load and register the config registry
-	cfgRegistry, err := config.LoadRegistry(configLoader, env)
-	if err != nil {
-		logger.Fatalf("failed to register migration module with error: %v", err)
+	if cfgRegistry == nil {
+		var err error
+		cfgRegistry, err = config.LoadRegistry(appBuilder.ConfigLoader(), appBuilder.Environment())
+		if err != nil {
+			logger.Fatalf("failed to register migration module with error: %v", err)
+		}
 	}
-	m.AddProvider(provider.ProvideFunc(func() config.Registry { return cfgRegistry }))
+
+	m := module.ModuleFunc(
+		"migration",
+		provider.ProvideFunc(func() config.Registry { return cfgRegistry }),
+	)
 
 	for _, name := range cfgRegistry.Names() {
 		cfg, err := cfgRegistry.GetByName(name)
@@ -69,10 +83,9 @@ func serverModuleFunc(name string, log loggerContracts.Logger, cfg *config.Confi
 		if err != nil {
 			return nil, syserrors.Wrapf(err, "migration:{%s} logger", name)
 		}
-
 		return GetInstance(name, cfg, dbClient, log)
 	},
-		provider.Name("migration:"+name),
+		provider.Name(fmt.Sprintf(MigrationsProvider, name)),
 		provider.Group(MigrationsGroup),
 		provider.NamedDep("dbClientRef", "database-client:"+name),
 	))

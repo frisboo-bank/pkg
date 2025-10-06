@@ -20,7 +20,10 @@ import (
 	waiterContracts "frisboo-bank/pkg/waiter/contracts"
 )
 
-const RPCServersGroup = "rpc-servers"
+const (
+	RPCServersGroup    = "rpc-servers"
+	RPCServersProvider = "rpc-server:%s"
+)
 
 func ModuleFunc(appBuilder applicationContracts.ApplicationBuilder) module.Module {
 	validation.AssertNotNil("appBuilder", appBuilder)
@@ -29,14 +32,16 @@ func ModuleFunc(appBuilder applicationContracts.ApplicationBuilder) module.Modul
 	env := appBuilder.Environment()
 	logger := appBuilder.Logger()
 
-	m := module.ModuleFunc("rpc-server")
-
 	// Load and register the config registry
 	cfgRegistry, err := config.LoadRegistry(configLoader, env)
 	if err != nil {
 		logger.Fatalf("failed to register rpc-server module with error: %v", err)
 	}
-	m.AddProvider(provider.ProvideFunc(func() config.Registry { return cfgRegistry }))
+
+	m := module.ModuleFunc(
+		"rpc-server",
+		provider.ProvideFunc(func() config.Registry { return cfgRegistry }),
+	)
 
 	for _, name := range cfgRegistry.Names() {
 		cfg, err := cfgRegistry.GetByName(name)
@@ -61,13 +66,7 @@ func serverModuleFunc(name string, log loggerContracts.Logger, cfg *config.Confi
 
 	m := module.ModuleFunc("rpc-server:" + name)
 
-	// Instance registration name
-	providerName := "rpc-server:" + name
-
-	m.AddProvider(provider.ProvideFunc(func(
-		loggerCfgRegistry loggerConfig.Registry,
-		appLogger loggerContracts.Logger,
-	) (contracts.RPCServer, error) {
+	m.AddProvider(provider.ProvideFunc(func(loggerCfgRegistry loggerConfig.Registry, appLogger loggerContracts.Logger) (contracts.RPCServer, error) {
 		// Resolve logger (either server-specific or fallback to app logger)
 		log, err := logger.GetByNameWithFallback(loggerCfgRegistry, cfg.Logger, appLogger)
 		if err != nil {
@@ -76,18 +75,18 @@ func serverModuleFunc(name string, log loggerContracts.Logger, cfg *config.Confi
 
 		return GetInstance(name, cfg, log)
 	},
-		provider.Name(providerName),
+		provider.Name(fmt.Sprintf(RPCServersProvider, name)),
 		provider.Group(RPCServersGroup),
 	))
 
-	type hookParams struct {
+	type hookProps struct {
 		RPCServer contracts.RPCServer `name:"rpcServerRef"`
 	}
 
 	m.AddHook(hook.HooksFunc(fmt.Sprintf("rpc-server-%s-hook", name),
-		func(p hookParams) waiterContracts.WaitFunc {
+		func(props hookProps) waiterContracts.WaitFunc {
 			return func(ctx context.Context) error {
-				srv := p.RPCServer
+				srv := props.RPCServer
 				srv.Logger().Infof("%s is listening on address:{%s}", srv.Name(), srv.Config().Address())
 
 				if err := srv.Start(ctx); err != nil && !errors.Is(err, http.ErrServerClosed) {
@@ -97,9 +96,9 @@ func serverModuleFunc(name string, log loggerContracts.Logger, cfg *config.Confi
 				return nil
 			}
 		},
-		func(p hookParams) waiterContracts.CleanupFunc {
+		func(props hookProps) waiterContracts.CleanupFunc {
 			return func(ctx context.Context) error {
-				srv := p.RPCServer
+				srv := props.RPCServer
 
 				ctx, cancel := context.WithTimeout(ctx, srv.Config().ServerShutdownTimeout)
 				defer cancel()
@@ -112,7 +111,7 @@ func serverModuleFunc(name string, log loggerContracts.Logger, cfg *config.Confi
 				return nil
 			}
 		},
-		hook.NamedDep("rpcServerRef", providerName),
+		hook.NamedDep("rpcServerRef", fmt.Sprintf(RPCServersProvider, name)),
 	))
 
 	return m

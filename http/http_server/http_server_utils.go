@@ -7,6 +7,7 @@ import (
 	httpservertype "frisboo-bank/pkg/http/http_server/enums/http_server_type"
 	loggerContracts "frisboo-bank/pkg/logger/contracts"
 	"frisboo-bank/pkg/syserrors"
+	"frisboo-bank/pkg/validation"
 )
 
 func NoHTTPServerOfTypeError(name string, sType httpservertype.HttpServerType) error {
@@ -14,8 +15,11 @@ func NoHTTPServerOfTypeError(name string, sType httpservertype.HttpServerType) e
 }
 
 func GetInstance(name string, cfg *config.Config, logger loggerContracts.Logger) (contracts.HTTPServer, error) {
-	var adapter contracts.HTTPServerAdapter
+	validation.AssertNotEmpty("name", name)
+	validation.AssertNotNil("cfg", cfg)
+	validation.AssertNotNil("logger", logger)
 
+	var adapter contracts.HTTPServerAdapter
 	switch cfg.Type {
 	case httpservertype.HttpServerTypes.ECHO:
 		adapter = echo.New(name, cfg, logger, nil)

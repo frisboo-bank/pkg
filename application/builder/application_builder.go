@@ -22,6 +22,7 @@ import (
 	loggerConfig "frisboo-bank/pkg/logger/config"
 	loggerContracts "frisboo-bank/pkg/logger/contracts"
 	loggerEnums "frisboo-bank/pkg/logger/enums"
+	migrationEnums "frisboo-bank/pkg/migration/enums"
 	rpcServerEnums "frisboo-bank/pkg/rpc/rpc_server/enums"
 	"frisboo-bank/pkg/syserrors"
 	"frisboo-bank/pkg/waiter"
@@ -56,6 +57,7 @@ func NewApplicationBuilder(environments ...environment.Environment) (contracts.A
 			environment.EnvironmentEnumsDecodeHook(),
 			httpServerEnums.HTTPServerEnumsDecodeHook(),
 			loggerEnums.LoggerEnumsDecodeHook(),
+			migrationEnums.MigrationEnumsDecodeHook(),
 			rpcServerEnums.RPCServerEnumsDecodeHook(),
 		),
 	)
