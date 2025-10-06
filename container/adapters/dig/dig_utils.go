@@ -79,8 +79,8 @@ func wrapFuncWithDigIn(fn any, namedDeps map[string]string, ctx string) (any, er
 	if numIn == 0 {
 		return fn, nil
 	}
-	if origType.NumIn() > 1 {
-		return nil, syserrors.Newf("%s: constructor must have exactly 1 param (struct), got %d", ctx, origType.NumIn())
+	if numIn > 1 {
+		return nil, syserrors.Newf("%s: constructor must have exactly 1 param (struct), got %d", ctx, numIn)
 	}
 	paramType := origType.In(0)
 	if paramType.Kind() == reflect.Pointer {
