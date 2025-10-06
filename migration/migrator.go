@@ -24,7 +24,7 @@ func (m *migrator) Down(version uint) error {
 }
 
 func (m *migrator) Up(version uint) error {
-	return m.Up(version)
+	return m.adapter.Up(version)
 }
 
 func (m *migrator) Config() *config.Config {
