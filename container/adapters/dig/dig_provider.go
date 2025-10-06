@@ -24,7 +24,7 @@ func (a *digAdapter) RegisterProviders(providers ...provider.Provider) error {
 func (a *digAdapter) RegisterProvider(name string, p provider.Provider) error {
 	cfg := provider.Config{}
 	if err := options.Apply(&cfg, p.Options()...); err != nil {
-		return syserrors.Wrapf(err, "failed to apply options on provider %s", name)
+		return syserrors.Wrapf(err, "failed to apply options for provider %s", name)
 	}
 
 	fn, err := wrapFuncWithDigIn(p.Fn(), cfg.NamedDeps, "provider "+name)

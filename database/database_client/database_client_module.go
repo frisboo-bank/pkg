@@ -35,14 +35,20 @@ func ModuleFunc(appBuilder applicationContracts.ApplicationBuilder) module.Modul
 	// Load and register the config registry
 	cfgRegistry, err := config.LoadRegistry(configLoader, env)
 	if err != nil {
-		logger.Panicw("failed to register database_client module", loggerContracts.Fields{"err": err, "cause": syserrors.Cause(err)})
+		logger.Panicw(
+			"failed to register database_client module",
+			loggerContracts.Fields{"err": err, "cause": syserrors.Cause(err)},
+		)
 	}
 	m.AddProvider(provider.ProvideFunc(func() config.Registry { return cfgRegistry }))
 
 	for _, name := range cfgRegistry.Names() {
 		cfg, err := cfgRegistry.GetByName(name)
 		if err != nil {
-			logger.Panicw("failed to register database_client module", loggerContracts.Fields{"err": err, "cause": syserrors.Cause(err)})
+			logger.Panicw(
+				"failed to register database_client module",
+				loggerContracts.Fields{"err": err, "cause": syserrors.Cause(err)},
+			)
 		}
 		if !cfg.Enabled {
 			logger.Debugf("database-client:{%s} is disabled and will not be loaded", name)

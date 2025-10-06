@@ -10,7 +10,6 @@ import (
 	"frisboo-bank/pkg/environment"
 	"frisboo-bank/pkg/migration"
 	"frisboo-bank/pkg/migration/config"
-
 	"frisboo-bank/pkg/migration/contracts"
 	migrationcommandtype "frisboo-bank/pkg/migration/enums/migration_command_type"
 

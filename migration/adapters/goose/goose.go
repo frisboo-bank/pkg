@@ -18,7 +18,12 @@ type gooseMigratorAdapter struct {
 	logger   loggerContracts.Logger
 }
 
-func New(name string, cfg *config.Config, dbClient databaseclientContracts.DatabaseClient, logger loggerContracts.Logger) *gooseMigratorAdapter {
+func New(
+	name string,
+	cfg *config.Config,
+	dbClient databaseclientContracts.DatabaseClient,
+	logger loggerContracts.Logger,
+) *gooseMigratorAdapter {
 	validation.AssertNotEmpty("name", name)
 	validation.AssertNotNil("cfg", cfg)
 	validation.AssertNotNil("dbClient", dbClient)

@@ -5,12 +5,11 @@ import (
 	"path/filepath"
 	"testing"
 
+	configloader "frisboo-bank/pkg/config/config_loader"
 	"frisboo-bank/pkg/config/config_loader/config"
 	"frisboo-bank/pkg/config/config_loader/contracts"
 	"frisboo-bank/pkg/environment"
 	"frisboo-bank/pkg/syserrors"
-
-	configloader "frisboo-bank/pkg/config/config_loader"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"

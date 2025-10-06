@@ -27,7 +27,12 @@ type echoHTTPServerAdapter struct {
 	routeBuilder contracts.RouteBuilder
 }
 
-func New(name string, cfg *config.Config, logger loggerContracts.Logger, meter metric.Meter) contracts.HTTPServerAdapter {
+func New(
+	name string,
+	cfg *config.Config,
+	logger loggerContracts.Logger,
+	meter metric.Meter,
+) contracts.HTTPServerAdapter {
 	validation.AssertNotEmpty("name", name)
 	validation.AssertNotNil("cfg", cfg)
 	validation.AssertNotNil("logger", logger)

@@ -39,17 +39,21 @@ func resolveDynamicGroup[T any](container *dig.Container, groupName string, slic
 	)
 
 	if err := container.Invoke(fn.Interface()); err != nil {
-		return *new(T), syserrors.Wrapf(err, "dig invoke failed for group %s", groupName)
+		return *new(T), syserrors.Wrapf(err, "dig invoke failed for group:{%s}", groupName)
 	}
 
 	field := input.FieldByName("Funcs")
 	if !field.IsValid() {
-		return *new(T), syserrors.Newf("field 'Funcs' not found in input struct for group %q", groupName)
+		return *new(T), syserrors.Newf("field 'Funcs' not found in input struct for group:{%s}", groupName)
 	}
 
 	result, ok := field.Interface().(T)
 	if !ok {
-		return *new(T), syserrors.Newf("type conversion failed for group %q: got %T, want %T", groupName, field.Interface(), *new(T))
+		return *new(T), syserrors.Newf(
+			"type conversion failed for group:{%q}, got {%T}, want {%T}",
+			groupName,
+			field.Interface(),
+			*new(T))
 	}
 
 	return result, nil
@@ -80,14 +84,14 @@ func wrapFuncWithDigIn(fn any, namedDeps map[string]string, ctx string) (any, er
 		return fn, nil
 	}
 	if numIn > 1 {
-		return nil, syserrors.Newf("%s: constructor must have exactly 1 param (struct), got %d", ctx, numIn)
+		return nil, syserrors.Newf("%s: constructor must have 0 or 1 param (struct), got {%d}", ctx, numIn)
 	}
 	paramType := origType.In(0)
 	if paramType.Kind() == reflect.Pointer {
 		return nil, syserrors.Newf("%s: param must be a non-pointer struct", ctx)
 	}
 	if paramType.Kind() != reflect.Struct {
-		return nil, syserrors.Newf("%s: param must be struct, got %s", ctx, paramType.Kind())
+		return nil, syserrors.Newf("%s: param must be struct, got {%s}", ctx, paramType.Kind())
 	}
 
 	// Skip wrapping if already embeds dig.In

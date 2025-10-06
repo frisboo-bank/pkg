@@ -60,8 +60,8 @@ func ModuleFunc(props ModuleProps) module.Module {
 
 func serverModuleFunc(name string, cfg *config.Config, log loggerContracts.Logger) module.Module {
 	validation.AssertNotEmpty("name", name)
-	validation.AssertNotNil("log", log)
 	validation.AssertNotNil("cfg", cfg)
+	validation.AssertNotNil("log", log)
 
 	log.Debugf("Try to register migration:{%s} module", name)
 

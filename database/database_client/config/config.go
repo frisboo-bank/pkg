@@ -7,7 +7,7 @@ import (
 
 	configloaderContracts "frisboo-bank/pkg/config/config_loader/contracts"
 	"frisboo-bank/pkg/config/registry"
-	mongoDBConfig "frisboo-bank/pkg/database/database_client/adapters/mongoDB/config"
+	mongoDBConfig "frisboo-bank/pkg/database/database_client/adapters/mongodb/config"
 	postgresConfig "frisboo-bank/pkg/database/database_client/adapters/postgres/config"
 	databaseclienttype "frisboo-bank/pkg/database/database_client/enums/database_client_type"
 	"frisboo-bank/pkg/environment"

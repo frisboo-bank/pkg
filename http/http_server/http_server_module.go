@@ -6,20 +6,17 @@ import (
 	"fmt"
 	"net/http"
 
+	applicationContracts "frisboo-bank/pkg/application/contracts"
 	"frisboo-bank/pkg/container/dependencies/hook"
 	"frisboo-bank/pkg/container/dependencies/module"
 	"frisboo-bank/pkg/container/dependencies/provider"
 	"frisboo-bank/pkg/http/http_server/config"
 	"frisboo-bank/pkg/http/http_server/contracts"
 	"frisboo-bank/pkg/logger"
-	"frisboo-bank/pkg/syserrors"
-	"frisboo-bank/pkg/validation"
-
-	applicationContracts "frisboo-bank/pkg/application/contracts"
-
 	loggerConfig "frisboo-bank/pkg/logger/config"
 	loggerContracts "frisboo-bank/pkg/logger/contracts"
-
+	"frisboo-bank/pkg/syserrors"
+	"frisboo-bank/pkg/validation"
 	waiterContracts "frisboo-bank/pkg/waiter/contracts"
 )
 
@@ -38,7 +35,10 @@ func ModuleFunc(appBuilder applicationContracts.ApplicationBuilder) module.Modul
 	// Load and register the config registry
 	cfgRegistry, err := config.LoadRegistry(configLoader, env)
 	if err != nil {
-		logger.Panicw("failed to register http-server module", loggerContracts.Fields{"err": err, "cause": syserrors.Cause(err)})
+		logger.Panicw(
+			"failed to register http-server module",
+			loggerContracts.Fields{"err": err, "cause": syserrors.Cause(err)},
+		)
 	}
 
 	m := module.ModuleFunc(
@@ -49,7 +49,10 @@ func ModuleFunc(appBuilder applicationContracts.ApplicationBuilder) module.Modul
 	for _, name := range cfgRegistry.Names() {
 		cfg, err := cfgRegistry.GetByName(name)
 		if err != nil {
-			logger.Panicw("failed to register http-server module", loggerContracts.Fields{"err": err, "cause": syserrors.Cause(err)})
+			logger.Panicw(
+				"failed to register http-server module",
+				loggerContracts.Fields{"err": err, "cause": syserrors.Cause(err)},
+			)
 		}
 		if !cfg.Enabled {
 			continue

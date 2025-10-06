@@ -52,8 +52,13 @@ func LoadRegistry(configLoader configloaderContracts.ConfigLoader, env environme
 }
 
 func (c *Config) Validate() error {
-	return validation.ValidateStruct(c,
-		validation.Field(&c.Type, validation.Required, validation.By(cValidation.EnumOneOf(migratortype.MigratorTypes))),
+	return validation.ValidateStruct(
+		c,
+		validation.Field(
+			&c.Type,
+			validation.Required,
+			validation.By(cValidation.EnumOneOf(migratortype.MigratorTypes)),
+		),
 		validation.Field(&c.DB, validation.Required),
 		validation.Field(&c.MigrationsDir, validation.Required),
 	)
