@@ -4,6 +4,7 @@ import (
 	loggerContracts "frisboo-bank/pkg/logger/contracts"
 	"frisboo-bank/pkg/migration/config"
 	"frisboo-bank/pkg/migration/contracts"
+	migrationcommandtype "frisboo-bank/pkg/migration/enums/migration_command_type"
 	migratortype "frisboo-bank/pkg/migration/enums/migrator_type"
 	"frisboo-bank/pkg/validation"
 )
@@ -25,6 +26,14 @@ func (m *migrator) Down(version uint) error {
 
 func (m *migrator) Up(version uint) error {
 	return m.adapter.Up(version)
+}
+
+func (m *migrator) Reset() error {
+	return m.adapter.Reset()
+}
+
+func (m *migrator) Run(command migrationcommandtype.MigrationCommandType, version uint) error {
+	return m.adapter.Run(command, version)
 }
 
 func (m *migrator) Config() *config.Config {

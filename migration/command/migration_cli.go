@@ -47,12 +47,25 @@ var cmdDown = &cobra.Command{
 	},
 }
 
+var cmdReset = &cobra.Command{
+	Use:   fmt.Sprintf("%s [database-name]", migrationcommandtype.MigrationCommandTypes.RESET.String()),
+	Short: "Reset all migrations",
+	Run: func(cmd *cobra.Command, args []string) {
+		err := executeMigration(migrationcommandtype.MigrationCommandTypes.RESET, cmd, args)
+		if err != nil {
+			panic(err)
+		}
+	},
+}
+
 func NewMigrationCommand() *MigrationCommand {
 	cmdUp.Flags().Uint("version", 0, "Migration version")
 	cmdDown.Flags().Uint("version", 0, "Migration version")
+	cmdReset.Flags().Uint("version", 0, "Migration version")
 
 	rootCmd.AddCommand(cmdUp)
 	rootCmd.AddCommand(cmdDown)
+	rootCmd.AddCommand(cmdReset)
 
 	return &MigrationCommand{}
 }
@@ -108,9 +121,11 @@ func executeMigration(commandType migrationcommandtype.MigrationCommandType, cmd
 			err = migrator.Up(version)
 		case migrationcommandtype.MigrationCommandTypes.DOWN:
 			err = migrator.Down(version)
+		case migrationcommandtype.MigrationCommandTypes.RESET:
+			err = migrator.Reset()
 		}
 		if err != nil {
-			migrator.Logger().Fatalf("migration failed with error: %v", err)
+			migrator.Logger().Panicf("migration failed with error: %v", err)
 		}
 
 		migrator.Logger().Info("Migration completed...")
@@ -126,6 +141,5 @@ func executeMigration(commandType migrationcommandtype.MigrationCommandType, cmd
 		return err
 	}
 
-	fmt.Printf("Migration of the database %s done successfully\n", databaseName)
 	return nil
 }

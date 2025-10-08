@@ -14,6 +14,5 @@ func NewApplicationInfrastructure(app contracts.Application) contracts.Applicati
 	return &applicationInfrastructure{app}
 }
 
-func (a *applicationInfrastructure) ConfigureInfrastructure() error {
-	return nil
+func (a *applicationInfrastructure) ConfigureInfrastructures() {
 }

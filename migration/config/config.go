@@ -1,6 +1,7 @@
 package config
 
 import (
+	"context"
 	"strings"
 
 	configloaderContracts "frisboo-bank/pkg/config/config_loader/contracts"
@@ -20,6 +21,7 @@ type Config struct {
 	Type          migratortype.MigratorType `mapstructure:"type"`
 	DB            string                    `mapstructure:"db"`
 	MigrationsDir string                    `mapstructure:"migrationsDir"`
+	Context       context.Context           `mapstructure:"-"`
 
 	// dependencies
 	Logger string `mapstructure:"logger"`
@@ -74,6 +76,10 @@ var DB = options.Option(func(c *Config, db string) {
 
 var MigrationsDir = options.Option(func(c *Config, migrationsDir string) {
 	c.MigrationsDir = strings.TrimSpace(migrationsDir)
+})
+
+var Context = options.Option(func(c *Config, ctx context.Context) {
+	c.Context = ctx
 })
 
 var Logger = options.Option(func(c *Config, logger string) {
