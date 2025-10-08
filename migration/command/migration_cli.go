@@ -125,7 +125,8 @@ func executeMigration(commandType migrationcommandtype.MigrationCommandType, cmd
 			err = migrator.Reset()
 		}
 		if err != nil {
-			migrator.Logger().Panicf("migration failed with error: %v", err)
+			migrator.Logger().Fatalf("migration failed with error: %v", err)
+			return
 		}
 
 		migrator.Logger().Info("Migration completed...")

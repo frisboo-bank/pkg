@@ -38,7 +38,8 @@ func ModuleFunc(props ModuleProps) module.Module {
 		var err error
 		cfgRegistry, err = config.LoadRegistry(appBuilder.ConfigLoader(), appBuilder.Environment())
 		if err != nil {
-			logger.Panicf("failed to register migration module with error: %v", err)
+			logger.Fatalf("failed to register migration module with error: %v", err)
+			return nil
 		}
 	}
 
@@ -50,7 +51,8 @@ func ModuleFunc(props ModuleProps) module.Module {
 	for _, name := range cfgRegistry.Names() {
 		cfg, err := cfgRegistry.GetByName(name)
 		if err != nil {
-			logger.Panicf("failed to register migration:{%s} module with error:{%v}", name, err)
+			logger.Fatalf("failed to register migration:{%s} module with error:{%v}", name, err)
+			return nil
 		}
 		m.AddModule(serverModuleFunc(name, &cfg, logger))
 	}
