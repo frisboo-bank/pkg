@@ -1,6 +1,8 @@
 package contracts
 
 import (
+	"database/sql"
+
 	"frisboo-bank/pkg/database/database_client/config"
 	databaseclienttype "frisboo-bank/pkg/database/database_client/enums/database_client_type"
 	loggerContracts "frisboo-bank/pkg/logger/contracts"
@@ -10,9 +12,11 @@ type (
 	databaseClientCommon interface {
 		Ping() error
 		Disconnect() error
+
 		Name() string
 		Type() databaseclienttype.DatabaseClientType
 		Config() *config.Config
+		DB() *sql.DB
 		Logger() loggerContracts.Logger
 	}
 

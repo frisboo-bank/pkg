@@ -68,8 +68,8 @@ func LoadRegistry(configLoader configloaderContracts.ConfigLoader, env environme
 	reg, err := registry.Load(
 		configLoader,
 		env,
-		"database-Clients",
-		"dbClient",
+		"database-clients",
+		"database-client",
 		Default,
 	)
 	if err != nil {

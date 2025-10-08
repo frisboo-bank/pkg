@@ -21,7 +21,6 @@ type Config struct {
 
 func Default() Config {
 	return Config{
-		ParentContext:          context.Background(),
 		CancelOnShutdownSignal: false,
 		WaitTimeout:            30 * time.Second,
 		CleanupTimeout:         5 * time.Second,
@@ -41,6 +40,13 @@ func New(opts ...Option) (Config, error) {
 	return base, nil
 }
 
+func (c *Config) Validate() error {
+	return validation.ValidateStruct(c,
+		validation.Field(&c.WaitTimeout, validation.Required, validation.Min(0)),
+		validation.Field(&c.CleanupTimeout, validation.Required, validation.Min(0)),
+	)
+}
+
 var ParentContext = options.Option(func(c *Config, parentCtx context.Context) {
 	c.ParentContext = parentCtx
 })
@@ -58,11 +64,3 @@ var WaitTimeout = options.Option(func(c *Config, waitTimeout time.Duration) {
 var CleanupTimeout = options.Option(func(c *Config, cleanupTimeout time.Duration) {
 	c.CleanupTimeout = cleanupTimeout
 })
-
-func (c *Config) Validate() error {
-	return validation.ValidateStruct(c,
-		validation.Field(&c.ParentContext, validation.Required),
-		validation.Field(&c.WaitTimeout, validation.Required, validation.Min(0)),
-		validation.Field(&c.CleanupTimeout, validation.Required, validation.Min(0)),
-	)
-}

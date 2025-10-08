@@ -2,6 +2,7 @@ package mongodb
 
 import (
 	"context"
+	"database/sql"
 	"fmt"
 
 	"frisboo-bank/pkg/database/database_client/config"
@@ -85,18 +86,22 @@ func (m *mongoDBDatabaseClientAdapter) Disconnect() error {
 	return m.client.Disconnect(m.ctx)
 }
 
-func (m *mongoDBDatabaseClientAdapter) Config() *config.Config {
-	return m.cfg
-}
-
-func (m *mongoDBDatabaseClientAdapter) Logger() loggerContracts.Logger {
-	return m.logger
-}
-
 func (m *mongoDBDatabaseClientAdapter) Name() string {
 	return m.name
 }
 
 func (m *mongoDBDatabaseClientAdapter) Type() databaseclienttype.DatabaseClientType {
 	return databaseclienttype.DatabaseClientTypes.MONGODB
+}
+
+func (m *mongoDBDatabaseClientAdapter) Config() *config.Config {
+	return m.cfg
+}
+
+func (p *mongoDBDatabaseClientAdapter) DB() *sql.DB {
+	return nil
+}
+
+func (m *mongoDBDatabaseClientAdapter) Logger() loggerContracts.Logger {
+	return m.logger
 }

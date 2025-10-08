@@ -1,6 +1,8 @@
 package databaseclient
 
 import (
+	"database/sql"
+
 	"frisboo-bank/pkg/database/database_client/config"
 	"frisboo-bank/pkg/database/database_client/contracts"
 	databaseclienttype "frisboo-bank/pkg/database/database_client/enums/database_client_type"
@@ -27,18 +29,22 @@ func (d *databaseClient) Disconnect() error {
 	return d.adapter.Disconnect()
 }
 
-func (d *databaseClient) Config() *config.Config {
-	return d.adapter.Config()
-}
-
-func (d *databaseClient) Logger() loggerContracts.Logger {
-	return d.adapter.Logger()
-}
-
 func (d *databaseClient) Name() string {
 	return d.adapter.Name()
 }
 
 func (d *databaseClient) Type() databaseclienttype.DatabaseClientType {
 	return d.adapter.Type()
+}
+
+func (d *databaseClient) Config() *config.Config {
+	return d.adapter.Config()
+}
+
+func (d *databaseClient) DB() *sql.DB {
+	return d.adapter.DB()
+}
+
+func (d *databaseClient) Logger() loggerContracts.Logger {
+	return d.adapter.Logger()
 }

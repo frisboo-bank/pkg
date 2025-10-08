@@ -71,8 +71,8 @@ func New(name string, cfg *config.Config, logger loggerContracts.Logger) (contra
 	}, nil
 }
 
-func (p *postgresDatabaseClientAdapter) Config() *config.Config {
-	return p.cfg
+func (p *postgresDatabaseClientAdapter) Ping() error {
+	return p.client.PingContext(p.ctx)
 }
 
 func (p *postgresDatabaseClientAdapter) Disconnect() error {
@@ -82,18 +82,22 @@ func (p *postgresDatabaseClientAdapter) Disconnect() error {
 	return nil
 }
 
-func (p *postgresDatabaseClientAdapter) Logger() loggerContracts.Logger {
-	return p.logger
-}
-
 func (p *postgresDatabaseClientAdapter) Name() string {
 	return p.name
 }
 
-func (p *postgresDatabaseClientAdapter) Ping() error {
-	return p.client.PingContext(p.ctx)
-}
-
 func (p *postgresDatabaseClientAdapter) Type() databaseclienttype.DatabaseClientType {
 	return databaseclienttype.DatabaseClientTypes.POSTGRES
+}
+
+func (p *postgresDatabaseClientAdapter) Config() *config.Config {
+	return p.cfg
+}
+
+func (p *postgresDatabaseClientAdapter) DB() *sql.DB {
+	return p.db
+}
+
+func (p *postgresDatabaseClientAdapter) Logger() loggerContracts.Logger {
+	return p.logger
 }
