@@ -14,7 +14,6 @@ import (
 
 	httpservertype "frisboo-bank/pkg/http/http_server/enums/http_server_type"
 
-	loggerContracts "frisboo-bank/pkg/logger/contracts"
 
 	echoVendor "github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
