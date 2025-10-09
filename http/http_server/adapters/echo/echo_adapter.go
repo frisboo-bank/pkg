@@ -2,18 +2,16 @@ package echo
 
 import (
 	"context"
+	"fmt"
 	"strings"
 
 	"frisboo-bank/pkg/http/http_server/config"
 	"frisboo-bank/pkg/http/http_server/contracts"
-	"frisboo-bank/pkg/http/http_server/routing"
 	httpservertype "frisboo-bank/pkg/http/http_server/enums/http_server_type"
+	"frisboo-bank/pkg/http/http_server/routing"
 	loggerContracts "frisboo-bank/pkg/logger/contracts"
 	"frisboo-bank/pkg/syserrors"
 	"frisboo-bank/pkg/validation"
-
-	httpservertype "frisboo-bank/pkg/http/http_server/enums/http_server_type"
-
 
 	echoVendor "github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
@@ -83,9 +81,46 @@ func (e *echoHTTPServerAdapter) SetupDefaultMiddlewares() {
 	}
 
 	e.echo.Use(
+		middleware.RequestLoggerWithConfig(middleware.RequestLoggerConfig{
+			Skipper: skipper,
+
+			LogRequestID:     true,
+			LogRemoteIP:      true,
+			LogHost:          true,
+			LogMethod:        true,
+			LogURI:           true,
+			LogUserAgent:     true,
+			LogStatus:        true,
+			LogError:         true,
+			LogLatency:       true,
+			LogContentLength: true,
+			LogResponseSize:  true,
+
+			LogValuesFunc: func(c echoVendor.Context, v middleware.RequestLoggerValues) error {
+				e.logger.Infow(fmt.Sprintf("[Request] url:{%v} status:{%v}", v.URI, v.Status),
+					loggerContracts.Fields{
+						"uri":           v.URI,
+						"status":        v.Status,
+						"id":            v.RequestID,
+						"remote_ip":     v.RemoteIP,
+						"host":          v.Host,
+						"method":        v.Method,
+						"user_agent":    v.UserAgent,
+						"error":         v.Error,
+						"latency":       v.Latency.Nanoseconds(),
+						"latency_human": v.Latency.String(),
+						"bytes_in":      v.ContentLength,
+						"bytes_out":     v.ResponseSize,
+					})
+
+				return nil
+			},
+		}),
 		middleware.Recover(),
+		middleware.AddTrailingSlash(),
 		middleware.BodyLimit(e.cfg.BodyLimit),
 		middleware.RequestID(),
+		middleware.Secure(),
 		middleware.GzipWithConfig(middleware.GzipConfig{
 			Skipper: skipper,
 			Level:   e.cfg.GzipLevel,

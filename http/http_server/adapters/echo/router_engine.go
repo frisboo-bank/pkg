@@ -54,10 +54,6 @@ func (e *echoRouterEngine) Handle(method string, path string, handler any, middl
 	validation.AssertNotEmpty("method", method)
 	validation.AssertNotNil("handler", handler)
 
-	if path == "" {
-		path = "/"
-	}
-
 	h, err := ToHandlerFunc(handler)
 	if err != nil {
 		panic(syserrors.Wrapf(err, "invalid handler for route method:{%s} path:{%s}", method, path))
@@ -79,10 +75,6 @@ func (e *echoRouterEngine) Handle(method string, path string, handler any, middl
 
 func (e *echoRouterEngine) Static(prefix string, root string) {
 	validation.AssertNotEmpty("root", root)
-
-	if prefix == "" {
-		prefix = "/"
-	}
 
 	if e.group != nil {
 		e.group.Static(prefix, root)
