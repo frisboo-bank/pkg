@@ -29,3 +29,14 @@ func ToMiddlewaresType(middlewares ...any) ([]echoVendor.MiddlewareFunc, error) 
 
 	return mws, nil
 }
+
+// ToHandlerFunc converts a generic handler to echo.HandlerFunc.
+func ToHandlerFunc(handler any) (echoVendor.HandlerFunc, error) {
+	switch h := handler.(type) {
+	case echoVendor.HandlerFunc:
+		return h, nil
+	case func(echoVendor.Context) error:
+		return h, nil
+	}
+	return nil, syserrors.New("invalid handler type, must be echo.HandlerFunc or func(echo.Context) error")
+}
