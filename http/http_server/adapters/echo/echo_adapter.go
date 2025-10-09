@@ -6,11 +6,14 @@ import (
 
 	"frisboo-bank/pkg/http/http_server/config"
 	"frisboo-bank/pkg/http/http_server/contracts"
-	httpservertype "frisboo-bank/pkg/http/http_server/enums/http_server_type"
 	"frisboo-bank/pkg/http/http_server/routing"
+	httpservertype "frisboo-bank/pkg/http/http_server/enums/http_server_type"
 	loggerContracts "frisboo-bank/pkg/logger/contracts"
 	"frisboo-bank/pkg/syserrors"
 	"frisboo-bank/pkg/validation"
+
+	httpservertype "frisboo-bank/pkg/http/http_server/enums/http_server_type"
+
 
 	echoVendor "github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
@@ -87,6 +90,7 @@ func (e *echoHTTPServerAdapter) SetupDefaultMiddlewares() {
 			Skipper: skipper,
 			Level:   e.cfg.GzipLevel,
 		}),
+		middleware.CORS(),
 	)
 }
 
