@@ -97,7 +97,7 @@ func (e *echoHTTPServerAdapter) SetupDefaultMiddlewares() {
 			LogResponseSize:  true,
 
 			LogValuesFunc: func(c echoVendor.Context, v middleware.RequestLoggerValues) error {
-				e.logger.Infow(fmt.Sprintf("[Request] url:{%v} status:{%v}\n", v.URI, v.Status),
+				e.logger.Infow(fmt.Sprintf("[Request] url:{%v} status:{%v}", v.URI, v.Status),
 					loggerContracts.Fields{
 						"uri":           v.URI,
 						"status":        v.Status,
