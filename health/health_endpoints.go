@@ -39,9 +39,7 @@ func NewHealthEndpoint(
 }
 
 func (e *healthEndpoint) RegisterEndpoints() {
-	e.httpServer.RouteBuilder().RegisterRoutes(func(server any) {
-		server.(*gin.Engine).GET(e.cfg.LivenessPath, e.checkHealth)
-	})
+	e.httpServer.RouteBuilder().Root().GET(e.cfg.LivenessPath, e.checkHealth)
 }
 
 func (e *healthEndpoint) checkHealth(ctx *gin.Context) {

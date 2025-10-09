@@ -7,6 +7,7 @@ import (
 	"frisboo-bank/pkg/http/http_server/config"
 	"frisboo-bank/pkg/http/http_server/contracts"
 	httpservertype "frisboo-bank/pkg/http/http_server/enums/http_server_type"
+	"frisboo-bank/pkg/http/http_server/routing"
 	loggerContracts "frisboo-bank/pkg/logger/contracts"
 	"frisboo-bank/pkg/syserrors"
 	"frisboo-bank/pkg/validation"
@@ -47,13 +48,15 @@ func New(
 	e.Server.IdleTimeout = cfg.IdleTimeout
 	e.Server.MaxHeaderBytes = cfg.MaxHeaderBytes
 
+	routerEngine := newRouterEngine(e, logger)
+
 	return &echoHTTPServerAdapter{
 		name:         name,
 		cfg:          cfg,
 		echo:         e,
 		logger:       logger,
 		meter:        meter,
-		routeBuilder: NewRouteBuilder(e),
+		routeBuilder: routing.NewBuilder(routerEngine),
 	}
 }
 
@@ -65,12 +68,7 @@ func (e *echoHTTPServerAdapter) AddMiddlewares(middlewares ...any) {
 	e.echo.Use(ms...)
 }
 
-func (e *echoHTTPServerAdapter) ListRoutes() []any {
-	panic("unimplemented")
-}
-
 func (e *echoHTTPServerAdapter) SetupDefaultMiddlewares() {
-	// TODO: improve to support pattern matching
 	skipper := func(c echoVendor.Context) bool {
 		rPath := c.Request().URL.Path
 		for _, skip := range e.cfg.IgnoreLogUrls {
@@ -82,11 +80,9 @@ func (e *echoHTTPServerAdapter) SetupDefaultMiddlewares() {
 	}
 
 	e.echo.Use(
-		// middlewares.HTTPMetrics(e.name, e.meter, e.logger, skipper),
 		middleware.Recover(),
 		middleware.BodyLimit(e.cfg.BodyLimit),
 		middleware.RequestID(),
-		// middlewares.IPRateLimit(),
 		middleware.GzipWithConfig(middleware.GzipConfig{
 			Skipper: skipper,
 			Level:   e.cfg.GzipLevel,
@@ -100,6 +96,15 @@ func (e *echoHTTPServerAdapter) Start(ctx context.Context) error {
 
 func (e *echoHTTPServerAdapter) Stop(ctx context.Context) error {
 	return e.echo.Shutdown(ctx)
+}
+
+func (e *echoHTTPServerAdapter) ListRoutes() []any {
+	rs := e.echo.Routes()
+	out := make([]any, len(rs))
+	for i, r := range rs {
+		out[i] = r
+	}
+	return out
 }
 
 func (e *echoHTTPServerAdapter) Name() string {
