@@ -103,7 +103,7 @@ require (
 	github.com/rs/zerolog v1.34.0
 	github.com/spf13/viper v1.21.0
 	gitlab.com/tozd/go/errors v0.10.0
-	go.mongodb.org/mongo-driver v1.17.4
+	go.mongodb.org/mongo-driver v1.17.6
 	go.opentelemetry.io/contrib/instrumentation/go.mongodb.org/mongo-driver/mongo/otelmongo v0.63.0
 	golang.org/x/sync v0.17.0
 	golang.org/x/sys v0.37.0 // indirect
