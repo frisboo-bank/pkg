@@ -105,7 +105,7 @@ require (
 	gitlab.com/tozd/go/errors v0.10.0
 	go.mongodb.org/mongo-driver v1.17.4
 	go.opentelemetry.io/contrib/instrumentation/go.mongodb.org/mongo-driver/mongo/otelmongo v0.63.0
-	golang.org/x/sync v0.17.0
+	golang.org/x/sync v0.18.0
 	golang.org/x/sys v0.37.0 // indirect
 	google.golang.org/grpc v1.76.0
 )
