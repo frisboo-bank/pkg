@@ -99,7 +99,7 @@ require (
 	github.com/grpc-ecosystem/go-grpc-middleware v1.4.0
 	github.com/jackc/pgx/v5 v5.7.6
 	github.com/kamva/mgm/v3 v3.5.0
-	github.com/redis/go-redis/v9 v9.14.0
+	github.com/redis/go-redis/v9 v9.17.0
 	github.com/rs/zerolog v1.34.0
 	github.com/spf13/viper v1.21.0
 	gitlab.com/tozd/go/errors v0.10.0
